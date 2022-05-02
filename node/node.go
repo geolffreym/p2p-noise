@@ -1,52 +1,46 @@
 package node
 
 import (
-	"context"
-	"fmt"
-
-	"github.com/libp2p/go-libp2p"
-	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
-	"github.com/multiformats/go-multiaddr"
+	"github.com/geolffreym/p2p-network/network"
 )
 
+// type Roles struct {
+// 	requester net.Conn
+// 	requested net.Conn
+// }
 type Node struct {
-	Host host.Host
-	Room protocol.ID
-	ctx  context.Context
+	Addr    string
+	Done    chan bool
+	Network *network.Network
 }
 
-func New(room string, port int) *Node {
-	// 0.0.0.0 will listen on any interface device.
-	localhostMAddress := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port)
-	multiAddress, _ := multiaddr.NewMultiaddr(localhostMAddress)
-
-	// Create a libp2p host/peer
-	host, _ := libp2p.New(libp2p.ListenAddrs(multiAddress))
-
+func New(addr string) *Node {
 	return &Node{
-		Host: host,
-		Room: protocol.ID(room),
-		ctx:  context.Background(),
+		Addr:    addr,
+		Network: network.New(addr),
+	}
+}
+
+func (n *Node) Listen() (*Node, error) {
+	conn, err := n.Network.Listen()
+	if err != nil {
+		return nil, err
 	}
 
+	conn.Bind() // waiting for peers
+	return n, nil
 }
 
-func (p *Node) ID() peer.ID { return p.Host.ID() }
+func (n *Node) Dial(addr string) (*Node, error) {
+	_, err := n.Network.Dial(addr)
+	if err != nil {
+		return nil, err
+	}
 
-// Add stream handler to handle in/out messages
-func (p *Node) AddStreamHandler(handler network.StreamHandler) {
-	p.Host.SetStreamHandler(p.Room, handler)
+	return n, nil
 }
 
-// Create stream to specific peer
-func (p *Node) StreamToPeer(peer peer.ID) (network.Stream, error) {
-	return p.Host.NewStream(p.ctx, peer, p.Room)
-}
-
-// Bootstrapping DHT node
-func (p *Node) Bootstrap() {
-
+func (n *Node) Close() {
+	n.Network.Close()
+	n.Done <- true
 }
