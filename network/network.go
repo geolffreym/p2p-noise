@@ -1,7 +1,6 @@
 package network
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -10,16 +9,16 @@ import (
 const PROTOCOL = "tcp"
 
 type Network struct {
-	Addr     string
-	handler  handler
-	table    router
-	listener net.Listener
+	Addr   string
+	events Events
+	table  Router
 }
 
 func New(addr string) *Network {
 	return &Network{
-		Addr:  addr,
-		table: make(router),
+		Addr:   addr,
+		table:  make(Router),
+		events: make(Events),
 	}
 }
 
@@ -30,16 +29,36 @@ func (network *Network) Listen() (*Network, error) {
 		return nil, fmt.Errorf("error trying to listen on %s: %v", network.Addr, err)
 	}
 
-	// Node setup
-	log.Printf("listening on %s", network.Addr)
-	network.listener = listener
+	// Concurrent processing for each incoming connection
+	go func(n *Network, l net.Listener) {
+		for {
+			// Block/Hold while waiting for new incoming connection
+			conn, err := l.Accept()
+			if err != nil {
+				log.Fatalf("connection closed or cannot be established: %v", err)
+				return
+			}
+
+			// Routing for connection
+			route := n.routing(conn)
+			n.stream(route)
+			// Dispatch event
+			network.events.Emit(NEWPEER, route)
+		}
+	}(network, listener)
+
+	// Dispatch event
+	network.events.Emit(LISTENING, &Route{})
 	return network, nil
+}
+
+func (network *Network) Table() Router {
+	return network.table
 }
 
 // Close all peers connections
 func (network *Network) Close() {
-	for socket, route := range network.table {
-		log.Printf("Closing connection for peer %s", socket)
+	for _, route := range network.table {
 		route.Close()
 	}
 }
@@ -52,9 +71,10 @@ func (network *Network) Dial(addr string) (*Network, error) {
 	}
 
 	// Routing for connection
-	log.Printf("Connecting to network %s", addr)
 	route := network.routing(conn)
 	network.stream(route)
+	// Dispatch event
+	network.events.Emit(NEWPEER, route)
 	return network, nil
 }
 
@@ -62,57 +82,40 @@ func (network *Network) Dial(addr string) (*Network, error) {
 func (network *Network) route(conn net.Conn) *Route {
 	return &Route{
 		conn:   conn,
-		socket: socket(conn.RemoteAddr().String()),
-		stream: bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)),
+		socket: Socket(conn.RemoteAddr().String()),
 	}
 }
 
 // Initialize route in routing table
 func (network *Network) routing(conn net.Conn) *Route {
 	// Keep routing for each connection
-	socket := socket(conn.RemoteAddr().String())
+	socket := Socket(conn.RemoteAddr().String())
 	route := network.route(conn)
 	network.table.Add(socket, route)
 	return route
 }
 
-// Run routed stream connection in goroutine concurrency
+// Run routed stream message in goroutine
 func (network *Network) stream(route *Route) {
-	if network.handler == nil {
-		log.Fatalf("invalid handler for streaming connection")
-		return
-	}
-
 	// Each incoming message processed in concurrent approach
 	go func(n *Network, r *Route) {
-		n.handler(route)
+		buf := make([]byte, 1024)
+		for {
+
+			_, err := r.Read(buf)
+			if err != nil {
+				continue
+			}
+
+			// Emit new incoming
+			n.events.Emit(MESSAGE, r, buf)
+		}
+
 	}(network, route)
 }
 
 // Set handler to handle incoming messages
-func (network *Network) SetHandler(h handler) *Network {
-	network.handler = h
-	return network
-}
-
-// Bind network in thread to handle in/out streams
-func (network *Network) Bind() *Network {
-	// Concurrent processing for each incoming connection
-	go func(listener net.Listener) {
-		for {
-			// Block/Hold while waiting for new incoming connection
-			conn, err := listener.Accept()
-			if err != nil {
-				log.Fatalf("connection closed or cannot be established: %v", err)
-				return
-			}
-
-			// Routing for connection
-			log.Printf("accepted connection from %v", conn.RemoteAddr())
-			route := network.routing(conn)
-			network.stream(route)
-		}
-	}(network.listener)
-
+func (network *Network) AddEventListener(event Event, h Handler) *Network {
+	network.events.AddListener(event, h)
 	return network
 }

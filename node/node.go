@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/geolffreym/p2p-network/network"
+	"github.com/geolffreym/p2p-noise/network"
 )
 
 // type Roles struct {
@@ -22,12 +22,11 @@ func New(addr string) *Node {
 }
 
 func (n *Node) Listen() (*Node, error) {
-	conn, err := n.Network.Listen()
+	_, err := n.Network.Listen()
 	if err != nil {
 		return nil, err
 	}
 
-	conn.Bind() // waiting for peers
 	return n, nil
 }
 
@@ -38,6 +37,24 @@ func (n *Node) Dial(addr string) (*Node, error) {
 	}
 
 	return n, nil
+}
+
+func (n *Node) Broadcast(msg []byte) {
+	for _, route := range n.Network.Table() {
+		route.Write(msg)
+	}
+}
+
+func (n *Node) Unicast(dest network.Socket, msg []byte) {
+	if route, ok := n.Network.Table()[dest]; ok {
+		route.Write(msg)
+	}
+}
+
+// Abstraction/alias for network event listener interface
+func (n *Node) AddListener(event network.Event, h network.Handler) *Node {
+	n.Network.AddEventListener(event, h)
+	return n
 }
 
 func (n *Node) Close() {
