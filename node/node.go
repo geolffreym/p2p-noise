@@ -9,20 +9,18 @@ import (
 // 	requested net.Conn
 // }
 type Node struct {
-	Addr    string
 	Done    chan bool
 	Network *network.Network
 }
 
-func New(addr string) *Node {
+func New() *Node {
 	return &Node{
-		Addr:    addr,
-		Network: network.New(addr),
+		Network: network.New(),
 	}
 }
 
-func (n *Node) Listen() (*Node, error) {
-	_, err := n.Network.Listen()
+func (n *Node) Listen(addr string) (*Node, error) {
+	_, err := n.Network.Listen(addr)
 	if err != nil {
 		return nil, err
 	}

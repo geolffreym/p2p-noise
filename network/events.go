@@ -3,7 +3,7 @@ package network
 type Event int
 
 const (
-	LISTENING Event = iota
+	LISTENING = iota
 	NEWPEER
 	MESSAGE
 )

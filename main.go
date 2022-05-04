@@ -1,9 +1,7 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
 
 	"github.com/geolffreym/p2p-noise/network"
 	"github.com/geolffreym/p2p-noise/node"
@@ -11,37 +9,50 @@ import (
 
 func main() {
 
-	port := flag.String("port", "4007", "listening port")
-	dial := flag.String("dial", "", "dial addres")
-	message := flag.String("message", "", "message to address")
-	receptor := flag.String("receptor", "", "the receptor address for message")
-	flag.Parse()
+	listenAddr := "127.0.0.1:4007"
+	listenAddrB := "127.0.0.1:4008"
 
-	node, err := node.New(*port).Listen()
-	node.Network.AddEventListener(network.NEWPEER, func(route *network.Route, args ...any) {
+	nodeA := node.New()
+	nodeB := node.New()
+
+	nodeA.AddListener(network.LISTENING, func(route *network.Route, args ...any) {
+		fmt.Printf("Listening on: %s", listenAddr)
+
+	})
+
+	nodeA.AddListener(network.NEWPEER, func(route *network.Route, args ...any) {
 		fmt.Printf("Peer connected: %s", route.Socket())
 
 	})
 
-	node.Network.AddEventListener(network.MESSAGE, func(route *network.Route, args ...any) {
+	nodeA.AddListener(network.MESSAGE, func(route *network.Route, args ...any) {
 		message := args[0]
 		fmt.Printf("New message: %s\n", message)
+		route.Write([]byte("pong"))
 	})
 
-	if *dial != "" {
-		_, err := node.Dial(*dial)
-		fmt.Print(err)
-	}
+	nodeB.AddListener(network.LISTENING, func(route *network.Route, args ...any) {
+		fmt.Printf("Listening on: %s", listenAddrB)
 
-	if *message != "" && *receptor != "" {
-		node.Unicast(network.Socket(*receptor), []byte(*message))
-	}
+	})
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	nodeB.AddListener(network.NEWPEER, func(route *network.Route, args ...any) {
+		fmt.Printf("Peer connected: %s", route.Socket())
+		route.Write([]byte("ping"))
 
-	<-node.Done
+	})
+
+	nodeB.AddListener(network.MESSAGE, func(route *network.Route, args ...any) {
+		message := args[0]
+		fmt.Printf("New message: %s\n", message)
+		route.Write([]byte("ping"))
+	})
+
+	nodeA.Listen(listenAddr)
+	nodeB.Listen(listenAddrB)
+	nodeB.Dial(listenAddr)
+
+	<-nodeA.Done
 
 	// // Type assertion.. is b string type?
 	// var b interface{} = "hello"
