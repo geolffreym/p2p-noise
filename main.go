@@ -15,34 +15,35 @@ func main() {
 	nodeA := node.New()
 	nodeB := node.New()
 
-	nodeA.AddListener(network.LISTENING, func(route *network.Route, args ...any) {
+	//
+	nodeA.AddListener(network.LISTENING, func(route *network.Peer, args ...any) {
 		fmt.Printf("Listening on: %s", listenAddr)
 
 	})
 
-	nodeA.AddListener(network.NEWPEER, func(route *network.Route, args ...any) {
+	nodeA.AddListener(network.NEWPEER, func(route *network.Peer, args ...any) {
 		fmt.Printf("Peer connected: %s", route.Socket())
 
 	})
 
-	nodeA.AddListener(network.MESSAGE, func(route *network.Route, args ...any) {
+	nodeA.AddListener(network.MESSAGE, func(route *network.Peer, args ...any) {
 		message := args[0]
 		fmt.Printf("New message: %s\n", message)
 		route.Write([]byte("pong"))
 	})
 
-	nodeB.AddListener(network.LISTENING, func(route *network.Route, args ...any) {
+	nodeB.AddListener(network.LISTENING, func(route *network.Peer, args ...any) {
 		fmt.Printf("Listening on: %s", listenAddrB)
 
 	})
 
-	nodeB.AddListener(network.NEWPEER, func(route *network.Route, args ...any) {
+	nodeB.AddListener(network.NEWPEER, func(route *network.Peer, args ...any) {
 		fmt.Printf("Peer connected: %s", route.Socket())
 		route.Write([]byte("ping"))
 
 	})
 
-	nodeB.AddListener(network.MESSAGE, func(route *network.Route, args ...any) {
+	nodeB.AddListener(network.MESSAGE, func(route *network.Peer, args ...any) {
 		message := args[0]
 		fmt.Printf("New message: %s\n", message)
 		route.Write([]byte("ping"))
