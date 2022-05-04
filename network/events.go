@@ -8,14 +8,14 @@ const (
 	MESSAGE
 )
 
-type Handler func(*Route, ...any)
+type Handler func(*Peer, ...any)
 type Events map[Event]Handler
 
 func (events Events) AddListener(e Event, handler Handler) {
 	events[e] = handler
 }
 
-func (events Events) Emit(e Event, route *Route, params ...any) {
+func (events Events) Emit(e Event, route *Peer, params ...any) {
 	if event, ok := events[e]; ok {
 		event(route, params...)
 	}

@@ -24,15 +24,15 @@ func New() *Network {
 }
 
 // Create a route from net connection
-func (network *Network) route(conn net.Conn) *Route {
-	return &Route{
+func (network *Network) route(conn net.Conn) *Peer {
+	return &Peer{
 		conn:   conn,
 		socket: Socket(conn.RemoteAddr().String()),
 	}
 }
 
 // Initialize route in routing table
-func (network *Network) routing(conn net.Conn) *Route {
+func (network *Network) routing(conn net.Conn) *Peer {
 	// Keep routing for each connection
 	socket := Socket(conn.RemoteAddr().String())
 	route := network.route(conn)
@@ -42,8 +42,8 @@ func (network *Network) routing(conn net.Conn) *Route {
 
 // Run routed stream message in goroutine
 // Each incoming message processed in concurrent approach
-func (network *Network) stream(route *Route) {
-	go func(n *Network, r *Route) {
+func (network *Network) stream(route *Peer) {
+	go func(n *Network, r *Peer) {
 		buf := make([]byte, 1024)
 
 	KEEPALIVE:
@@ -98,7 +98,7 @@ func (network *Network) Listen(addr string) (*Network, error) {
 	// Concurrent processing for each incoming connection
 	network.bind(listener)
 	// Dispatch event on start listening
-	network.events.Emit(LISTENING, &Route{})
+	network.events.Emit(LISTENING, &Peer{})
 	return network, nil
 }
 
@@ -112,21 +112,22 @@ func (network *Network) IsClosed() bool {
 	case <-network.closed:
 		return true
 	default:
-		return false
 	}
+
+	return false
 }
 
 // Close all peers connections
 func (network *Network) Close() {
 	for _, route := range network.table {
-		go func(r *Route) {
+		go func(r *Peer) {
 			if err := r.Close(); err != nil {
 				log.Fatalf("error when shutting down connection: %s", err)
 			}
 		}(route)
 	}
 
-	network.closed <- true
+	close(network.closed)
 }
 
 // Dial to a network node and add route to table
