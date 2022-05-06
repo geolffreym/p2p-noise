@@ -1,30 +1,32 @@
 package network
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
+
+	"github.com/geolffreym/p2p-noise/errors"
+	"github.com/geolffreym/p2p-noise/pubsub"
 )
 
 const PROTOCOL = "tcp"
 
 type Network struct {
-	events Events
 	table  Router
 	closed chan bool
+	Events pubsub.Channel
 }
 
 func New() *Network {
 	return &Network{
 		table:  make(Router),
-		events: make(Events),
 		closed: make(chan bool, 1),
+		Events: make(pubsub.Channel),
 	}
 }
 
-// Create a route from net connection
-func (network *Network) route(conn net.Conn) *Peer {
+// Create a peer from net connection
+func (network *Network) peer(conn net.Conn) *Peer {
 	return &Peer{
 		conn:   conn,
 		socket: Socket(conn.RemoteAddr().String()),
@@ -35,15 +37,15 @@ func (network *Network) route(conn net.Conn) *Peer {
 func (network *Network) routing(conn net.Conn) *Peer {
 	// Keep routing for each connection
 	socket := Socket(conn.RemoteAddr().String())
-	route := network.route(conn)
+	route := network.peer(conn)
 	network.table.Add(socket, route)
 	return route
 }
 
 // Run routed stream message in goroutine
 // Each incoming message processed in concurrent approach
-func (network *Network) stream(route *Peer) {
-	go func(n *Network, r *Peer) {
+func (network *Network) stream(peer *Peer) {
+	go func(n *Network, p *Peer) {
 		buf := make([]byte, 1024)
 
 	KEEPALIVE:
@@ -53,7 +55,7 @@ func (network *Network) stream(route *Peer) {
 				return
 			}
 
-			_, err := r.Read(buf)
+			_, err := p.Read(buf)
 			if err != nil {
 				if err == io.EOF {
 					break KEEPALIVE
@@ -62,10 +64,11 @@ func (network *Network) stream(route *Peer) {
 
 			// TODO Need refactor to handle biggest messages
 			// Emit new incoming
-			n.events.Emit(MESSAGE, r, buf)
+			message := pubsub.NewMessage(pubsub.MESSAGE_RECEIVED, buf)
+			n.Events.Publish(message)
 
 		}
-	}(network, route)
+	}(network, peer)
 }
 
 // Concurrent Bind network and set routing to start listening for streams
@@ -75,15 +78,17 @@ func (network *Network) bind(listener net.Listener) {
 			// Block/Hold while waiting for new incoming connection
 			conn, err := l.Accept()
 			if err != nil || n.IsClosed() {
-				log.Fatalf("connection closed or cannot be established: %v", err)
+				log.Fatalf(errors.Binding(err).Error())
 				return
 			}
 
 			// Routing for connection
-			route := n.routing(conn)
-			n.stream(route)
+			peer := n.routing(conn)
+			n.stream(peer)
 			// Dispatch event
-			n.events.Emit(NEWPEER, route)
+			payload := []byte(peer.Socket())
+			message := pubsub.NewMessage(pubsub.NEWPEER_DETECTED, payload)
+			n.Events.Publish(message)
 		}
 	}(network, listener)
 }
@@ -92,13 +97,15 @@ func (network *Network) bind(listener net.Listener) {
 func (network *Network) Listen(addr string) (*Network, error) {
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
-		return nil, fmt.Errorf("error trying to listen on %s: %v", addr, err)
+		return nil, errors.Listen(err, addr)
 	}
 
 	// Concurrent processing for each incoming connection
 	network.bind(listener)
 	// Dispatch event on start listening
-	network.events.Emit(LISTENING, &Peer{})
+	payload := []byte(addr)
+	message := pubsub.NewMessage(pubsub.SELF_LISTENING, payload)
+	network.Events.Publish(message)
 	return network, nil
 }
 
@@ -122,7 +129,7 @@ func (network *Network) Close() {
 	for _, route := range network.table {
 		go func(r *Peer) {
 			if err := r.Close(); err != nil {
-				log.Fatalf("error when shutting down connection: %s", err)
+				log.Fatalf(errors.Close(err).Error())
 			}
 		}(route)
 	}
@@ -134,19 +141,15 @@ func (network *Network) Close() {
 func (network *Network) Dial(addr string) (*Network, error) {
 	conn, err := net.Dial(PROTOCOL, addr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to %s: %v", addr, err)
+		return nil, errors.Dial(err, addr)
 	}
 
 	// Routing for connection
-	route := network.routing(conn)
-	network.stream(route)
+	peer := network.routing(conn)
+	network.stream(peer)
 	// Dispatch event
-	network.events.Emit(NEWPEER, route)
+	payload := []byte(peer.Socket())
+	message := pubsub.NewMessage(pubsub.NEWPEER_DETECTED, payload)
+	network.Events.Publish(message)
 	return network, nil
-}
-
-// Set handler to handle incoming messages
-func (network *Network) AddEventListener(event Event, h Handler) *Network {
-	network.events.AddListener(event, h)
-	return network
 }

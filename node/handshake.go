@@ -1,4 +1,4 @@
-package network
+package node
 
 // https://en.wikipedia.org/wiki/Handshaking
 // http://www.noiseprotocol.org/noise.html

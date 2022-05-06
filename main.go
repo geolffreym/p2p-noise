@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/geolffreym/p2p-noise/network"
 	"github.com/geolffreym/p2p-noise/node"
+	"github.com/geolffreym/p2p-noise/pubsub"
 )
 
 func main() {
@@ -15,42 +15,37 @@ func main() {
 	nodeA := node.New()
 	nodeB := node.New()
 
-	//
-	nodeA.AddListener(network.LISTENING, func(route *network.Peer, args ...any) {
-		fmt.Printf("Listening on: %s", listenAddr)
+	nodeA.Observe(func(msg *pubsub.Message) bool {
+		switch msg.Type {
+		case pubsub.SELF_LISTENING:
+			fmt.Printf("Listening on: %s", msg.Payload)
+		case pubsub.NEWPEER_DETECTED:
+			fmt.Printf("New peer: %s", msg.Payload)
+		case pubsub.MESSAGE_RECEIVED:
+			fmt.Printf("New message: %s", msg.Payload)
+		default:
 
-	})
+		}
 
-	nodeA.AddListener(network.NEWPEER, func(route *network.Peer, args ...any) {
-		fmt.Printf("Peer connected: %s", route.Socket())
-
-	})
-
-	nodeA.AddListener(network.MESSAGE, func(route *network.Peer, args ...any) {
-		message := args[0]
-		fmt.Printf("New message: %s\n", message)
-		route.Write([]byte("pong"))
-	})
-
-	nodeB.AddListener(network.LISTENING, func(route *network.Peer, args ...any) {
-		fmt.Printf("Listening on: %s", listenAddrB)
-
-	})
-
-	nodeB.AddListener(network.NEWPEER, func(route *network.Peer, args ...any) {
-		fmt.Printf("Peer connected: %s", route.Socket())
-		route.Write([]byte("ping"))
-
-	})
-
-	nodeB.AddListener(network.MESSAGE, func(route *network.Peer, args ...any) {
-		message := args[0]
-		fmt.Printf("New message: %s\n", message)
-		route.Write([]byte("ping"))
+		return true
 	})
 
 	nodeA.Listen(listenAddr)
+
 	nodeB.Listen(listenAddrB)
+	nodeB.Observe(func(msg *pubsub.Message) bool {
+		switch msg.Type {
+		case pubsub.SELF_LISTENING:
+			fmt.Printf("Listening on: %s", msg.Payload)
+		case pubsub.NEWPEER_DETECTED:
+			fmt.Printf("New peer: %s", msg.Payload)
+		case pubsub.MESSAGE_RECEIVED:
+			fmt.Printf("New message: %s", msg.Payload)
+		}
+
+		return true
+	})
+
 	nodeB.Dial(listenAddr)
 
 	<-nodeA.Done
