@@ -7,11 +7,20 @@ import (
 	"fmt"
 )
 
+/*
+Error represents custom errors based on context
+
+ Context:
+ 	Custom error message
+ Err:
+ 	Inherited error from lower level.
+*/
 type Error struct {
 	Context string
 	Err     error
 }
 
+// Give string representation of error
 func (e *Error) Error() string {
 	return fmt.Sprintf("%s: %v", e.Context, e.Err)
 }
