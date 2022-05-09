@@ -5,8 +5,7 @@ import "sync"
 type Subscriber struct {
 	message chan *Message
 	topics  map[Event]bool
-	// closed  chan bool
-	mutex sync.Mutex
+	mutex   sync.Mutex
 }
 
 func NewSubscriber() *Subscriber {

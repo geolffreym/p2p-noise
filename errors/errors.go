@@ -1,4 +1,6 @@
-// Based on https://www.digitalocean.com/community/tutorials/creating-custom-errors-in-go
+// Package errors implements custom errors
+//
+// Refs: Based on https://www.digitalocean.com/community/tutorials/creating-custom-errors-in-go
 package errors
 
 import (
