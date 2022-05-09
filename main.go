@@ -1,11 +1,9 @@
-/**
-Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
+//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
 
-Refs:
-https://jenkov.com/tutorials/p2p/index.html
-http://www.noiseprotocol.org/noise.html#introduction
-**/
-
+//P2P Noise Secure handshake.
+//
+//Refs:
+//http://www.noiseprotocol.org/noise.html#introduction
 package main
 
 import (
