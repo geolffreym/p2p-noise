@@ -1,3 +1,9 @@
+// Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
+
+// Package network implements a lightweight TCP communication.
+// Offers pretty basic features to communicate between nodes.
+//
+// Refs: https://pkg.go.dev/net#Conn
 package network
 
 import (
@@ -9,14 +15,26 @@ import (
 	"github.com/geolffreym/p2p-noise/pubsub"
 )
 
+// Default protocol
 const PROTOCOL = "tcp"
 
+/*
+Network communication logic
+
+ table:
+ 	Routing hash table eg. {Socket: Conn interface}.
+ closed:
+ 	Channel flag to indicate if the connection is closed.
+ Events:
+ 	Pubsub notifications.
+*/
 type Network struct {
 	table  Router
 	closed chan bool
 	Events pubsub.Channel
 }
 
+// Network factory.
 func New() *Network {
 	return &Network{
 		table:  make(Router),
@@ -25,7 +43,7 @@ func New() *Network {
 	}
 }
 
-// Create a peer from net connection
+// Build a new peer from network connection
 func (network *Network) peer(conn net.Conn) *Peer {
 	return &Peer{
 		conn:   conn,
@@ -71,11 +89,12 @@ func (network *Network) stream(peer *Peer) {
 	}(network, peer)
 }
 
-// Concurrent Bind network and set routing to start listening for streams
+// Concurrent `Bind` network and set routing to start listening for streams
 func (network *Network) bind(listener net.Listener) {
 	go func(n *Network, l net.Listener) {
 		for {
 			// Block/Hold while waiting for new incoming connection
+			// Synchronized incoming connections
 			conn, err := l.Accept()
 			if err != nil || n.IsClosed() {
 				log.Fatalf(errors.Binding(err).Error())
@@ -109,11 +128,13 @@ func (network *Network) Listen(addr string) (*Network, error) {
 	return network, nil
 }
 
+// Return current routing table
 func (network *Network) Table() Router {
 	return network.table
 }
 
-// Non-blocking check connection state
+// Non-blocking check connection state.
+// true for connection open else close
 func (network *Network) IsClosed() bool {
 	select {
 	case <-network.closed:
@@ -126,14 +147,16 @@ func (network *Network) IsClosed() bool {
 
 // Close all peers connections
 func (network *Network) Close() {
-	for _, route := range network.table {
-		go func(r *Peer) {
-			if err := r.Close(); err != nil {
+	for _, peer := range network.table {
+		go func(p *Peer) {
+			if err := p.Close(); err != nil {
 				log.Fatalf(errors.Close(err).Error())
 			}
-		}(route)
+		}(peer)
 	}
 
+	// If channel closed is true then all routines waiting for connections
+	// or waiting for incoming messages get closed.
 	close(network.closed)
 }
 

@@ -1,3 +1,11 @@
+/**
+Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
+
+Refs:
+https://jenkov.com/tutorials/p2p/index.html
+http://www.noiseprotocol.org/noise.html#introduction
+**/
+
 package main
 
 import (
@@ -11,9 +19,11 @@ func main() {
 
 	listenAddr := "127.0.0.1:4007"
 	listenAddrB := "127.0.0.1:4008"
+	listenAddrC := "127.0.0.1:4009"
 
 	nodeA := node.New()
 	nodeB := node.New()
+	nodeC := node.New()
 
 	nodeA.Observe(func(msg *pubsub.Message) bool {
 		switch msg.Type {
@@ -47,6 +57,22 @@ func main() {
 	})
 
 	nodeB.Dial(listenAddr)
+
+	nodeC.Listen(listenAddrC)
+	nodeC.Observe(func(msg *pubsub.Message) bool {
+		switch msg.Type {
+		case pubsub.SELF_LISTENING:
+			fmt.Printf("Listening on: %s", msg.Payload)
+		case pubsub.NEWPEER_DETECTED:
+			fmt.Printf("New peer: %s", msg.Payload)
+		case pubsub.MESSAGE_RECEIVED:
+			fmt.Printf("New message: %s", msg.Payload)
+		}
+
+		return true
+	})
+
+	nodeB.Dial(listenAddrB)
 
 	<-nodeA.Done
 

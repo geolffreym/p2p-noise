@@ -5,10 +5,6 @@ import (
 	"github.com/geolffreym/p2p-noise/pubsub"
 )
 
-// type Roles struct {
-// 	requester net.Conn
-// 	requested net.Conn
-// }
 type Node struct {
 	Done       chan bool
 	Network    *network.Network
@@ -49,8 +45,10 @@ func (n *Node) Dial(addr string) (*Node, error) {
 }
 
 func (n *Node) Broadcast(msg []byte) {
-	for _, route := range n.Network.Table() {
-		route.Write(msg)
+	for _, peer := range n.Network.Table() {
+		go func(p *network.Peer) {
+			p.Write(msg)
+		}(peer)
 	}
 }
 
