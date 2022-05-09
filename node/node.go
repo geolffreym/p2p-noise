@@ -58,16 +58,12 @@ func (n *Node) Unicast(dest network.Socket, msg []byte) {
 	}
 }
 
+// Use it to keep waiting for incoming notifications from the network.
 func (n *Node) Observe(cb pubsub.Observer) {
 	n.subscriber.Listen(cb)
 }
 
-// // Abstraction/alias for network event listener interface
-// func (n *Node) AddListener(event network.Event) *Node {
-// 	n.Network.AddEventListener(event, h)
-// 	return n
-// }
-
+// Close node connections
 func (n *Node) Close() {
 	n.Network.Close()
 	n.Done <- true

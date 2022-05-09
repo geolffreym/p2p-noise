@@ -18,20 +18,11 @@ import (
 // Default protocol
 const PROTOCOL = "tcp"
 
-/*
-Network communication logic
-
- table:
- 	Routing hash table eg. {Socket: Conn interface}.
- closed:
- 	Channel flag to indicate if the connection is closed.
- Events:
- 	Pubsub notifications.
-*/
+// Network communication logic
 type Network struct {
-	table  Router
-	closed chan bool
-	Events pubsub.Channel
+	table  Router         // Routing hash table eg. {Socket: Conn interface}.
+	closed chan bool      // Channel flag to indicate if the connection is closed.
+	Events pubsub.Channel // Pubsub notifications.
 }
 
 // Network factory.

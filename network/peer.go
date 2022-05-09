@@ -2,18 +2,10 @@ package network
 
 import "net"
 
-/*
-Node peer definition
-
- socket:
- 	IP and Port address for peer.
-	https://en.wikipedia.org/wiki/Network_socket
- conn:
- 	Connection interface net.Conn to reach peer.
-*/
+// Node peer definition
 type Peer struct {
-	socket Socket
-	conn   net.Conn
+	socket Socket   // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
+	conn   net.Conn // Connection interface net.Conn to reach peer.
 }
 
 // Return peer connection interface
