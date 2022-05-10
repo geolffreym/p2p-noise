@@ -6,3 +6,10 @@ package node
 // negotiation between two participants (example "Alice and Bob")
 // through the exchange of information that establishes the protocols of a
 // communication link at the start of the communication, before full communication begins
+
+type Noise struct {
+}
+
+func New() {
+
+}

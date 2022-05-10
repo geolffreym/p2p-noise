@@ -1,3 +1,4 @@
+// Pubsub event notifications.
 package pubsub
 
 // Aliases to handle idiomatic `Event` type

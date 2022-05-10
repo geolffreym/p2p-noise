@@ -2,8 +2,7 @@
 
 //P2P Noise Secure handshake.
 //
-//Refs:
-//http://www.noiseprotocol.org/noise.html#introduction
+//See also: http://www.noiseprotocol.org/noise.html#introduction
 package main
 
 import (
@@ -19,9 +18,9 @@ func main() {
 	listenAddrB := "127.0.0.1:4008"
 	listenAddrC := "127.0.0.1:4009"
 
-	nodeA := node.New()
-	nodeB := node.New()
-	nodeC := node.New()
+	nodeA := node.NewNode()
+	nodeB := node.NewNode()
+	nodeC := node.NewNode()
 
 	nodeA.Observe(func(msg *pubsub.Message) bool {
 		switch msg.Type {
@@ -72,7 +71,7 @@ func main() {
 
 	nodeB.Dial(listenAddrB)
 
-	<-nodeA.Done
+	<-nodeA.Sentinel
 
 	// // Type assertion.. is b string type?
 	// var b interface{} = "hello"

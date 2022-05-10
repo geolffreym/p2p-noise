@@ -18,7 +18,7 @@ func NewSubscriber() *Subscriber {
 	}
 }
 
-// Send concurrently to a message to Message channel buffer.
+// Send Message to channel buffer.
 func (s *Subscriber) Emit(msg *Message) {
 	// Get lock to enforce sync order messages
 	// https://gobyexample.com/mutexes

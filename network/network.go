@@ -1,9 +1,7 @@
-// Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
-
 // Package network implements a lightweight TCP communication.
 // Offers pretty basic features to communicate between nodes.
 //
-// Refs: https://pkg.go.dev/net#Conn
+// See also: https://pkg.go.dev/net#Conn
 package network
 
 import (
@@ -20,17 +18,17 @@ const PROTOCOL = "tcp"
 
 // Network communication logic
 type Network struct {
-	table  Router         // Routing hash table eg. {Socket: Conn interface}.
-	closed chan bool      // Channel flag to indicate if the connection is closed.
-	Events pubsub.Channel // Pubsub notifications.
+	table    Router         // Routing hash table eg. {Socket: Conn interface}.
+	sentinel chan bool      // Channel flag waiting for signal to close connection.
+	Events   pubsub.Channel // Pubsub notifications.
 }
 
 // Network factory.
 func New() *Network {
 	return &Network{
-		table:  make(Router),
-		closed: make(chan bool, 1),
-		Events: make(pubsub.Channel),
+		table:    make(Router),
+		sentinel: make(chan bool, 1),
+		Events:   make(pubsub.Channel),
 	}
 }
 
@@ -128,7 +126,7 @@ func (network *Network) Table() Router {
 // true for connection open else close
 func (network *Network) IsClosed() bool {
 	select {
-	case <-network.closed:
+	case <-network.sentinel:
 		return true
 	default:
 	}
@@ -146,9 +144,9 @@ func (network *Network) Close() {
 		}(peer)
 	}
 
-	// If channel closed is true then all routines waiting for connections
-	// or waiting for incoming messages get closed.
-	close(network.closed)
+	// If channel get closed then all routines waiting for connections
+	// or waiting for incoming messages get closed too.
+	close(network.sentinel)
 }
 
 // Dial to a network node and add route to table
