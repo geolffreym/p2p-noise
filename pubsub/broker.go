@@ -1,6 +1,9 @@
 package pubsub
 
+// Aliases to handle idiomatic `Event` type
 type Event int
+
+// Callback interface for receiving events notifications
 type Observer func(*Message) bool
 
 const (
@@ -15,7 +18,7 @@ const (
 // Hash map event subscribers
 type Channel map[Event][]*Subscriber
 
-// Associate subscriber to a Channel
+// Associate subscriber to a event channel
 // If channel event doesn't exist then is created
 func (events Channel) Register(e Event, s *Subscriber) {
 	// If not topic registered
@@ -24,7 +27,7 @@ func (events Channel) Register(e Event, s *Subscriber) {
 	}
 
 	// Flag subscriber as subscribed
-	s.topics[e] = true
+	s.events[e] = true
 	events[e] = append(events[e], s)
 }
 
@@ -38,7 +41,3 @@ func (events Channel) Publish(msg *Message) {
 		}
 	}
 }
-
-// func (events Events) RemoveListener(e Event) {
-// 	delete(events, e)
-// }

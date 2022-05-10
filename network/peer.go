@@ -9,16 +9,16 @@ type Peer struct {
 }
 
 // Return peer connection interface
-func (r *Peer) Connection() net.Conn { return r.conn }
+func (p *Peer) Connection() net.Conn { return p.conn }
 
 // Return peer socket
-func (r *Peer) Socket() Socket { return r.socket }
+func (p *Peer) Socket() Socket { return p.socket }
 
 // Write buffered message over connection
-func (r *Peer) Write(data []byte) (n int, err error) { return r.conn.Write(data) }
+func (p *Peer) Write(data []byte) (n int, err error) { return p.conn.Write(data) }
 
 // Read buffered message from connection
-func (r *Peer) Read(buf []byte) (n int, err error) { return r.conn.Read(buf) }
+func (p *Peer) Read(buf []byte) (n int, err error) { return p.conn.Read(buf) }
 
 // Close peer connection
-func (r *Peer) Close() error { return r.conn.Close() }
+func (p *Peer) Close() error { return p.conn.Close() }
