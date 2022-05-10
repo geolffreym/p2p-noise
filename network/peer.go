@@ -2,7 +2,9 @@ package network
 
 import "net"
 
-// Node peer definition
+// Peer struct has a simplistic interface to describe a node in the network.
+// Each peer has a socket address to identify itself and a connection interface to communicate with it.
+// Each peer is routed and handled by route table.
 type Peer struct {
 	socket Socket   // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
 	conn   net.Conn // Connection interface net.Conn to reach peer.

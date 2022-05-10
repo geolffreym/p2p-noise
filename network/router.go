@@ -3,8 +3,8 @@ package network
 // Aliases to handle idiomatic `Socket` type
 type Socket string
 
-// Router hash table to associate Socket with connection interfaces.
-// eg. {127.0.0.1:4000: net.Conn}
+// Router hash table to associate Socket with Peers.
+// eg. {127.0.0.1:4000: Peer}
 type Router map[Socket]*Peer
 
 // Add new socket => connection association

@@ -3,7 +3,7 @@ package pubsub
 // Aliases to handle idiomatic `Event` type
 type Event int
 
-// Callback interface for receiving events notifications
+// Callback interface to propagate events notifications
 type Observer func(*Message) bool
 
 const (

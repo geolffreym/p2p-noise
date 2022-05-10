@@ -5,12 +5,15 @@ import (
 	"github.com/geolffreym/p2p-noise/pubsub"
 )
 
+// Node describe a high level network interface.
+// Each node is a Peer in the network and hold the needed methods to interact with other nodes.
 type Node struct {
-	Done       chan bool
-	Network    *network.Network
-	subscriber *pubsub.Subscriber
+	Done       chan bool          // Done hangs while waiting for be closed
+	Network    *network.Network   // Network interface
+	subscriber *pubsub.Subscriber // Subscriber interface
 }
 
+// Node factory
 func New() *Node {
 
 	// Register default events for node
@@ -26,6 +29,7 @@ func New() *Node {
 	}
 }
 
+// Listen node in address
 func (n *Node) Listen(addr string) (*Node, error) {
 	_, err := n.Network.Listen(addr)
 	if err != nil {
@@ -35,6 +39,7 @@ func (n *Node) Listen(addr string) (*Node, error) {
 	return n, nil
 }
 
+// Dial to a remote node
 func (n *Node) Dial(addr string) (*Node, error) {
 	_, err := n.Network.Dial(addr)
 	if err != nil {
@@ -44,6 +49,7 @@ func (n *Node) Dial(addr string) (*Node, error) {
 	return n, nil
 }
 
+// Send messages to all the connected peers
 func (n *Node) Broadcast(msg []byte) {
 	for _, peer := range n.Network.Table() {
 		go func(p *network.Peer) {
@@ -52,6 +58,7 @@ func (n *Node) Broadcast(msg []byte) {
 	}
 }
 
+// Send a message to a specific peer
 func (n *Node) Unicast(dest network.Socket, msg []byte) {
 	if route, ok := n.Network.Table()[dest]; ok {
 		route.Write(msg)
@@ -66,5 +73,5 @@ func (n *Node) Observe(cb pubsub.Observer) {
 // Close node connections
 func (n *Node) Close() {
 	n.Network.Close()
-	n.Done <- true
+	close(n.Done)
 }
