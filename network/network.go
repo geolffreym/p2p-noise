@@ -78,7 +78,8 @@ func (network *Network) stream(peer *Peer) {
 	}(network, peer)
 }
 
-// Concurrent `Bind` network and set routing to start listening for streams
+// Concurrent `Bind` network for streams.
+// Start a new goroutine to keep waiting for new connections.
 func (network *Network) bind(listener net.Listener) {
 	go func(n *Network, l net.Listener) {
 		for {
@@ -101,7 +102,8 @@ func (network *Network) bind(listener net.Listener) {
 	}(network, listener)
 }
 
-// Start listening on the given address and wait for new connection
+// Start listening on the given address and wait for new connection.
+// Return network as nil and error if error occurred while listening.
 func (network *Network) Listen(addr string) (*Network, error) {
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
@@ -150,6 +152,7 @@ func (network *Network) Close() {
 }
 
 // Dial to a network node and add route to table
+// Return network as nil and error if error occurred while dialing network.
 func (network *Network) Dial(addr string) (*Network, error) {
 	conn, err := net.Dial(PROTOCOL, addr)
 	if err != nil {
