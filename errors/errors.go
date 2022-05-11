@@ -7,17 +7,10 @@ import (
 	"fmt"
 )
 
-/*
-Error represents custom errors based on context
-
- Context:
- 	Custom error message
- Err:
- 	Inherited error from lower level.
-*/
+// Error represents custom errors based on context
 type Error struct {
-	Context string
-	Err     error
+	Context string // Custom error message
+	Err     error  // Inherited error from lower level.
 }
 
 // Give string representation of error

@@ -8,8 +8,8 @@ type Socket string
 type Router map[Socket]*Peer
 
 // Add new socket => connection association
-func (r Router) Add(socket Socket, route *Peer) {
-	r[socket] = route
+func (r Router) Add(socket Socket, peer *Peer) {
+	r[socket] = peer
 }
 
 // Return the number of connections

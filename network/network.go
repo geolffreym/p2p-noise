@@ -40,17 +40,18 @@ func (network *Network) peer(conn net.Conn) *Peer {
 	}
 }
 
-// Initialize route in routing table
+// Initialize route in routing table from connection interface
+// Return new peer added to table
 func (network *Network) routing(conn net.Conn) *Peer {
 	// Keep routing for each connection
 	socket := Socket(conn.RemoteAddr().String())
-	route := network.peer(conn)
-	network.table.Add(socket, route)
-	return route
+	peer := network.peer(conn)
+	network.table.Add(socket, peer)
+	return peer
 }
 
-// Run routed stream message in goroutine
-// Each incoming message processed in concurrent approach
+// Run routed stream message in goroutine.
+// Each incoming message is processed in non-blocking approach.
 func (network *Network) stream(peer *Peer) {
 	go func(n *Network, p *Peer) {
 		buf := make([]byte, 1024)
@@ -151,7 +152,7 @@ func (network *Network) Close() {
 	close(network.sentinel)
 }
 
-// Dial to a network node and add route to table
+// Dial to a network node and add peer to table
 // Return network as nil and error if error occurred while dialing network.
 func (network *Network) Dial(addr string) (*Network, error) {
 	conn, err := net.Dial(PROTOCOL, addr)

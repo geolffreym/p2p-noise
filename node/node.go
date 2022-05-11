@@ -68,8 +68,8 @@ func (n *NodeImp) Broadcast(msg []byte) {
 
 // Send a message to a specific peer
 func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
-	if route, ok := n.Network.Table()[dest]; ok {
-		route.Write(msg)
+	if peer, ok := n.Network.Table()[dest]; ok {
+		peer.Write(msg)
 	}
 }
 

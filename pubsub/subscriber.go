@@ -30,7 +30,7 @@ func (s *Subscriber) Emit(msg *Message) {
 // Listen and wait fot Message synchronization from channel.
 // When a new message is added to channel buffer the
 // Observer is executed with new Message propagated as param.
-// !Important: If Observer returns false the routine stop listening.
+// !Important: If Observer returns false the routine stop "listening".
 func (s *Subscriber) Listen(cb Observer) {
 	go func(call Observer) {
 		for {
