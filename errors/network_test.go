@@ -8,7 +8,7 @@ import (
 
 const MOCK_ADDRESS = "127.0.0.1:2379"
 
-func TestListenError(t *testing.T) {
+func TestListeningError(t *testing.T) {
 	customError := "Fail listening"
 	err := errors.New(customError)
 	output := Listening(err, MOCK_ADDRESS)
@@ -20,7 +20,7 @@ func TestListenError(t *testing.T) {
 
 }
 
-func TestDialError(t *testing.T) {
+func TestDialingError(t *testing.T) {
 	customError := "Fail dial"
 	err := errors.New(customError)
 	output := Dialing(err, MOCK_ADDRESS)
@@ -43,7 +43,7 @@ func TestBindingError(t *testing.T) {
 	}
 }
 
-func TestCloseError(t *testing.T) {
+func TestClosingError(t *testing.T) {
 	customError := "Fail closing connection"
 	err := errors.New(customError)
 	output := Closing(err)
