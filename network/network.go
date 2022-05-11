@@ -26,9 +26,8 @@ type Network struct {
 // Network factory.
 func New() *Network {
 	return &Network{
-		table:    make(Router),
-		sentinel: make(chan bool, 1),
-		Events:   make(pubsub.Channel),
+		table:  make(Router),
+		Events: make(pubsub.Channel),
 	}
 }
 
