@@ -87,7 +87,7 @@ func (network *Network) bind(listener net.Listener) {
 			// Synchronized incoming connections
 			conn, err := l.Accept()
 			if err != nil || n.IsClosed() {
-				log.Fatalf(errors.WrapBinding(err).Error())
+				log.Fatalf(errors.Binding(err).Error())
 				return
 			}
 
@@ -107,7 +107,7 @@ func (network *Network) bind(listener net.Listener) {
 func (network *Network) Listen(addr string) (*Network, error) {
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
-		return nil, errors.WrapListen(err, addr)
+		return nil, errors.Listening(err, addr)
 	}
 
 	// Concurrent processing for each incoming connection
@@ -141,7 +141,7 @@ func (network *Network) Close() {
 	for _, peer := range network.table {
 		go func(p *Peer) {
 			if err := p.Close(); err != nil {
-				log.Fatalf(errors.WrapClose(err).Error())
+				log.Fatalf(errors.Closing(err).Error())
 			}
 		}(peer)
 	}
@@ -156,7 +156,7 @@ func (network *Network) Close() {
 func (network *Network) Dial(addr string) (*Network, error) {
 	conn, err := net.Dial(PROTOCOL, addr)
 	if err != nil {
-		return nil, errors.WrapDial(err, addr)
+		return nil, errors.Dialing(err, addr)
 	}
 
 	// Routing for connection
