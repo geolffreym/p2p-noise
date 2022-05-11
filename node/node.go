@@ -9,14 +9,14 @@ import (
 
 type Node interface {
 	Observe(cb pubsub.Observer)
-	Listen(addr string) (*NodeImp, error)
-	Dial(addr string) (*NodeImp, error)
+	Listen(addr string) (*Node, error)
+	Dial(addr string) (*Node, error)
 	Close()
 }
 
-// Node implementation for Node interface.
+// Node implementation.
 type NodeImp struct {
-	Sentinel   chan bool          // Hangs while waiting for be closed and stop node process.
+	Sentinel   chan bool          // Hangs while waiting for channel closed and stop node process.
 	Network    *network.Network   // Network interface
 	subscriber *pubsub.Subscriber // Subscriber interface
 }
