@@ -14,6 +14,8 @@ const (
 	NEWPEER_DETECTED
 	// On new message received event
 	MESSAGE_RECEIVED
+	// On closed network
+	CLOSED_CONNECTION
 )
 
 // Hash map event subscribers
@@ -27,8 +29,7 @@ func (events Channel) Register(e Event, s *Subscriber) {
 		events[e] = []*Subscriber{}
 	}
 
-	// Flag subscriber as subscribed
-	s.events[e] = true
+	s.subscribed.Add(e) // Flag subscriber as subscribed
 	events[e] = append(events[e], s)
 }
 

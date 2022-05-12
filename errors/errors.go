@@ -1,10 +1,11 @@
 // Package errors implements custom errors
 //
-// Refs: Based on https://www.digitalocean.com/community/tutorials/creating-custom-errors-in-go
+// Refs: https://www.digitalocean.com/community/tutorials/creating-custom-errors-in-go
 package errors
 
 import (
 	"fmt"
+	"net"
 )
 
 // Error represents custom errors based on context
@@ -13,9 +14,14 @@ type Error struct {
 	Err     error  // Inherited error from lower level.
 }
 
-// Give string representation of error
+// Give string representation of error based on error type
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s: %v", e.Context, e.Err)
+	switch e.Err.(type) {
+	case *net.OpError:
+		return fmt.Sprintf("%s -> %v", e.Context, e.Err)
+	default:
+		return fmt.Sprintf("%s: %v", e.Context, e.Err)
+	}
 }
 
 // Error factory

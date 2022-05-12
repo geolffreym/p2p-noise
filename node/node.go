@@ -3,8 +3,11 @@
 package node
 
 import (
+	"log"
+
 	"github.com/geolffreym/p2p-noise/network"
 	"github.com/geolffreym/p2p-noise/pubsub"
+	"github.com/geolffreym/p2p-noise/utils"
 )
 
 type Node interface {
@@ -21,18 +24,26 @@ type NodeImp struct {
 	subscriber *pubsub.Subscriber // Subscriber interface
 }
 
+// Build a ready to use subscriber interface and register default events for node
+func NodeSubscriber(network *network.Network) *pubsub.Subscriber {
+	subscriber := pubsub.NewSubscriber()
+	network.Events.Register(pubsub.SELF_LISTENING, subscriber)
+	network.Events.Register(pubsub.NEWPEER_DETECTED, subscriber)
+	network.Events.Register(pubsub.MESSAGE_RECEIVED, subscriber)
+	network.Events.Register(pubsub.CLOSED_CONNECTION, subscriber)
+	return subscriber
+}
+
 // Node factory
 func NewNode() *NodeImp {
 
 	// Register default events for node
 	network := network.New()
-	subscriber := pubsub.NewSubscriber()
-	network.Events.Register(pubsub.NEWPEER_DETECTED, subscriber)
-	network.Events.Register(pubsub.SELF_LISTENING, subscriber)
-	network.Events.Register(pubsub.MESSAGE_RECEIVED, subscriber)
+	subscriber := NodeSubscriber(network)
 
 	return &NodeImp{
 		Network:    network,
+		Sentinel:   make(chan bool),
 		subscriber: subscriber,
 	}
 }
@@ -60,16 +71,25 @@ func (n *NodeImp) Dial(addr string) (*NodeImp, error) {
 // Send messages to all the connected peers
 func (n *NodeImp) Broadcast(msg []byte) {
 	for _, peer := range n.Network.Table() {
-		go func(p *network.Peer) {
-			p.Write(msg)
-		}(peer)
+		go func(n *NodeImp, p *network.Peer) {
+			_, err := p.Write(msg)
+			if err != nil {
+				// TODO move message to errors
+				log.Printf("error sending broadcast message: %v", err)
+			}
+
+		}(n, peer)
 	}
 }
 
 // Send a message to a specific peer
 func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
 	if peer, ok := n.Network.Table()[dest]; ok {
-		peer.Write(msg)
+		_, err := peer.Write(msg)
+		if err != nil {
+			// TODO move message to errors
+			log.Printf("error sending unicast message: %v", err)
+		}
 	}
 }
 
@@ -78,8 +98,9 @@ func (n *NodeImp) Observe(cb pubsub.Observer) {
 	n.subscriber.Listen(cb)
 }
 
-// Close node connections
+// Close node connections and destroy node
 func (n *NodeImp) Close() {
-	n.Network.Close()
-	close(n.Sentinel)
+	n.Network.Close()          // Close network connection
+	utils.Clear(&n.subscriber) // Reset subscriber state
+	close(n.Sentinel)          // Stop node
 }

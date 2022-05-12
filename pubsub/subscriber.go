@@ -1,29 +1,40 @@
 package pubsub
 
-import "sync"
+import (
+	"sync"
+)
+
+// Subscribed map event list for subscriber
+type Subscriptions map[Event]bool
+
+// Set event as subscribed = true
+func (s Subscriptions) Add(event Event) {
+	s[event] = true
+}
 
 // Subscriber synchronize messages from events
 // and keep a record of current subscriptions for events.
 type Subscriber struct {
-	mutex   sync.Mutex     // Mutual exclusion
-	message chan *Message  // Message exchange channel
-	events  map[Event]bool // Keep tracking of subscribed events
+	mutex      sync.RWMutex  // Mutual exclusion
+	message    chan *Message // Message exchange channel
+	subscribed Subscriptions // Keep tracking of subscribed events
 }
 
 // Subscriber factory
 func NewSubscriber() *Subscriber {
 	return &Subscriber{
-		message: make(chan *Message),
-		events:  map[Event]bool{},
+		message:    make(chan *Message),
+		subscribed: make(Subscriptions),
 	}
 }
 
 // Send Message to channel buffer.
 func (s *Subscriber) Emit(msg *Message) {
 	// Get lock to enforce sync order messages
+	// No read messages while writing
 	// https://gobyexample.com/mutexes
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	s.message <- msg
 }
 
@@ -32,9 +43,9 @@ func (s *Subscriber) Emit(msg *Message) {
 // Observer is executed with new Message propagated as param.
 // !Important: If Observer returns false the routine stop "listening".
 func (s *Subscriber) Listen(cb Observer) {
-	go func(call Observer) {
+	go func(subscriber *Subscriber, call Observer) {
 		for {
-			if msg, ok := <-s.message; ok {
+			if msg, ok := <-subscriber.message; ok {
 				keepAlive := call(msg)
 				// Close if callback returns false.
 				if keepAlive == false {
@@ -42,5 +53,5 @@ func (s *Subscriber) Listen(cb Observer) {
 				}
 			}
 		}
-	}(cb)
+	}(s, cb)
 }

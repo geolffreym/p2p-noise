@@ -8,9 +8,11 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 
 	"github.com/geolffreym/p2p-noise/errors"
 	"github.com/geolffreym/p2p-noise/pubsub"
+	"github.com/geolffreym/p2p-noise/utils"
 )
 
 // Default protocol
@@ -18,6 +20,7 @@ const PROTOCOL = "tcp"
 
 // Network communication logic
 type Network struct {
+	mutex    sync.RWMutex
 	table    Router         // Routing hash table eg. {Socket: Conn interface}.
 	sentinel chan bool      // Channel flag waiting for signal to close connection.
 	Events   pubsub.Channel // Pubsub notifications.
@@ -26,8 +29,9 @@ type Network struct {
 // Network factory.
 func New() *Network {
 	return &Network{
-		table:  make(Router),
-		Events: make(pubsub.Channel),
+		table:    make(Router),
+		sentinel: make(chan bool),
+		Events:   make(pubsub.Channel),
 	}
 }
 
@@ -42,6 +46,9 @@ func (network *Network) peer(conn net.Conn) *Peer {
 // Initialize route in routing table from connection interface
 // Return new peer added to table
 func (network *Network) routing(conn net.Conn) *Peer {
+	// Avoid read table while routing operation
+	network.mutex.Lock()
+	defer network.mutex.Unlock()
 	// Keep routing for each connection
 	socket := Socket(conn.RemoteAddr().String())
 	peer := network.peer(conn)
@@ -54,7 +61,6 @@ func (network *Network) routing(conn net.Conn) *Peer {
 func (network *Network) stream(peer *Peer) {
 	go func(n *Network, p *Peer) {
 		buf := make([]byte, 1024)
-
 	KEEPALIVE:
 		for {
 			// Stop routine
@@ -62,14 +68,14 @@ func (network *Network) stream(peer *Peer) {
 				return
 			}
 
+			// Sync buffer reading
 			_, err := p.Read(buf)
 			if err != nil {
-				if err == io.EOF {
+				if err != io.EOF {
 					break KEEPALIVE
 				}
 			}
 
-			// TODO Need refactor to handle biggest messages
 			// Emit new incoming
 			message := pubsub.NewMessage(pubsub.MESSAGE_RECEIVED, buf)
 			n.Events.Publish(message)
@@ -136,7 +142,7 @@ func (network *Network) IsClosed() bool {
 	return false
 }
 
-// Close all peers connections
+// Close all peers connections and destroy current state
 func (network *Network) Close() {
 	for _, peer := range network.table {
 		go func(p *Peer) {
@@ -146,6 +152,12 @@ func (network *Network) Close() {
 		}(peer)
 	}
 
+	// Clear current state after closed connections
+	utils.Clear(&network.table)
+	utils.Clear(&network.Events)
+	// Dispatch event on close network
+	message := pubsub.NewMessage(pubsub.CLOSED_CONNECTION, []byte(""))
+	network.Events.Publish(message)
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
 	close(network.sentinel)
@@ -162,7 +174,7 @@ func (network *Network) Dial(addr string) (*Network, error) {
 	// Routing for connection
 	peer := network.routing(conn)
 	network.stream(peer)
-	// Dispatch event
+	// Dispatch event for new peer
 	payload := []byte(peer.Socket())
 	message := pubsub.NewMessage(pubsub.NEWPEER_DETECTED, payload)
 	network.Events.Publish(message)

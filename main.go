@@ -23,13 +23,14 @@ func main() {
 	nodeC := node.NewNode()
 
 	nodeA.Observe(func(msg *pubsub.Message) bool {
+
 		switch msg.Type {
 		case pubsub.SELF_LISTENING:
-			fmt.Printf("Listening on: %s", msg.Payload)
-		case pubsub.NEWPEER_DETECTED:
-			fmt.Printf("New peer: %s", msg.Payload)
+			fmt.Printf("Listening A on: %s \n", msg.Payload)
+		// case pubsub.NEWPEER_DETECTED:
+		// 	fmt.Printf("New peer A: %s \n", msg.Payload)
 		case pubsub.MESSAGE_RECEIVED:
-			fmt.Printf("New message: %s", msg.Payload)
+			fmt.Printf("New message A: %s \n", msg.Payload)
 		default:
 
 		}
@@ -37,41 +38,52 @@ func main() {
 		return true
 	})
 
-	nodeA.Listen(listenAddr)
-
-	nodeB.Listen(listenAddrB)
 	nodeB.Observe(func(msg *pubsub.Message) bool {
+
 		switch msg.Type {
 		case pubsub.SELF_LISTENING:
-			fmt.Printf("Listening on: %s", msg.Payload)
+			fmt.Printf("Listening B on: %s \n", msg.Payload)
 		case pubsub.NEWPEER_DETECTED:
-			fmt.Printf("New peer: %s", msg.Payload)
+			fmt.Printf("New peer B: %s \n", msg.Payload)
 		case pubsub.MESSAGE_RECEIVED:
-			fmt.Printf("New message: %s", msg.Payload)
+			fmt.Printf("New message B: %s \n", msg.Payload)
+		case pubsub.CLOSED_CONNECTION:
+			fmt.Print("Closed connection:")
+		default:
 		}
 
 		return true
 	})
+
+	nodeC.Observe(func(msg *pubsub.Message) bool {
+
+		switch msg.Type {
+		case pubsub.SELF_LISTENING:
+			fmt.Printf("Listening C on: %s \n", msg.Payload)
+		// case pubsub.NEWPEER_DETECTED:
+		// 	fmt.Printf("New peer C: %s \n", msg.Payload)
+		case pubsub.MESSAGE_RECEIVED:
+			fmt.Printf("New message C: %s \n", msg.Payload)
+		default:
+		}
+
+		return true
+	})
+
+	nodeA.Listen(listenAddr)
+	nodeB.Listen(listenAddrB)
+	nodeC.Listen(listenAddrC)
 
 	nodeB.Dial(listenAddr)
+	nodeB.Dial(listenAddrC)
 
-	nodeC.Listen(listenAddrC)
-	nodeC.Observe(func(msg *pubsub.Message) bool {
-		switch msg.Type {
-		case pubsub.SELF_LISTENING:
-			fmt.Printf("Listening on: %s", msg.Payload)
-		case pubsub.NEWPEER_DETECTED:
-			fmt.Printf("New peer: %s", msg.Payload)
-		case pubsub.MESSAGE_RECEIVED:
-			fmt.Printf("New message: %s", msg.Payload)
-		}
+	// time.Sleep(1 * time.Second)
+	nodeB.Broadcast([]byte("Hello C"))
 
-		return true
-	})
+	// time.Sleep(5 * time.Second)
+	// nodeA.Close()
 
-	nodeB.Dial(listenAddrB)
-
-	<-nodeA.Sentinel
+	<-nodeB.Sentinel
 
 	// // Type assertion.. is b string type?
 	// var b interface{} = "hello"

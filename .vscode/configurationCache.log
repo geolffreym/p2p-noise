@@ -1,0 +1,1 @@
+{"buildTargets":["all","benchmark","build","clean","code-check","compile","compile-linux","compile-mac","compile-win","coverage","coverage-export","profiling","test"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
