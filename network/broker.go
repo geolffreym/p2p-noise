@@ -1,5 +1,5 @@
 // Pubsub event notifications.
-package pubsub
+package network
 
 // Aliases to handle idiomatic `Event` type
 type Event int

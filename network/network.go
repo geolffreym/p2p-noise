@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/geolffreym/p2p-noise/errors"
-	"github.com/geolffreym/p2p-noise/pubsub"
 	"github.com/geolffreym/p2p-noise/utils"
 )
 
@@ -21,9 +20,9 @@ const PROTOCOL = "tcp"
 // Network communication logic
 type Network struct {
 	mutex    sync.RWMutex
-	table    Router         // Routing hash table eg. {Socket: Conn interface}.
-	sentinel chan bool      // Channel flag waiting for signal to close connection.
-	Events   pubsub.Channel // Pubsub notifications.
+	table    Router    // Routing hash table eg. {Socket: Conn interface}.
+	sentinel chan bool // Channel flag waiting for signal to close connection.
+	Events   Channel   // Pubsub notifications.
 }
 
 // Network factory.
@@ -31,7 +30,7 @@ func New() *Network {
 	return &Network{
 		table:    make(Router),
 		sentinel: make(chan bool),
-		Events:   make(pubsub.Channel),
+		Events:   make(Channel),
 	}
 }
 
@@ -69,7 +68,7 @@ func (network *Network) stream(peer *Peer) {
 			}
 
 			// Sync buffer reading
-			_, err := p.Read(buf)
+			_, err := p.Receive(buf)
 			if err != nil {
 				if err != io.EOF {
 					break KEEPALIVE
@@ -77,7 +76,7 @@ func (network *Network) stream(peer *Peer) {
 			}
 
 			// Emit new incoming
-			message := pubsub.NewMessage(pubsub.MESSAGE_RECEIVED, buf)
+			message := NewMessage(MESSAGE_RECEIVED, buf, p)
 			n.Events.Publish(message)
 
 		}
@@ -102,7 +101,7 @@ func (network *Network) bind(listener net.Listener) {
 			n.stream(peer)
 			// Dispatch event
 			payload := []byte(peer.Socket())
-			message := pubsub.NewMessage(pubsub.NEWPEER_DETECTED, payload)
+			message := NewMessage(NEWPEER_DETECTED, payload, peer)
 			n.Events.Publish(message)
 		}
 	}(network, listener)
@@ -120,7 +119,7 @@ func (network *Network) Listen(addr string) (*Network, error) {
 	network.bind(listener)
 	// Dispatch event on start listening
 	payload := []byte(addr)
-	message := pubsub.NewMessage(pubsub.SELF_LISTENING, payload)
+	message := NewMessage(SELF_LISTENING, payload, nil)
 	network.Events.Publish(message)
 	return network, nil
 }
@@ -156,7 +155,7 @@ func (network *Network) Close() {
 	utils.Clear(&network.table)
 	utils.Clear(&network.Events)
 	// Dispatch event on close network
-	message := pubsub.NewMessage(pubsub.CLOSED_CONNECTION, []byte(""))
+	message := NewMessage(CLOSED_CONNECTION, []byte(""), nil)
 	network.Events.Publish(message)
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
@@ -176,7 +175,7 @@ func (network *Network) Dial(addr string) (*Network, error) {
 	network.stream(peer)
 	// Dispatch event for new peer
 	payload := []byte(peer.Socket())
-	message := pubsub.NewMessage(pubsub.NEWPEER_DETECTED, payload)
+	message := NewMessage(NEWPEER_DETECTED, payload, peer)
 	network.Events.Publish(message)
 	return network, nil
 }

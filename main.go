@@ -8,8 +8,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/geolffreym/p2p-noise/network"
 	"github.com/geolffreym/p2p-noise/node"
-	"github.com/geolffreym/p2p-noise/pubsub"
 )
 
 func main() {
@@ -22,15 +22,17 @@ func main() {
 	nodeB := node.NewNode()
 	nodeC := node.NewNode()
 
-	nodeA.Observe(func(msg *pubsub.Message) bool {
+	nodeA.Observe(func(msg *network.Message) bool {
 
 		switch msg.Type {
-		case pubsub.SELF_LISTENING:
+		case network.SELF_LISTENING:
 			fmt.Printf("Listening A on: %s \n", msg.Payload)
-		// case pubsub.NEWPEER_DETECTED:
-		// 	fmt.Printf("New peer A: %s \n", msg.Payload)
-		case pubsub.MESSAGE_RECEIVED:
+		case network.NEWPEER_DETECTED:
+			fmt.Printf("New peer A: %s \n", msg.Payload)
+		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message A: %s \n", msg.Payload)
+			msg.From.Send([]byte("Pong"))
+
 		default:
 
 		}
@@ -38,16 +40,18 @@ func main() {
 		return true
 	})
 
-	nodeB.Observe(func(msg *pubsub.Message) bool {
+	nodeB.Observe(func(msg *network.Message) bool {
 
 		switch msg.Type {
-		case pubsub.SELF_LISTENING:
+		case network.SELF_LISTENING:
 			fmt.Printf("Listening B on: %s \n", msg.Payload)
-		case pubsub.NEWPEER_DETECTED:
+		case network.NEWPEER_DETECTED:
 			fmt.Printf("New peer B: %s \n", msg.Payload)
-		case pubsub.MESSAGE_RECEIVED:
+		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message B: %s \n", msg.Payload)
-		case pubsub.CLOSED_CONNECTION:
+			msg.From.Send([]byte("Ping"))
+
+		case network.CLOSED_CONNECTION:
 			fmt.Print("Closed connection:")
 		default:
 		}
@@ -55,15 +59,17 @@ func main() {
 		return true
 	})
 
-	nodeC.Observe(func(msg *pubsub.Message) bool {
+	nodeC.Observe(func(msg *network.Message) bool {
 
 		switch msg.Type {
-		case pubsub.SELF_LISTENING:
+		case network.SELF_LISTENING:
 			fmt.Printf("Listening C on: %s \n", msg.Payload)
-		// case pubsub.NEWPEER_DETECTED:
-		// 	fmt.Printf("New peer C: %s \n", msg.Payload)
-		case pubsub.MESSAGE_RECEIVED:
+		case network.NEWPEER_DETECTED:
+			fmt.Printf("New peer C: %s \n", msg.Payload)
+		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message C: %s \n", msg.Payload)
+			msg.From.Send([]byte("Pong"))
+
 		default:
 		}
 
@@ -76,10 +82,10 @@ func main() {
 
 	nodeB.Dial(listenAddr)
 	nodeB.Dial(listenAddrC)
+	// time.Sleep(5 * time.Second)
 
-	// time.Sleep(1 * time.Second)
-	nodeB.Broadcast([]byte("Hello C"))
-
+	nodeB.Unicast(network.Socket(listenAddrC), []byte("Ping"))
+	nodeB.Unicast(network.Socket(listenAddr), []byte("Ping"))
 	// time.Sleep(5 * time.Second)
 	// nodeA.Close()
 

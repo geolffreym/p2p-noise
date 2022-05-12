@@ -6,12 +6,11 @@ import (
 	"log"
 
 	"github.com/geolffreym/p2p-noise/network"
-	"github.com/geolffreym/p2p-noise/pubsub"
 	"github.com/geolffreym/p2p-noise/utils"
 )
 
 type Node interface {
-	Observe(cb pubsub.Observer)
+	Observe(cb network.Observer)
 	Listen(addr string) (*Node, error)
 	Dial(addr string) (*Node, error)
 	Close()
@@ -19,18 +18,18 @@ type Node interface {
 
 // Node implementation.
 type NodeImp struct {
-	Sentinel   chan bool          // Hangs while waiting for channel closed and stop node process.
-	Network    *network.Network   // Network interface
-	subscriber *pubsub.Subscriber // Subscriber interface
+	Sentinel   chan bool           // Hangs while waiting for channel closed and stop node process.
+	Network    *network.Network    // Network interface
+	subscriber *network.Subscriber // Subscriber interface
 }
 
 // Build a ready to use subscriber interface and register default events for node
-func NodeSubscriber(network *network.Network) *pubsub.Subscriber {
-	subscriber := pubsub.NewSubscriber()
-	network.Events.Register(pubsub.SELF_LISTENING, subscriber)
-	network.Events.Register(pubsub.NEWPEER_DETECTED, subscriber)
-	network.Events.Register(pubsub.MESSAGE_RECEIVED, subscriber)
-	network.Events.Register(pubsub.CLOSED_CONNECTION, subscriber)
+func NodeSubscriber(n *network.Network) *network.Subscriber {
+	subscriber := network.NewSubscriber()
+	n.Events.Register(network.SELF_LISTENING, subscriber)
+	n.Events.Register(network.NEWPEER_DETECTED, subscriber)
+	n.Events.Register(network.MESSAGE_RECEIVED, subscriber)
+	n.Events.Register(network.CLOSED_CONNECTION, subscriber)
 	return subscriber
 }
 
@@ -72,7 +71,7 @@ func (n *NodeImp) Dial(addr string) (*NodeImp, error) {
 func (n *NodeImp) Broadcast(msg []byte) {
 	for _, peer := range n.Network.Table() {
 		go func(n *NodeImp, p *network.Peer) {
-			_, err := p.Write(msg)
+			_, err := p.Send(msg)
 			if err != nil {
 				// TODO move message to errors
 				log.Printf("error sending broadcast message: %v", err)
@@ -85,7 +84,7 @@ func (n *NodeImp) Broadcast(msg []byte) {
 // Send a message to a specific peer
 func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
 	if peer, ok := n.Network.Table()[dest]; ok {
-		_, err := peer.Write(msg)
+		_, err := peer.Send(msg)
 		if err != nil {
 			// TODO move message to errors
 			log.Printf("error sending unicast message: %v", err)
@@ -94,7 +93,7 @@ func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
 }
 
 // Use it to keep waiting for incoming notifications from the network.
-func (n *NodeImp) Observe(cb pubsub.Observer) {
+func (n *NodeImp) Observe(cb network.Observer) {
 	n.subscriber.Listen(cb)
 }
 
