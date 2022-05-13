@@ -4,27 +4,17 @@ import (
 	"sync"
 )
 
-// Subscribed map event list for subscriber
-type Subscriptions map[Event]bool
-
-// Set event as subscribed = true
-func (s Subscriptions) Add(event Event) {
-	s[event] = true
-}
-
 // Subscriber synchronize messages from events
 // and keep a record of current subscriptions for events.
 type Subscriber struct {
-	mutex      sync.RWMutex  // Mutual exclusion
-	message    chan *Message // Message exchange channel
-	subscribed Subscriptions // Keep tracking of subscribed events
+	mutex   sync.RWMutex  // Mutual exclusion
+	message chan *Message // Message exchange channel
 }
 
 // Subscriber factory
 func NewSubscriber() *Subscriber {
 	return &Subscriber{
-		message:    make(chan *Message),
-		subscribed: make(Subscriptions),
+		message: make(chan *Message),
 	}
 }
 
@@ -33,8 +23,8 @@ func (s *Subscriber) Emit(msg *Message) {
 	// Get lock to enforce sync order messages
 	// No read messages while writing
 	// https://gobyexample.com/mutexes
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.message <- msg
 }
 

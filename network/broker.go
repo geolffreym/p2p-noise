@@ -19,22 +19,21 @@ const (
 )
 
 // Hash map event subscribers
-type Channel map[Event][]*Subscriber
+type Events map[Event][]*Subscriber
 
 // Associate subscriber to a event channel
 // If channel event doesn't exist then is created
-func (events Channel) Register(e Event, s *Subscriber) {
+func (events Events) Register(e Event, s *Subscriber) {
 	// If not topic registered
 	if _, ok := events[e]; !ok {
 		events[e] = []*Subscriber{}
 	}
 
-	s.subscribed.Add(e) // Flag subscriber as subscribed
 	events[e] = append(events[e], s)
 }
 
 // Emit/send concurrently messages to subscribers
-func (events Channel) Publish(msg *Message) {
+func (events Events) Publish(msg *Message) {
 	if _, ok := events[msg.Type]; ok {
 		for _, subscriber := range events[msg.Type] {
 			go func(s *Subscriber) {

@@ -22,7 +22,7 @@ type Network struct {
 	mutex    sync.RWMutex
 	table    Router    // Routing hash table eg. {Socket: Conn interface}.
 	sentinel chan bool // Channel flag waiting for signal to close connection.
-	Events   Channel   // Pubsub notifications.
+	Events   Events    // Pubsub notifications.
 }
 
 // Network factory.
@@ -30,7 +30,7 @@ func New() *Network {
 	return &Network{
 		table:    make(Router),
 		sentinel: make(chan bool),
-		Events:   make(Channel),
+		Events:   make(Events),
 	}
 }
 
@@ -75,7 +75,7 @@ func (network *Network) stream(peer *Peer) {
 				}
 			}
 
-			// Emit new incoming
+			// Emit new incoming message notification
 			message := NewMessage(MESSAGE_RECEIVED, buf, p)
 			n.Events.Publish(message)
 
@@ -98,6 +98,7 @@ func (network *Network) bind(listener net.Listener) {
 
 			// Routing for connection
 			peer := n.routing(conn)
+			// Wait for incoming messages
 			n.stream(peer)
 			// Dispatch event
 			payload := []byte(peer.Socket())
@@ -172,6 +173,7 @@ func (network *Network) Dial(addr string) (*Network, error) {
 
 	// Routing for connection
 	peer := network.routing(conn)
+	// Wait for incoming messages
 	network.stream(peer)
 	// Dispatch event for new peer
 	payload := []byte(peer.Socket())
