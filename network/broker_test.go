@@ -3,6 +3,7 @@ package network
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestRegister(t *testing.T) {
@@ -54,12 +55,18 @@ func TestPublish(t *testing.T) {
 	event.Register(SELF_LISTENING, subscriber)
 	message := NewMessage(SELF_LISTENING, []byte("hello test 1"), nil)
 	event.Publish(message)
+	var result *Message
 
 	// Get first message from channel
 	// Expected Emit called to set message
-	result := <-subscriber.message
-	if string(result.Payload) != string(message.Payload) {
-		t.Errorf("Expected message equal result")
+	select {
+	case result := <-subscriber.message:
+		if string(result.Payload) != string(message.Payload) {
+			t.Errorf("Expected message equal result")
+		}
+	case <-time.After(1 * time.Second):
+		// Printed after 5 seconds
+		t.Errorf("Expected message received after publish")
 	}
 
 	// Modified message to publish and runtime listening
