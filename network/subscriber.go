@@ -20,8 +20,7 @@ func NewSubscriber() *Subscriber {
 
 // Send Message to channel buffer.
 func (s *Subscriber) Emit(msg *Message) {
-	// Get lock to enforce sync order messages
-	// No read messages while writing
+	// Lock exclusive writing
 	// https://gobyexample.com/mutexes
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
