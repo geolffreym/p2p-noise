@@ -48,7 +48,7 @@ func TestRegister(t *testing.T) {
 	}
 }
 
-func TestListenPublish(t *testing.T) {
+func TestPublish(t *testing.T) {
 	subscriber := NewSubscriber()
 	event := make(Events)
 	event.Register(SELF_LISTENING, subscriber)
@@ -56,8 +56,21 @@ func TestListenPublish(t *testing.T) {
 	event.Publish(message)
 
 	// Get first message from channel
-	// Expected Emit called to set messasge
+	// Expected Emit called to set message
 	result := <-subscriber.message
+	if string(result.Payload) != string(message.Payload) {
+		t.Errorf("Expected message equal result")
+	}
+
+	// Modified message to publish and runtime listening
+	event.Register(NEWPEER_DETECTED, subscriber)
+	message.Type = NEWPEER_DETECTED
+	message.Payload = []byte("hello test 2")
+	event.Publish(message)
+
+	// Get next message from channel
+	// Expected Emit called to set message
+	result = <-subscriber.message
 	if string(result.Payload) != string(message.Payload) {
 		t.Errorf("Expected message equal result")
 	}
