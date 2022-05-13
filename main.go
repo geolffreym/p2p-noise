@@ -23,7 +23,6 @@ func main() {
 	nodeC := node.NewNode()
 
 	nodeA.Observe(func(msg *network.Message) bool {
-
 		switch msg.Type {
 		case network.SELF_LISTENING:
 			fmt.Printf("Listening A on: %s \n", msg.Payload)
@@ -31,7 +30,7 @@ func main() {
 			fmt.Printf("New peer A: %s \n", msg.Payload)
 		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message A: %s \n", msg.Payload)
-			msg.From.Send([]byte("Pong"))
+			msg.Peer.Send([]byte("Pong"))
 
 		default:
 
@@ -49,7 +48,7 @@ func main() {
 			fmt.Printf("New peer B: %s \n", msg.Payload)
 		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message B: %s \n", msg.Payload)
-			msg.From.Send([]byte("Ping"))
+			msg.Reply([]byte("Ping"))
 
 		case network.CLOSED_CONNECTION:
 			fmt.Print("Closed connection:")
@@ -68,7 +67,7 @@ func main() {
 			fmt.Printf("New peer C: %s \n", msg.Payload)
 		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message C: %s \n", msg.Payload)
-			msg.From.Send([]byte("Pong"))
+			msg.Peer.Send([]byte("Pong"))
 
 		default:
 		}

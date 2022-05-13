@@ -162,7 +162,7 @@ func (network *Network) Close() {
 	close(network.sentinel)
 }
 
-// Dial to a network node and add peer to table
+// Dial to node and add connected peer to routing table
 // Return network as nil and error if error occurred while dialing network.
 func (network *Network) Dial(addr string) (*Network, error) {
 	conn, err := net.Dial(PROTOCOL, addr)
