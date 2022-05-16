@@ -1,6 +1,8 @@
 // Pubsub event notifications.
 package network
 
+import "sync"
+
 // Aliases to handle idiomatic `Event` type
 type Event int
 
@@ -19,23 +21,36 @@ const (
 )
 
 // Hash map event subscribers
-type Events map[Event][]*Subscriber
+type Events struct {
+	sync.RWMutex                         // guards
+	topics       map[Event][]*Subscriber // subscriptions
+}
 
-// Associate subscriber to a event channel
-// If channel event doesn't exist then is created
-func (events Events) Register(e Event, s *Subscriber) {
+func NewEvents() *Events {
+	return &Events{topics: make(map[Event][]*Subscriber)}
+}
+
+// Associate subscriber to a event channel;
+// If channel event doesn't exist then is created.
+func (events *Events) Register(e Event, s *Subscriber) {
 	// If not topic registered
-	if _, ok := events[e]; !ok {
-		events[e] = []*Subscriber{}
+	if _, ok := events.topics[e]; !ok {
+		events.topics[e] = []*Subscriber{}
 	}
 
-	events[e] = append(events[e], s)
+	events.topics[e] = append(events.topics[e], s)
 }
 
 // Emit/send concurrently messages to subscribers
-func (events Events) Publish(msg *Message) {
-	if _, ok := events[msg.Type]; ok {
-		for _, subscriber := range events[msg.Type] {
+func (events *Events) Publish(msg *Message) {
+	// Mutex for reading topics.
+	// Do not write while topics are read.
+	// Write Lock can’t be acquired until all Read Locks are released.
+	events.RWMutex.RLock()
+	defer events.RWMutex.RUnlock()
+
+	if _, ok := events.topics[msg.Type]; ok {
+		for _, subscriber := range events.topics[msg.Type] {
 			go func(s *Subscriber) {
 				s.Emit(msg)
 			}(subscriber)
