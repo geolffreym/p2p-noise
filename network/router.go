@@ -5,10 +5,10 @@ type Socket string
 
 // Router hash table to associate Socket with Peers.
 // eg. {127.0.0.1:4000: Peer}
-type Router map[Socket]*Peer
+type Router map[Socket]Peer
 
 // Add new socket => connection association
-func (r Router) Add(socket Socket, peer *Peer) {
+func (r Router) Add(socket Socket, peer Peer) {
 	r[socket] = peer
 }
 

@@ -34,31 +34,24 @@ func New() *Network {
 	}
 }
 
-// Build a new peer from network connection
-func (network *Network) peer(conn net.Conn) *Peer {
-	return &Peer{
-		conn:   conn,
-		socket: Socket(conn.RemoteAddr().String()),
-	}
-}
-
 // Initialize route in routing table from connection interface
 // Return new peer added to table
-func (network *Network) routing(conn net.Conn) *Peer {
+func (network *Network) routing(conn net.Conn) Peer {
 	// Mutex write table while routing operation
 	network.mutex.Lock()
 	defer network.mutex.Unlock()
+
 	// Keep routing for each connection
 	socket := Socket(conn.RemoteAddr().String())
-	peer := network.peer(conn)
+	peer := NewPeer(socket, conn)
 	network.table.Add(socket, peer)
 	return peer
 }
 
 // Run routed stream message in goroutine.
 // Each incoming message is processed in non-blocking approach.
-func (network *Network) stream(peer *Peer) {
-	go func(n *Network, p *Peer) {
+func (network *Network) stream(peer Peer) {
+	go func(n *Network, p Peer) {
 		buf := make([]byte, 1024)
 	KEEPALIVE:
 		for {
@@ -145,7 +138,7 @@ func (network *Network) IsClosed() bool {
 // Close all peers connections and destroy current state
 func (network *Network) Close() {
 	for _, peer := range network.table {
-		go func(p *Peer) {
+		go func(p Peer) {
 			if err := p.Close(); err != nil {
 				log.Fatalf(errors.Closing(err).Error())
 			}

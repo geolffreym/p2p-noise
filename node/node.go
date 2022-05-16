@@ -70,7 +70,7 @@ func (n *NodeImp) Dial(addr string) (*NodeImp, error) {
 // Send messages to all the connected peers
 func (n *NodeImp) Broadcast(msg []byte) {
 	for _, peer := range n.Network.Table() {
-		go func(n *NodeImp, p *network.Peer) {
+		go func(n *NodeImp, p network.Peer) {
 			_, err := p.Send(msg)
 			if err != nil {
 				// TODO move message to errors
