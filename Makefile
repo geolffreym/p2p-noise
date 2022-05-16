@@ -16,8 +16,10 @@ WIN_32=${BINARY_WIN}-${ARCH_32}
 OSX_64=${BINARY_LINUX}-${ARCH_64}
 
 
+# -count 1 idiomatic no cached testing
+# -race test race condition for routines
 test:
-	go test -v ./... -count=1
+	go test -v ./... -count 1 -race
 
 # Could be compared using
 # make benchmark > a.old

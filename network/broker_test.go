@@ -8,7 +8,7 @@ import (
 
 func TestRegister(t *testing.T) {
 	subscriber := NewSubscriber()
-	event := make(Events)
+	event := NewEvents()
 	event.Register(SELF_LISTENING, subscriber)
 	event.Register(NEWPEER_DETECTED, subscriber)
 	event.Register(CLOSED_CONNECTION, subscriber)
@@ -34,8 +34,8 @@ func TestRegister(t *testing.T) {
 	// For each expected event
 	for _, e := range registered {
 		t.Run(e.name, func(t *testing.T) {
-			s, ok := event[e.event] // Registered events
-			subscribed := s[0]      // first element in event subscribed
+			s, ok := event.topics[e.event] // Registered events
+			subscribed := s[0]             // first element in event subscribed
 
 			if !ok {
 				t.Errorf("Expected event %#v, get registered", e)
@@ -51,7 +51,7 @@ func TestRegister(t *testing.T) {
 
 func TestPublish(t *testing.T) {
 	subscriber := NewSubscriber()
-	event := make(Events)
+	event := NewEvents()
 	event.Register(SELF_LISTENING, subscriber)
 	message := NewMessage(SELF_LISTENING, []byte("hello test 1"), nil)
 	event.Publish(message)

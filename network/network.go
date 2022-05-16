@@ -22,7 +22,7 @@ type Network struct {
 	mutex    sync.RWMutex
 	table    Router    // Routing hash table eg. {Socket: Conn interface}.
 	sentinel chan bool // Channel flag waiting for signal to close connection.
-	Events   Events    // Pubsub notifications.
+	Events   *Events   // Pubsub notifications.
 }
 
 // Network factory.
@@ -30,7 +30,7 @@ func New() *Network {
 	return &Network{
 		table:    make(Router),
 		sentinel: make(chan bool),
-		Events:   make(Events),
+		Events:   NewEvents(),
 	}
 }
 
@@ -45,7 +45,7 @@ func (network *Network) peer(conn net.Conn) *Peer {
 // Initialize route in routing table from connection interface
 // Return new peer added to table
 func (network *Network) routing(conn net.Conn) *Peer {
-	// Avoid read table while routing operation
+	// Mutex write table while routing operation
 	network.mutex.Lock()
 	defer network.mutex.Unlock()
 	// Keep routing for each connection
