@@ -30,7 +30,7 @@ func main() {
 			fmt.Printf("New peer A: %s \n", msg.Payload)
 		case network.MESSAGE_RECEIVED:
 			fmt.Printf("New message A: %s \n", msg.Payload)
-			msg.Peer.Send([]byte("Pong"))
+			msg.Reply([]byte("Pong"))
 
 		default:
 

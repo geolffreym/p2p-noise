@@ -17,7 +17,7 @@ OSX_64=${BINARY_LINUX}-${ARCH_64}
 
 
 test:
-	go test -v ./...
+	go test -v ./... -count=1
 
 # Could be compared using
 # make benchmark > a.old
