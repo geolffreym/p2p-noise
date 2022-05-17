@@ -1,6 +1,7 @@
 package network
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -9,6 +10,11 @@ func TestNewMessage(t *testing.T) {
 	event := Event(CLOSED_CONNECTION)
 	payload := []byte("hello test")
 	message := NewMessage(event, payload, nil)
+
+	if reflect.TypeOf(message) != reflect.TypeOf(&Message{event, payload, nil}) {
+		t.Errorf("expected *Message, got %#v", message)
+		t.FailNow() // If fail type PeerImp assertion next tests will fail too
+	}
 
 	if message.Type != event {
 		t.Errorf("Expected message with type %v, got %v", event, message.Type)
