@@ -152,7 +152,7 @@ func TestSendReceive(t *testing.T) {
 		buf := make([]byte, 1024)
 		bytes, _ := p.Receive(buf)
 
-		if bytes != len(expected) {
+		if bytes != len([]byte(expected)) {
 			t.Errorf("expected receive same bytes sent \"%s\", got \"%s\"", expected, string(buf))
 		}
 
