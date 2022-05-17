@@ -65,21 +65,20 @@ func TestPublish(t *testing.T) {
 			t.Errorf("Expected message equal result")
 		}
 	case <-time.After(1 * time.Second):
-		// Printed after 5 seconds
+		// Wait 1 second to receive message
 		t.Errorf("Expected message received after publish")
 	}
 
-	// Modified message to publish and runtime listening
+	// New message for new topic event
 	event.Register(NEWPEER_DETECTED, subscriber)
-	message.Type = NEWPEER_DETECTED
-	message.Payload = []byte("hello test 2")
+	message = NewMessage(NEWPEER_DETECTED, []byte(""), nil)
 	event.Publish(message)
 
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.message
-	if string(result.Payload) != string(message.Payload) {
-		t.Errorf("Expected message equal result")
+	if result.Type != Event(NEWPEER_DETECTED) {
+		t.Errorf("Expected message type equal to %#v", NEWPEER_DETECTED)
 	}
 
 }

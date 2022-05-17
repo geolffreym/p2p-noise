@@ -7,8 +7,8 @@ import (
 // Subscriber synchronize messages from events
 // and keep a record of current subscriptions for events.
 type Subscriber struct {
-	mutex   sync.RWMutex  // Mutual exclusion
-	message chan *Message // Message exchange channel
+	sync.RWMutex               // Mutual exclusion
+	message      chan *Message // Message exchange channel
 }
 
 // Subscriber factory
@@ -22,8 +22,8 @@ func NewSubscriber() *Subscriber {
 func (s *Subscriber) Emit(msg *Message) {
 	// Lock exclusive writing
 	// https://gobyexample.com/mutexes
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.RWMutex.Lock()
+	defer s.RWMutex.Unlock()
 	s.message <- msg
 }
 

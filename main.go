@@ -88,7 +88,7 @@ func main() {
 	// time.Sleep(5 * time.Second)
 	// nodeA.Close()
 
-	<-nodeB.Sentinel
+	nodeB.Daemon()
 
 	// // Type assertion.. is b string type?
 	// var b interface{} = "hello"

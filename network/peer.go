@@ -2,21 +2,25 @@ package network
 
 import "net"
 
-type Peer interface {
+type PeerConnection interface {
 	// Return peer connection interface
 	Connection() net.Conn
-
 	// Return peer socket
 	Socket() Socket
-
-	// Write buffered message over connection
-	Send(data []byte) (n int, err error)
-
-	// Read buffered message from connection
-	Receive(buf []byte) (n int, err error)
-
 	// Close peer connection
 	Close() error
+}
+
+type PeerStreamer interface {
+	// Write buffered message over connection
+	Send(data []byte) (n int, err error)
+	// Read buffered message from connection
+	Receive(buf []byte) (n int, err error)
+}
+
+type Peer interface {
+	PeerConnection
+	PeerStreamer
 }
 
 // PeerImp struct has a simplistic interface to describe a node in the network.

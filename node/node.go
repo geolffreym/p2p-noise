@@ -9,11 +9,19 @@ import (
 	"github.com/geolffreym/p2p-noise/utils"
 )
 
-type Node interface {
-	Observe(cb network.Observer)
+type NodeConnection interface {
 	Listen(addr string) (*Node, error)
 	Dial(addr string) (*Node, error)
 	Close()
+}
+
+type NodeSubscriber interface {
+	Observe(cb network.Observer)
+}
+
+type Node interface {
+	NodeConnection
+	NodeSubscriber
 }
 
 // Node implementation.
@@ -24,7 +32,7 @@ type NodeImp struct {
 }
 
 // Build a ready to use subscriber interface and register default events for node
-func NodeSubscriber(n *network.Network) *network.Subscriber {
+func NewNodeSubscriber(n *network.Network) *network.Subscriber {
 	subscriber := network.NewSubscriber()
 	n.Events.Register(network.SELF_LISTENING, subscriber)
 	n.Events.Register(network.NEWPEER_DETECTED, subscriber)
@@ -38,7 +46,7 @@ func NewNode() *NodeImp {
 
 	// Register default events for node
 	network := network.New()
-	subscriber := NodeSubscriber(network)
+	subscriber := NewNodeSubscriber(network)
 
 	return &NodeImp{
 		Network:    network,
@@ -95,6 +103,11 @@ func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
 // Use it to keep waiting for incoming notifications from the network.
 func (n *NodeImp) Observe(cb network.Observer) {
 	n.subscriber.Listen(cb)
+}
+
+// Locked channel until the network get closed
+func (n *NodeImp) Daemon() {
+	<-n.Sentinel
 }
 
 // Close node connections and destroy node
