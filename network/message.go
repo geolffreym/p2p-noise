@@ -2,13 +2,13 @@ package network
 
 // Message hold the information needed to exchange messages via pubsub events.
 type Message struct {
-	Type    Event      // Type of event published
-	Payload []byte     // Custom data message published
-	Peer    PeerStream // Peer interface sender
+	Type    Event        // Type of event published
+	Payload []byte       // Custom data message published
+	Peer    PeerStreamer // Peer interface sender
 }
 
 // Message factory
-func NewMessage(event Event, payload []byte, peer PeerStream) *Message {
+func NewMessage(event Event, payload []byte, peer PeerStreamer) *Message {
 	return &Message{
 		Peer:    peer,
 		Type:    event,
