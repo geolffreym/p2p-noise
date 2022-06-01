@@ -12,12 +12,12 @@ func (r Router) Add(socket Socket, peer Peer) {
 	r[socket] = peer
 }
 
-// Return the number of connections
+// Len return the number of connections
 func (r Router) Len() int {
 	return len(r)
 }
 
-// Remove a connection from router
+// Delete removes a connection from router
 func (r Router) Delete(socket Socket) {
 	delete(r, socket)
 }
