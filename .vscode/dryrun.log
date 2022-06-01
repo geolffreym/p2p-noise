@@ -1,5 +1,5 @@
 make --dry-run --always-make --keep-going --print-directory
 make: Entering directory '/home/gmena/GoLangProjects/p2p-chat'
-go test -v ./...
+go test -v ./... -count 1 -race
 make: Leaving directory '/home/gmena/GoLangProjects/p2p-chat'
  

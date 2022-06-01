@@ -32,7 +32,7 @@ type PeerImp struct {
 }
 
 // Peer factory
-func NewPeer(socket Socket, conn net.Conn) Peer {
+func NewPeer(socket Socket, conn net.Conn) *PeerImp {
 	return &PeerImp{
 		conn:   conn,
 		socket: socket,

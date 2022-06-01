@@ -83,8 +83,9 @@ func TestNewPeer(t *testing.T) {
 	address := Socket("127.0.0.1:23")
 	peer := NewPeer(address, conn)
 
-	_, ok := peer.(*PeerImp)
-	if !ok {
+	peerInterface := reflect.TypeOf((Peer)(nil)).Elem()
+
+	if !reflect.TypeOf(peer).Implements(peerInterface) {
 		t.Errorf("expected PeerImp, got %#v", peer)
 		t.FailNow() // If fail type PeerImp assertion next tests will fail too
 	}
@@ -96,9 +97,8 @@ func TestSocket(t *testing.T) {
 	address := Socket("127.0.0.1:23")
 	peer := NewPeer(address, conn)
 
-	p, _ := peer.(*PeerImp)
-	if p.Socket() != address {
-		t.Errorf("expected socket %#v, got %#v", address, p.socket)
+	if peer.Socket() != address {
+		t.Errorf("expected socket %#v, got %#v", address, peer.socket)
 	}
 
 }
@@ -108,8 +108,7 @@ func TestClose(t *testing.T) {
 	address := Socket("127.0.0.1:23")
 	peer := NewPeer(address, conn)
 
-	p, _ := peer.(*PeerImp)
-	err := p.Close()
+	err := peer.Close()
 
 	if err != nil {
 		t.Errorf("expected error but got %#v", err)
@@ -122,10 +121,9 @@ func TestConnection(t *testing.T) {
 	address := Socket("127.0.0.1:23")
 	peer := NewPeer(address, conn)
 
-	p, _ := peer.(*PeerImp)
-	err := p.Close()
+	err := peer.Close()
 
-	if !reflect.DeepEqual(p.conn, conn) {
+	if !reflect.DeepEqual(peer.conn, conn) {
 		t.Errorf("expected error but got %#v", err)
 	}
 
@@ -138,7 +136,6 @@ func TestSendReceive(t *testing.T) {
 
 	address := Socket("127.0.0.1:23")
 	peer := NewPeer(address, conn)
-	p, _ := peer.(*PeerImp)
 
 	expected := "ping from peer"
 	// Someone sending a message to peer
@@ -150,7 +147,7 @@ func TestSendReceive(t *testing.T) {
 	t.Run("Reading", func(t *testing.T) {
 		// Simulating network
 		buf := make([]byte, 1024)
-		bytes, _ := p.Receive(buf)
+		bytes, _ := peer.Receive(buf)
 
 		if bytes != len([]byte(expected)) {
 			t.Errorf("expected receive same bytes sent \"%s\", got \"%s\"", expected, string(buf))

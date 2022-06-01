@@ -1,4 +1,4 @@
-// Package network implements a lightweight TCP communication.
+// Network implements a lightweight TCP communication.
 // Offers pretty basic features to communicate between nodes.
 //
 // See also: https://pkg.go.dev/net#Conn
@@ -34,7 +34,7 @@ func New() *Network {
 	}
 }
 
-// Initialize route in routing table from connection interface
+// routing initialize route in routing table from connection interface
 // Return new peer added to table
 func (network *Network) routing(conn net.Conn) Peer {
 	// Mutex write table while routing operation
@@ -48,7 +48,7 @@ func (network *Network) routing(conn net.Conn) Peer {
 	return peer
 }
 
-// Run routed stream message in goroutine.
+// stream run routed stream message in goroutine.
 // Each incoming message is processed in non-blocking approach.
 func (network *Network) stream(peer Peer) {
 	go func(n *Network, p Peer) {
@@ -56,7 +56,7 @@ func (network *Network) stream(peer Peer) {
 	KEEPALIVE:
 		for {
 			// Stop routine
-			if n.IsClosed() {
+			if n.Closed() {
 				return
 			}
 
@@ -76,7 +76,7 @@ func (network *Network) stream(peer Peer) {
 	}(network, peer)
 }
 
-// Concurrent `Bind` network for streams.
+// Bind concurrent network for streams.
 // Start a new goroutine to keep waiting for new connections.
 func (network *Network) bind(listener net.Listener) {
 	go func(n *Network, l net.Listener) {
@@ -84,7 +84,7 @@ func (network *Network) bind(listener net.Listener) {
 			// Block/Hold while waiting for new incoming connection
 			// Synchronized incoming connections
 			conn, err := l.Accept()
-			if err != nil || n.IsClosed() {
+			if err != nil || n.Closed() {
 				log.Fatalf(errors.Binding(err).Error())
 				return
 			}
@@ -101,7 +101,7 @@ func (network *Network) bind(listener net.Listener) {
 	}(network, listener)
 }
 
-// Start listening on the given address and wait for new connection.
+// Listen start listening on the given address and wait for new connection.
 // Return network as nil and error if error occurred while listening.
 func (network *Network) Listen(addr string) (*Network, error) {
 	listener, err := net.Listen(PROTOCOL, addr)
@@ -123,9 +123,9 @@ func (network *Network) Table() Router {
 	return network.table
 }
 
-// Non-blocking check connection state.
+// Closed Non-blocking check connection state.
 // true for connection open else close
-func (network *Network) IsClosed() bool {
+func (network *Network) Closed() bool {
 	select {
 	case <-network.sentinel:
 		return true

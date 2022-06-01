@@ -14,7 +14,7 @@ type Error struct {
 	Err     error  // Inherited error from lower level.
 }
 
-// Give string representation of error based on error type
+// Error give string representation of error based on error type
 func (e *Error) Error() string {
 	switch e.Err.(type) {
 	case *net.OpError:
@@ -24,7 +24,7 @@ func (e *Error) Error() string {
 	}
 }
 
-// Error factory
+// WrapError factory
 func WrapErr(err error, context string) error {
 	return &Error{
 		Err:     err,

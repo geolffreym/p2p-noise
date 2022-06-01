@@ -106,7 +106,7 @@ func (n *NodeImp) Observe(cb network.Observer) {
 }
 
 // Locked channel until the network get closed
-func (n *NodeImp) Daemon() {
+func (n *NodeImp) Wait() {
 	<-n.Sentinel
 }
 

@@ -22,7 +22,7 @@ const (
 
 type Topic map[Event][]*Subscriber
 
-// Append a new subscriber to event
+// Add append a new subscriber to event
 // If topic event doesn't exist then is created.
 func (t Topic) Add(e Event, s *Subscriber) {
 	// If not topic registered
@@ -33,7 +33,7 @@ func (t Topic) Add(e Event, s *Subscriber) {
 	t[e] = append(t[e], s)
 }
 
-// Hash map event subscribers
+// Events hash map event subscribers
 type Events struct {
 	sync.RWMutex       // guards
 	topics       Topic // topic subscriptions
@@ -43,7 +43,7 @@ func NewEvents() *Events {
 	return &Events{topics: make(Topic)}
 }
 
-// Associate subscriber to a event channel;
+// Register associate subscriber to a event channel;
 func (events *Events) Register(e Event, s *Subscriber) {
 	// Mutex for writing topics.
 	// Do not read while topics are written.
@@ -55,7 +55,7 @@ func (events *Events) Register(e Event, s *Subscriber) {
 	events.topics.Add(e, s)
 }
 
-// Emit/send concurrently messages to subscribers
+// Publish Emit/send concurrently messages to subscribers
 func (events *Events) Publish(msg *Message) {
 	// Mutex for reading topics.
 	// Do not write while topics are read.

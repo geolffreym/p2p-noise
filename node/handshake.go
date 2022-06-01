@@ -13,3 +13,6 @@ type Noise struct {
 func New() {
 
 }
+
+// Add Chain of Responsibility for handshake events
+// Allow plugable middlewares
