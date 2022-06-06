@@ -10,53 +10,60 @@ import (
 )
 
 type NodeConnection interface {
-	Listen(addr string) (*Node, error)
-	Dial(addr string) (*Node, error)
+	Listen(addr string) (Node, error)
+	Dial(addr string) (Node, error)
 	Close()
 }
 
 type NodeSubscriber interface {
 	Observe(cb network.Observer)
+	Wait()
+}
+
+type NodeEmitter interface {
+	Broadcast(msg []byte)
+	Unicast(dest network.Socket, msg []byte)
 }
 
 type Node interface {
 	NodeConnection
 	NodeSubscriber
+	NodeEmitter
 }
 
 // Node implementation.
-type NodeImp struct {
-	Sentinel   chan bool           // Hangs while waiting for channel closed and stop node process.
-	Network    *network.Network    // Network interface
-	subscriber *network.Subscriber // Subscriber interface
+type node struct {
+	sentinel   chan bool          // Hangs while waiting for channel closed and stop node process.
+	subscriber network.Subscriber // Subscriber interface
+	Network    network.Network    // Network interface
 }
 
 // Build a ready to use subscriber interface and register default events for node
-func NewNodeSubscriber(n *network.Network) *network.Subscriber {
+func NewNodeSubscriber(net network.Network) network.Subscriber {
 	subscriber := network.NewSubscriber()
-	n.Events.Register(network.SELF_LISTENING, subscriber)
-	n.Events.Register(network.NEWPEER_DETECTED, subscriber)
-	n.Events.Register(network.MESSAGE_RECEIVED, subscriber)
-	n.Events.Register(network.CLOSED_CONNECTION, subscriber)
+	net.Register(network.SELF_LISTENING, subscriber)
+	net.Register(network.NEWPEER_DETECTED, subscriber)
+	net.Register(network.MESSAGE_RECEIVED, subscriber)
+	net.Register(network.CLOSED_CONNECTION, subscriber)
 	return subscriber
 }
 
 // Node factory
-func NewNode() *NodeImp {
+func NewNode() Node {
 
 	// Register default events for node
 	network := network.New()
 	subscriber := NewNodeSubscriber(network)
 
-	return &NodeImp{
+	return &node{
 		Network:    network,
-		Sentinel:   make(chan bool),
+		sentinel:   make(chan bool),
 		subscriber: subscriber,
 	}
 }
 
 // Listen node in address and return error if it failed.
-func (n *NodeImp) Listen(addr string) (*NodeImp, error) {
+func (n *node) Listen(addr string) (Node, error) {
 	_, err := n.Network.Listen(addr)
 	if err != nil {
 		return nil, err
@@ -66,7 +73,7 @@ func (n *NodeImp) Listen(addr string) (*NodeImp, error) {
 }
 
 // Dial to a remote node and return error if it failed.
-func (n *NodeImp) Dial(addr string) (*NodeImp, error) {
+func (n *node) Dial(addr string) (Node, error) {
 	_, err := n.Network.Dial(addr)
 	if err != nil {
 		return nil, err
@@ -76,9 +83,9 @@ func (n *NodeImp) Dial(addr string) (*NodeImp, error) {
 }
 
 // Send messages to all the connected peers
-func (n *NodeImp) Broadcast(msg []byte) {
-	for _, peer := range n.Network.Table() {
-		go func(n *NodeImp, p network.Peer) {
+func (n *node) Broadcast(msg []byte) {
+	for _, peer := range n.Network.Router().Table() {
+		go func(n *node, p network.Peer) {
 			_, err := p.Send(msg)
 			if err != nil {
 				// TODO move message to errors
@@ -90,8 +97,8 @@ func (n *NodeImp) Broadcast(msg []byte) {
 }
 
 // Send a message to a specific peer
-func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
-	if peer, ok := n.Network.Table()[dest]; ok {
+func (n *node) Unicast(dest network.Socket, msg []byte) {
+	if peer, ok := n.Network.Router().Table()[dest]; ok {
 		_, err := peer.Send(msg)
 		if err != nil {
 			// TODO move message to errors
@@ -101,18 +108,18 @@ func (n *NodeImp) Unicast(dest network.Socket, msg []byte) {
 }
 
 // Use it to keep waiting for incoming notifications from the network.
-func (n *NodeImp) Observe(cb network.Observer) {
+func (n *node) Observe(cb network.Observer) {
 	n.subscriber.Listen(cb)
 }
 
 // Locked channel until the network get closed
-func (n *NodeImp) Wait() {
-	<-n.Sentinel
+func (n *node) Wait() {
+	<-n.sentinel
 }
 
 // Close node connections and destroy node
-func (n *NodeImp) Close() {
+func (n *node) Close() {
 	n.Network.Close()          // Close network connection
 	utils.Clear(&n.subscriber) // Reset subscriber state
-	close(n.Sentinel)          // Stop node
+	close(n.sentinel)          // Stop node
 }

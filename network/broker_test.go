@@ -6,14 +6,6 @@ import (
 	"time"
 )
 
-func TestNewEvents(t *testing.T) {
-	events := NewEvents()
-	if reflect.TypeOf(events) != reflect.TypeOf(&Events{topics: make(Topic)}) {
-		t.Errorf("expected *Events, got %#v", events)
-		t.FailNow() // If fail type PeerImp assertion next tests will fail too
-	}
-}
-
 func TestRegister(t *testing.T) {
 	event := NewEvents()
 	subscriber := NewSubscriber()
@@ -39,11 +31,12 @@ func TestRegister(t *testing.T) {
 		event: MESSAGE_RECEIVED,
 	}}
 
+	// Table driven test
 	// For each expected event
 	for _, e := range registered {
 		t.Run(e.name, func(t *testing.T) {
-			s, ok := event.topics[e.event] // Registered events
-			subscribed := s[0]             // first element in event subscribed
+			s, ok := event.Topics()[e.event] // Registered events
+			subscribed := s[0]               // first element in event subscribed
 
 			if !ok {
 				t.Errorf("Expected event %#v, get registered", e)
@@ -59,7 +52,7 @@ func TestRegister(t *testing.T) {
 
 func TestTopicAdd(t *testing.T) {
 	topic := make(Topic)
-	subscribed := &Subscriber{}
+	subscribed := &subscriber{}
 
 	topic.Add(SELF_LISTENING, subscribed)
 	topic.Add(CLOSED_CONNECTION, subscribed)
@@ -75,7 +68,7 @@ func TestTopicAdd(t *testing.T) {
 }
 
 func TestPublish(t *testing.T) {
-	var result *Message
+	var result Message
 	subscriber := NewSubscriber()
 	event := NewEvents()
 
@@ -87,8 +80,8 @@ func TestPublish(t *testing.T) {
 	// Get first message from channel
 	// Expected Emit called to set message
 	select {
-	case result = <-subscriber.message:
-		if string(result.Payload) != string(message.Payload) {
+	case result = <-subscriber.Message():
+		if string(result.Payload()) != string(message.Payload()) {
 			t.Errorf("Expected message equal result")
 		}
 	case <-time.After(1 * time.Second):
@@ -104,8 +97,8 @@ func TestPublish(t *testing.T) {
 
 	// Get next message from channel
 	// Expected Emit called to set message
-	result = <-subscriber.message
-	if result.Type != Event(NEWPEER_DETECTED) {
+	result = <-subscriber.Message()
+	if result.Type() != Event(NEWPEER_DETECTED) {
 		t.Errorf("Expected message type equal to %#v", NEWPEER_DETECTED)
 	}
 

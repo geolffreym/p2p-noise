@@ -17,41 +17,79 @@ import (
 // Default protocol
 const PROTOCOL = "tcp"
 
+type NetworkRouter interface {
+	routing(conn net.Conn) Peer
+	Router() Router
+}
+
+type NetworkBroker interface {
+	observe(peer Peer)
+	Publish(event Event, buf []byte, peer PeerStreamer)
+	Register(e Event, s Subscriber)
+}
+
+type NetworkConnection interface {
+	Listen(addr string) (Network, error)
+	Dial(addr string) (Network, error)
+	Close()
+}
+
+type NetworkMonitor interface {
+	Closed() bool
+}
+
+type Network interface {
+	NetworkRouter
+	NetworkBroker
+	NetworkConnection
+	NetworkMonitor
+}
+
 // Network communication logic
-type Network struct {
-	mutex    sync.RWMutex
-	table    Router    // Routing hash table eg. {Socket: Conn interface}.
+type network struct {
+	sync.RWMutex
 	sentinel chan bool // Channel flag waiting for signal to close connection.
-	Events   *Events   // Pubsub notifications.
+	router   Router    // Routing hash table eg. {Socket: Conn interface}.
+	events   Events    // Pubsub notifications.
 }
 
 // Network factory.
-func New() *Network {
-	return &Network{
-		table:    make(Router),
+func New() Network {
+	return &network{
 		sentinel: make(chan bool),
-		Events:   NewEvents(),
+		router:   NewRouter(),
+		events:   NewEvents(),
 	}
 }
 
 // routing initialize route in routing table from connection interface
 // Return new peer added to table
-func (network *Network) routing(conn net.Conn) Peer {
-	// Mutex write table while routing operation
-	network.mutex.Lock()
-	defer network.mutex.Unlock()
+func (net *network) routing(conn net.Conn) Peer {
 
 	// Keep routing for each connection
 	socket := Socket(conn.RemoteAddr().String())
 	peer := NewPeer(socket, conn)
-	network.table.Add(socket, peer)
+	net.router.Add(socket, peer)
 	return peer
 }
 
-// stream run routed stream message in goroutine.
+// publish emit network event notifications
+func (network *network) Publish(event Event, buf []byte, peer PeerStreamer) {
+	// Emit new notification
+	message := NewMessage(event, buf, peer)
+	network.events.Publish(message)
+}
+
+//  Register associate subscriber to a event channel
+//  alias for internal Event Register
+func (network *network) Register(e Event, s Subscriber) {
+	network.events.Register(e, s)
+}
+
+// observe run goroutine waiting for incoming messages.
 // Each incoming message is processed in non-blocking approach.
-func (network *Network) stream(peer Peer) {
-	go func(n *Network, p Peer) {
+func (network *network) observe(peer Peer) {
+	go func(n Network, p Peer) {
 		buf := make([]byte, 1024)
 	KEEPALIVE:
 		for {
@@ -69,17 +107,16 @@ func (network *Network) stream(peer Peer) {
 			}
 
 			// Emit new incoming message notification
-			message := NewMessage(MESSAGE_RECEIVED, buf, p)
-			n.Events.Publish(message)
+			n.Publish(MESSAGE_RECEIVED, buf, p)
 
 		}
 	}(network, peer)
 }
 
-// Bind concurrent network for streams.
+// bind concurrent network for streams.
 // Start a new goroutine to keep waiting for new connections.
-func (network *Network) bind(listener net.Listener) {
-	go func(n *Network, l net.Listener) {
+func (network *network) bind(listener net.Listener) {
+	go func(n Network, l net.Listener) {
 		for {
 			// Block/Hold while waiting for new incoming connection
 			// Synchronized incoming connections
@@ -89,45 +126,40 @@ func (network *Network) bind(listener net.Listener) {
 				return
 			}
 
-			// Routing for connection
-			peer := n.routing(conn)
-			// Wait for incoming messages
-			n.stream(peer)
-			// Dispatch event
+			peer := n.routing(conn) // Routing for connection
+			n.observe(peer)         // Wait for incoming messages
+
+			// Dispatch event for new peer connected
 			payload := []byte(peer.Socket())
-			message := NewMessage(NEWPEER_DETECTED, payload, peer)
-			n.Events.Publish(message)
+			n.Publish(NEWPEER_DETECTED, payload, peer)
 		}
 	}(network, listener)
 }
 
 // Listen start listening on the given address and wait for new connection.
 // Return network as nil and error if error occurred while listening.
-func (network *Network) Listen(addr string) (*Network, error) {
+func (network *network) Listen(addr string) (Network, error) {
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
 		return nil, errors.Listening(err, addr)
 	}
 
-	// Concurrent processing for each incoming connection
-	network.bind(listener)
+	network.bind(listener) // Wait for incoming messages
 	// Dispatch event on start listening
-	payload := []byte(addr)
-	message := NewMessage(SELF_LISTENING, payload, nil)
-	network.Events.Publish(message)
+	network.Publish(SELF_LISTENING, []byte(addr), nil)
 	return network, nil
 }
 
 // Return current routing table
-func (network *Network) Table() Router {
-	return network.table
+func (net *network) Router() Router {
+	return net.router
 }
 
 // Closed Non-blocking check connection state.
 // true for connection open else close
-func (network *Network) Closed() bool {
+func (net *network) Closed() bool {
 	select {
-	case <-network.sentinel:
+	case <-net.sentinel:
 		return true
 	default:
 	}
@@ -136,8 +168,8 @@ func (network *Network) Closed() bool {
 }
 
 // Close all peers connections and destroy current state
-func (network *Network) Close() {
-	for _, peer := range network.table {
+func (network *network) Close() {
+	for _, peer := range network.router.Table() {
 		go func(p Peer) {
 			if err := p.Close(); err != nil {
 				log.Fatalf(errors.Closing(err).Error())
@@ -146,11 +178,10 @@ func (network *Network) Close() {
 	}
 
 	// Clear current state after closed connections
-	utils.Clear(&network.table)
-	utils.Clear(&network.Events)
+	utils.Clear(&network.router)
+	utils.Clear(&network.events)
 	// Dispatch event on close network
-	message := NewMessage(CLOSED_CONNECTION, []byte(""), nil)
-	network.Events.Publish(message)
+	network.Publish(CLOSED_CONNECTION, []byte(""), nil)
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
 	close(network.sentinel)
@@ -158,19 +189,16 @@ func (network *Network) Close() {
 
 // Dial to node and add connected peer to routing table
 // Return network as nil and error if error occurred while dialing network.
-func (network *Network) Dial(addr string) (*Network, error) {
+func (network *network) Dial(addr string) (Network, error) {
 	conn, err := net.Dial(PROTOCOL, addr)
 	if err != nil {
 		return nil, errors.Dialing(err, addr)
 	}
 
-	// Routing for connection
-	peer := network.routing(conn)
-	// Wait for incoming messages
-	network.stream(peer)
-	// Dispatch event for new peer
-	payload := []byte(peer.Socket())
-	message := NewMessage(NEWPEER_DETECTED, payload, peer)
-	network.Events.Publish(message)
+	peer := network.routing(conn) // Routing for connection
+	network.observe(peer)         // Wait for incoming messages
+
+	// Dispatch event for new peer connected
+	network.Publish(NEWPEER_DETECTED, []byte(peer.Socket()), peer)
 	return network, nil
 }

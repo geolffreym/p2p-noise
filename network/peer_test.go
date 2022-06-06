@@ -17,7 +17,7 @@ func (*mockAddr) String() string {
 	return "127.0.0.1:23"
 }
 
-///net/net.go
+// net/net.go
 type mockConn struct {
 	channel    chan []byte // Simulation for Message network exchange
 	shouldFail bool
@@ -78,27 +78,13 @@ func (c *mockConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
 
-func TestNewPeer(t *testing.T) {
-	conn := &mockConn{}
-	address := Socket("127.0.0.1:23")
-	peer := NewPeer(address, conn)
-
-	peerInterface := reflect.TypeOf((Peer)(nil)).Elem()
-
-	if !reflect.TypeOf(peer).Implements(peerInterface) {
-		t.Errorf("expected PeerImp, got %#v", peer)
-		t.FailNow() // If fail type PeerImp assertion next tests will fail too
-	}
-
-}
-
 func TestSocket(t *testing.T) {
 	conn := &mockConn{}
 	address := Socket("127.0.0.1:23")
 	peer := NewPeer(address, conn)
 
 	if peer.Socket() != address {
-		t.Errorf("expected socket %#v, got %#v", address, peer.socket)
+		t.Errorf("expected socket %#v, got %#v", address, peer.Socket())
 	}
 
 }
@@ -123,7 +109,7 @@ func TestConnection(t *testing.T) {
 
 	err := peer.Close()
 
-	if !reflect.DeepEqual(peer.conn, conn) {
+	if !reflect.DeepEqual(peer.Connection(), conn) {
 		t.Errorf("expected error but got %#v", err)
 	}
 
