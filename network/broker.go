@@ -33,7 +33,7 @@ type events struct {
 }
 
 func NewEvents() Events {
-	return &events{topics: make(Topic, 0)}
+	return &events{topics: make(Topic)}
 }
 
 func (events *events) Topics() Topic { return events.topics }
