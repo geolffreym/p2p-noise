@@ -10,16 +10,16 @@ type Socket string
 
 type Table map[Socket]Peer
 
-type router struct {
-	sync.RWMutex
-	table Table
-}
-
 type Router interface {
 	Table() Table
 	Add(socket Socket, peer Peer)
 	Delete(socket Socket)
 	Len() int
+}
+
+type router struct {
+	sync.RWMutex
+	table Table
 }
 
 func NewRouter() Router {
