@@ -127,8 +127,7 @@ func (network *network) routing(conn net.Conn) Peer {
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
 	peer := NewPeer(socket, conn)
-	network.router.Add(peer)
-	return peer
+	return network.router.Add(peer)
 }
 
 // publish emit network event notifications
