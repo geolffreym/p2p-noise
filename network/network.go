@@ -32,7 +32,6 @@ type NetworkConnection interface {
 }
 
 type NetworkMonitor interface {
-	watch(peer Peer)
 	Closed() bool
 }
 
