@@ -3,6 +3,7 @@
 package node
 
 import (
+	"context"
 	"log"
 
 	"github.com/geolffreym/p2p-noise/network"
@@ -10,14 +11,13 @@ import (
 )
 
 type NodeConnection interface {
-	Listen(addr string) (Node, error)
-	Dial(addr string) (Node, error)
-	Close()
+	Listen(addr string) error
+	Dial(addr string) error
+	Close() error
 }
 
 type NodeSubscriber interface {
-	Observe(cb network.Observer)
-	Wait()
+	Observe(cb network.Observer) context.CancelFunc
 }
 
 type NodeEmitter interface {
@@ -33,18 +33,18 @@ type Node interface {
 
 // Node implementation.
 type node struct {
-	sentinel   chan bool          // Hangs while waiting for channel closed and stop node process.
-	subscriber network.Subscriber // Subscriber interface
-	Network    network.Network    // Network interface
+	messenger network.Messenger // Subscriber interface
+	network   network.Network   // Network interface
 }
 
 // Build a ready to use subscriber interface and register default events for node
-func NewNodeSubscriber(net network.Network) network.Subscriber {
-	subscriber := network.NewSubscriber()
+func NewNodeSubscriber(net network.Network) network.Messenger {
+	subscriber := network.NewMessenger()
 	net.Register(network.SELF_LISTENING, subscriber)
 	net.Register(network.NEWPEER_DETECTED, subscriber)
 	net.Register(network.MESSAGE_RECEIVED, subscriber)
 	net.Register(network.CLOSED_CONNECTION, subscriber)
+	net.Register(network.PEER_DISCONNECTED, subscriber)
 	return subscriber
 }
 
@@ -56,35 +56,34 @@ func NewNode() Node {
 	subscriber := NewNodeSubscriber(network)
 
 	return &node{
-		Network:    network,
-		sentinel:   make(chan bool),
-		subscriber: subscriber,
+		network:   network,
+		messenger: subscriber,
 	}
 }
 
 // Listen node in address and return error if it failed.
-func (n *node) Listen(addr string) (Node, error) {
-	_, err := n.Network.Listen(addr)
+func (n *node) Listen(addr string) error {
+	err := n.network.Listen(addr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return n, nil
+	return nil
 }
 
 // Dial to a remote node and return error if it failed.
-func (n *node) Dial(addr string) (Node, error) {
-	_, err := n.Network.Dial(addr)
+func (n *node) Dial(addr string) error {
+	err := n.network.Dial(addr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return n, nil
+	return nil
 }
 
 // Send messages to all the connected peers
 func (n *node) Broadcast(msg []byte) {
-	for _, peer := range n.Network.Router().Table() {
+	for _, peer := range n.network.Table() {
 		go func(n *node, p network.Peer) {
 			_, err := p.Send(msg)
 			if err != nil {
@@ -98,7 +97,7 @@ func (n *node) Broadcast(msg []byte) {
 
 // Send a message to a specific peer
 func (n *node) Unicast(dest network.Socket, msg []byte) {
-	if peer, ok := n.Network.Router().Table()[dest]; ok {
+	if peer, ok := n.network.Table()[dest]; ok {
 		_, err := peer.Send(msg)
 		if err != nil {
 			// TODO move message to errors
@@ -108,18 +107,19 @@ func (n *node) Unicast(dest network.Socket, msg []byte) {
 }
 
 // Use it to keep waiting for incoming notifications from the network.
-func (n *node) Observe(cb network.Observer) {
-	n.subscriber.Listen(cb)
-}
-
-// Locked channel until the network get closed
-func (n *node) Wait() {
-	<-n.sentinel
+func (n *node) Observe(cb network.Observer) context.CancelFunc {
+	ctx, cancel := context.WithCancel(context.Background())
+	n.messenger.Listen(ctx, cb)
+	return cancel
 }
 
 // Close node connections and destroy node
-func (n *node) Close() {
-	n.Network.Close()          // Close network connection
-	utils.Clear(&n.subscriber) // Reset subscriber state
-	close(n.sentinel)          // Stop node
+func (n *node) Close() error {
+	err := n.network.Close() // Close network connection
+	if err != nil {
+		return err
+	}
+
+	utils.Clear(&n.messenger) // Reset subscriber state
+	return nil
 }

@@ -54,6 +54,9 @@ coverage-export: coverage
 build:
 	go build -v ./...
 
+code-fmt: 
+	go fmt ./...
+
 code-check:
 	go vet -v ./...
 

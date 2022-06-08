@@ -1,47 +1,36 @@
 package network
 
 import (
+	"context"
 	"sync"
 )
 
-type SubscriberListener interface {
-	Listen(cb Observer)
-}
-
-type SubscriberEmitter interface {
-	Emit(msg Message)
-}
-
-type SubscriberMessenger interface {
+type Messenger interface {
+	Listen(ctx context.Context, cb Observer)
 	Message() chan Message
-}
-
-type Subscriber interface {
-	SubscriberEmitter
-	SubscriberListener
-	SubscriberMessenger
+	Emit(msg Message)
 }
 
 // Subscriber synchronize messages from events
 // and keep a record of current subscriptions for events.
-type subscriber struct {
+type messenger struct {
 	sync.RWMutex              // Mutual exclusion
 	message      chan Message // Message exchange channel
 }
 
 // Subscriber factory
-func NewSubscriber() Subscriber {
-	return &subscriber{
+func NewMessenger() Messenger {
+	return &messenger{
 		message: make(chan Message),
 	}
 }
 
-func (s *subscriber) Message() chan Message {
+func (s *messenger) Message() chan Message {
 	return s.message
 }
 
 // Send Message to channel buffer.
-func (s *subscriber) Emit(msg Message) {
+func (s *messenger) Emit(msg Message) {
 	// Lock exclusive writing
 	// https://gobyexample.com/mutexes
 	s.RWMutex.Lock()
@@ -53,14 +42,16 @@ func (s *subscriber) Emit(msg Message) {
 // When a new message is added to channel buffer the
 // Observer is executed with new Message propagated as param.
 // !Important: If Observer returns false the routine stop "listening".
-func (s *subscriber) Listen(cb Observer) {
-	go func(subscriber *subscriber, call Observer) {
+func (s *messenger) Listen(ctx context.Context, cb Observer) {
+	go func(subscriber *messenger, call Observer) {
 		for {
 			if msg, ok := <-subscriber.message; ok {
-				keepAlive := call(msg)
 				// Close if callback returns false.
-				if keepAlive == false {
+				select {
+				case <-ctx.Done():
 					return
+				default:
+					call(msg)
 				}
 			}
 		}

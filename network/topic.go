@@ -1,13 +1,17 @@
 package network
 
-type Topic map[Event][]Subscriber
+type Topics map[Event][]Messenger
+
+func NewTopic() Topics {
+	return make(Topics)
+}
 
 // Add append a new subscriber to event
 // If topic event doesn't exist then is created.
-func (t Topic) Add(e Event, s Subscriber) {
+func (t Topics) Add(e Event, s Messenger) {
 	// If not topic registered
 	if _, ok := t[e]; !ok {
-		t[e] = []Subscriber{}
+		t[e] = []Messenger{}
 	}
 
 	t[e] = append(t[e], s)

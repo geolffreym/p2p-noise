@@ -1,19 +1,20 @@
 package errors
 
 import (
-	"errors"
 	"fmt"
 	"testing"
+
+	errors "github.com/geolffreym/p2p-noise/errors"
 )
 
 func TestWrapError(t *testing.T) {
 	err := errors.New("wrap test")
 	context := "testing errors"
-	wrapper := WrapErr(err, context)
+	wrapper := errors.WrapErr(err, context)
 	expected := fmt.Sprintf("%s: %v", context, err)
 
 	// Check assertion
-	_, ok := wrapper.(*Error)
+	_, ok := wrapper.(*errors.Error)
 	if !ok {
 		t.Error("Expected 'error' interface implementation")
 	}

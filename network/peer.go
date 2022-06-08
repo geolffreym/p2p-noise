@@ -1,6 +1,8 @@
 package network
 
-import "net"
+import (
+	"net"
+)
 
 type PeerConnection interface {
 	// Return peer connection interface
@@ -49,7 +51,10 @@ func (p *peer) Socket() Socket { return p.socket }
 func (p *peer) Send(data []byte) (n int, err error) { return p.conn.Write(data) }
 
 // Read buffered message from connection
-func (p *peer) Receive(buf []byte) (n int, err error) { return p.conn.Read(buf) }
+func (p *peer) Receive(buf []byte) (n int, err error) {
+	// p.conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
+	return p.conn.Read(buf)
+}
 
 // Close peer connection
 func (p *peer) Close() error { return p.conn.Close() }
