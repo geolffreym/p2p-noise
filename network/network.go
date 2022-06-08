@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"sync"
 
 	"github.com/geolffreym/p2p-noise/errors"
 )
@@ -51,7 +50,6 @@ type Network interface {
 //
 // ref: https://go.dev/doc/effective_go#interfaces
 type network struct {
-	sync.RWMutex
 	sentinel chan bool // Channel flag waiting for signal to close connection.
 	router   Router    // Routing hash table eg. {Socket: Conn interface}.
 	events   Events    // Pubsub notifications.
