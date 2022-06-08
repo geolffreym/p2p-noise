@@ -28,7 +28,7 @@ type NetworkBroker interface {
 type NetworkConnection interface {
 	Dial(addr string) error
 	Listen(addr string) error
-	Close() error
+	Close()
 }
 
 type NetworkMonitor interface {
@@ -186,7 +186,7 @@ func (network *network) Table() Table {
 }
 
 // Closed Non-blocking check connection state.
-// true for connection open else close
+// Return true for connection open else false
 func (network *network) Closed() bool {
 	select {
 	case <-network.sentinel:
@@ -197,7 +197,7 @@ func (network *network) Closed() bool {
 }
 
 // Close all peers connections and stop listening
-func (network *network) Close() error {
+func (network *network) Close() {
 	for _, peer := range network.router.Table() {
 		go func(p Peer) {
 			if err := p.Close(); err != nil {
@@ -211,7 +211,6 @@ func (network *network) Close() error {
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
 	close(network.sentinel)
-	return nil
 }
 
 // Dial to node and add connected peer to routing table
