@@ -17,7 +17,6 @@ import (
 const PROTOCOL = "tcp"
 
 type NetworkRouter interface {
-	routing(conn net.Conn) Peer
 	Table() Table
 }
 
