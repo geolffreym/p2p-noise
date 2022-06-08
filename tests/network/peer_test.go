@@ -1,10 +1,13 @@
 package network
 
 import (
+	"errors"
 	"net"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/geolffreym/p2p-noise/network"
 )
 
 type mockAddr struct{}
@@ -44,6 +47,9 @@ func (c *mockConn) Write(b []byte) (n int, err error) {
 // Close closes the connection.
 // Any blocked Read or Write operations will be unblocked and return errors.
 func (c *mockConn) Close() error {
+	if c.shouldFail {
+		return errors.New("failing")
+	}
 	return nil
 }
 
@@ -80,8 +86,8 @@ func (c *mockConn) SetWriteDeadline(t time.Time) error {
 
 func TestSocket(t *testing.T) {
 	conn := &mockConn{}
-	address := Socket("127.0.0.1:23")
-	peer := NewPeer(address, conn)
+	address := network.Socket("127.0.0.1:23")
+	peer := network.NewPeer(address, conn)
 
 	if peer.Socket() != address {
 		t.Errorf("expected socket %#v, got %#v", address, peer.Socket())
@@ -89,28 +95,25 @@ func TestSocket(t *testing.T) {
 
 }
 
-func TestClose(t *testing.T) {
+func TestFailClose(t *testing.T) {
 	conn := &mockConn{shouldFail: true}
-	address := Socket("127.0.0.1:23")
-	peer := NewPeer(address, conn)
+	address := network.Socket("127.0.0.1:23")
+	peer := network.NewPeer(address, conn)
 
 	err := peer.Close()
 
-	if err != nil {
+	if err == nil {
 		t.Errorf("expected error but got %#v", err)
 	}
-
 }
 
 func TestConnection(t *testing.T) {
 	conn := &mockConn{}
-	address := Socket("127.0.0.1:23")
-	peer := NewPeer(address, conn)
-
-	err := peer.Close()
+	address := network.Socket("127.0.0.1:23")
+	peer := network.NewPeer(address, conn)
 
 	if !reflect.DeepEqual(peer.Connection(), conn) {
-		t.Errorf("expected error but got %#v", err)
+		t.Errorf("expected error but got %#v", peer.Connection())
 	}
 
 }
@@ -120,12 +123,12 @@ func TestSendReceive(t *testing.T) {
 	channel := make(chan []byte)
 	conn := &mockConn{channel: channel}
 
-	address := Socket("127.0.0.1:23")
-	peer := NewPeer(address, conn)
+	address := network.Socket("127.0.0.1:23")
+	peer := network.NewPeer(address, conn)
 
 	expected := "ping from peer"
 	// Someone sending a message to peer
-	go func(p Peer) {
+	go func(p network.Peer) {
 		p.Send([]byte(expected))
 	}(peer)
 

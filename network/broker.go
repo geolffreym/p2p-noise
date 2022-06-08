@@ -3,12 +3,6 @@ package network
 
 import "sync"
 
-// Aliases to handle idiomatic `Event` type
-type Event int
-
-// Callback interface to propagate events notifications
-type Observer func(Message) bool
-
 const (
 	// Event for loopback on start listening event
 	SELF_LISTENING = iota
@@ -18,28 +12,36 @@ const (
 	MESSAGE_RECEIVED
 	// On closed network
 	CLOSED_CONNECTION
+	// Closed peer event
+	PEER_DISCONNECTED
 )
 
+// Aliases to handle idiomatic `Event` type
+type Event int
+
+// Callback interface to propagate events notifications
+type Observer func(Message)
 type Events interface {
-	Register(e Event, s Subscriber)
+	Register(e Event, s Messenger)
 	Publish(msg Message)
-	Topics() Topic
+	Topics() Topics
 }
 
 // Events hash map event subscribers
 type events struct {
-	sync.RWMutex       // guards
-	topics       Topic // topic subscriptions
+	sync.RWMutex        // guards
+	topics       Topics // topic subscriptions
 }
 
 func NewEvents() Events {
-	return &events{topics: make(Topic)}
+	return &events{topics: NewTopic()}
 }
 
-func (events *events) Topics() Topic { return events.topics }
+// Topics return current registered topics
+func (events *events) Topics() Topics { return events.topics }
 
 // Register associate subscriber to a event channel;
-func (events *events) Register(e Event, s Subscriber) {
+func (events *events) Register(e Event, s Messenger) {
 	// Mutex for writing topics.
 	// Do not read while topics are written.
 	// A blocked Lock call excludes new readers from acquiring the lock.
@@ -59,7 +61,7 @@ func (events *events) Publish(msg Message) {
 
 	if _, ok := events.topics[msg.Type()]; ok {
 		for _, subscriber := range events.topics[msg.Type()] {
-			go func(s Subscriber) {
+			go func(s Messenger) {
 				s.Emit(msg)
 			}(subscriber)
 		}
