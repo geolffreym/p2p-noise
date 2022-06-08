@@ -123,7 +123,7 @@ func (network *network) routing(conn net.Conn) Peer {
 	// eg. 192.168.1.1:8080
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
-	peer := NewPeer(socket, conn)
+	peer := NewPeer(socket, connection)
 	return network.router.Add(peer)
 }
 
