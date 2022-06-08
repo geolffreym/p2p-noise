@@ -115,11 +115,7 @@ func (n *node) Observe(cb network.Observer) context.CancelFunc {
 
 // Close node connections and destroy node
 func (n *node) Close() error {
-	err := n.network.Close() // Close network connection
-	if err != nil {
-		return err
-	}
-
+	n.network.Close()         // Close network connection
 	utils.Clear(&n.messenger) // Reset subscriber state
 	return nil
 }
