@@ -163,6 +163,12 @@ func (network *network) Listen(addr string) error {
 		// Block/Hold while waiting for new incoming connection
 		// Synchronized incoming connections
 		conn, err := listener.Accept()
+		// If connection is closed
+		// Graceful stop listening
+		if network.Closed() {
+			return nil
+		}
+
 		if err != nil {
 			log.Fatal(errors.Binding(err).Error())
 			return err

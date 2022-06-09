@@ -10,7 +10,6 @@
 package errors
 
 import (
-	"errors"
 	"fmt"
 	"net"
 )
@@ -29,11 +28,6 @@ func (e *Error) Error() string {
 	default:
 		return fmt.Sprintf("%s: %v", e.Context, e.Err)
 	}
-}
-
-// Alias for error factory
-func New(context string) error {
-	return errors.New(context)
 }
 
 // WrapError factory
