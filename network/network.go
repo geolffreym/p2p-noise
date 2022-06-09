@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"sync"
 
 	"github.com/geolffreym/p2p-noise/errors"
 )
@@ -51,7 +50,6 @@ type Network interface {
 //
 // ref: https://go.dev/doc/effective_go#interfaces
 type network struct {
-	sync.RWMutex
 	sentinel chan bool // Channel flag waiting for signal to close connection.
 	router   Router    // Routing hash table eg. {Socket: Conn interface}.
 	events   Events    // Pubsub notifications.
@@ -125,7 +123,7 @@ func (network *network) routing(conn net.Conn) Peer {
 	// eg. 192.168.1.1:8080
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
-	peer := NewPeer(socket, conn)
+	peer := NewPeer(socket, connection)
 	return network.router.Add(peer)
 }
 
@@ -165,6 +163,12 @@ func (network *network) Listen(addr string) error {
 		// Block/Hold while waiting for new incoming connection
 		// Synchronized incoming connections
 		conn, err := listener.Accept()
+		// If connection is closed
+		// Graceful stop listening
+		if network.Closed() {
+			return nil
+		}
+
 		if err != nil {
 			log.Fatal(errors.Binding(err).Error())
 			return err

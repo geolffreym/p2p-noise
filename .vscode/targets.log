@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Jun  7 17:13:57 2022
+# Make data base, printed on Thu Jun  9 11:32:08 2022
 
 # Variables
 
@@ -77,7 +77,7 @@ OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
 MANAGERPID = 2030
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-25284747-6eed-4cfa-b01b-3990fb5ae6a0.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-c6ef6ad3-0367-4630-af75-9553ba991f81.sock
 # environment
 LC_NAME = es_NI.UTF-8
 # environment
@@ -115,7 +115,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 264716
+GIO_LAUNCHED_DESKTOP_FILE_PID = 703689
 # automatic
 %F = $(notdir $%)
 # environment
@@ -255,7 +255,7 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 264716
+VSCODE_PID = 703689
 # variable set hash-table stats:
 # Load=123/1024=12%, Rehash=0, Collisions=19/151=13%
 
@@ -265,9 +265,9 @@ VSCODE_PID = 264716
 
 # Directories
 
-# . (device 66311, inode 16384686): 13 files, no impossibilities.
+# . (device 66311, inode 16384686): 15 files, no impossibilities.
 
-# 13 files, no impossibilities in 1 directories.
+# 15 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -278,14 +278,14 @@ VSCODE_PID = 264716
 code-check:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
+ 
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 58):
+#  recipe to execute (from 'Makefile', line 61):
 	go vet -v ./...
 
 all: build test check-test-coverage code-check compile
 #  Command line target.
 #  Implicit rule search has been done.
- 
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
@@ -313,7 +313,7 @@ profiling:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-05-16 10:25:59.081494165
+#  Last modified 2022-06-08 12:01:32.436170731
 #  File has been updated.
 #  Successfully updated.
 
@@ -321,7 +321,7 @@ compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 76):
+#  recipe to execute (from 'Makefile', line 79):
 	GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} main.go
 	GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} main.go
 
@@ -367,18 +367,25 @@ benchmark:
 #  recipe to execute (from 'Makefile', line 29):
 	go test ./... -bench=. -benchtime 100000x -count 5
 
+code-fmt:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 58):
+	go fmt ./...
+
 compile-mac:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 73):
+#  recipe to execute (from 'Makefile', line 76):
 	GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} main.go
 
 compile: compile-linux compile-win compile-mac
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 80):
+#  recipe to execute (from 'Makefile', line 83):
 	echo "Compiling for every OS and Platform"
 	
 
@@ -392,7 +399,7 @@ clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 61):
+#  recipe to execute (from 'Makefile', line 64):
 	go clean --cache ./... 
 	rm -f mem.prof
 	rm -f prof.mem
@@ -417,7 +424,7 @@ compile-win:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 67):
+#  recipe to execute (from 'Makefile', line 70):
 	GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} main.go
 	GOOS=windows GOARCH=386 go build -o bin/${WIN_32} main.go
 
@@ -428,19 +435,19 @@ check-test-coverage:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=18/1024=2%, Rehash=0, Collisions=0/41=0%
+# Load=19/1024=2%, Rehash=0, Collisions=0/42=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 32 / storage = 283 B / avg = 8 B
-# current buf: size = 8162 B / used = 283 B / count = 32 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 35 / storage = 310 B / avg = 8 B
+# current buf: size = 8162 B / used = 310 B / count = 35 / avg = 8 B
 
-# strcache performance: lookups = 61 / hit rate = 47%
+# strcache performance: lookups = 65 / hit rate = 46%
 # hash-table stats:
-# Load=32/8192=0%, Rehash=0, Collisions=1/61=2%
-# Finished Make data base on Tue Jun  7 17:13:57 2022
+# Load=35/8192=0%, Rehash=0, Collisions=1/65=2%
+# Finished Make data base on Thu Jun  9 11:32:08 2022
 
  
