@@ -1,7 +1,9 @@
 {
     "makefile.extensionOutputFolder": "./.vscode",
     "cSpell.words": [
+        "Networker",
         "NEWPEER",
+        "Peerer",
         "proxied"
     ]
 }
