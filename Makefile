@@ -1,9 +1,12 @@
 # Small make tasks for go
 .PHONY: test
 
+
 USER=geolffreym
 PACKAGE=p2p-noise
 VERSION=0.1.0
+
+INPUT=examples/listener.go
 
 BINARY=main
 BINARY_WIN=${BINARY}-win
@@ -80,23 +83,23 @@ clean:
 	@echo "[OK] cleaned"
 
 compile-win:
-	@GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} main.go
-	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} main.go
+	@GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} ${INPUT}
+	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} ${INPUT}
 
 #Go1.15 deprecates 32-bit macOS builds	
 #GOOS=darwin GOARCH=386 go build -o bin/main-mac-386 main.go
 compile-mac:
-	@GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} main.go
+	@GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} ${INPUT}
 
 compile-linux:
-	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} main.go
-	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} main.go
+	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
+	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
 compile: compile-linux compile-win compile-mac
 	@echo "[OK] Compiling for every OS and Platform"
 	
 run: 
-	@go run main.go
+	@go run ${INPUT}
 
 update-pkg-cache:
     GOPROXY=https://proxy.golang.org GO111MODULE=on \
