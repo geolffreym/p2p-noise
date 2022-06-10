@@ -33,14 +33,16 @@ type Node struct {
 func NewNode() *Node {
 	return &Node{
 		router:   newRouter(),
-		events:   newMessenger(),
+		events:   newEvents(),
 		sentinel: make(chan bool),
 	}
 }
 
-// Accessor to messenger events listener
+// Proxy event to event subscriber listener
 func (node *Node) Intercept(cb Observer) context.CancelFunc {
-	return node.events.Listen(cb)
+	ctx, cancel := context.WithCancel(context.Background())
+	go node.events.Subscriber().Listen(ctx, cb)
+	return cancel
 }
 
 // watch watchdog for incoming messages.
@@ -110,6 +112,7 @@ func (node *Node) routing(conn net.Conn) *Peer {
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
 func (node *Node) Listen(addr string) error {
+
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
 		return err
