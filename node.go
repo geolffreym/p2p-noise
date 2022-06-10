@@ -5,6 +5,7 @@
 package noise
 
 import (
+	"context"
 	"io"
 	"log"
 	"net"
@@ -37,7 +38,10 @@ func NewNode() *Node {
 	}
 }
 
-func (node *Node) Intercept()
+// Accessor to messenger events listener
+func (node *Node) Intercept(cb Observer) context.CancelFunc {
+	return node.events.Listen(cb)
+}
 
 // watch watchdog for incoming messages.
 // incoming message monitor is suggested to be processed in go routines.

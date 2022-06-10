@@ -4,36 +4,45 @@ import (
 	"testing"
 )
 
+const (
+	PeerA = "127.0.0.1:8080"
+	PeerB = "127.0.0.1:8081"
+	PeerC = "127.0.0.1:8082"
+	PeerD = "127.0.0.1:8083"
+	PeerE = "127.0.0.1:8084"
+	PeerF = "127.0.0.1:8085"
+)
+
 func TestAdd(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer("127.0.0.1:8080", nil))
-	router.Add(newPeer("127.0.0.1:8081", nil))
-	router.Add(newPeer("127.0.0.1:8082", nil))
-	router.Add(newPeer("127.0.0.1:8083", nil))
-	router.Add(newPeer("127.0.0.1:8084", nil))
-	router.Add(newPeer("127.0.0.1:8085", nil))
+	router.Add(newPeer(PeerA, nil))
+	router.Add(newPeer(PeerB, nil))
+	router.Add(newPeer(PeerC, nil))
+	router.Add(newPeer(PeerD, nil))
+	router.Add(newPeer(PeerE, nil))
+	router.Add(newPeer(PeerF, nil))
 
 	expected := []struct {
 		socket string
 	}{
 		{
-			socket: "127.0.0.1:8080",
+			socket: PeerA,
 		},
 		{
-			socket: "127.0.0.1:8081",
+			socket: PeerB,
 		},
 		{
-			socket: "127.0.0.1:8082",
+			socket: PeerC,
 		},
 		{
-			socket: "127.0.0.1:8083",
+			socket: PeerD,
 		},
 		{
-			socket: "127.0.0.1:8084",
+			socket: PeerE,
 		},
 		{
-			socket: "127.0.0.1:8085",
+			socket: PeerF,
 		},
 	}
 
@@ -54,17 +63,17 @@ func TestAdd(t *testing.T) {
 func TestQuery(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer("127.0.0.1:8080", nil))
-	router.Add(newPeer("127.0.0.1:8081", nil))
+	router.Add(newPeer(PeerA, nil))
+	router.Add(newPeer(PeerB, nil))
 
 	expected := []struct {
 		socket string
 	}{
 		{
-			socket: "127.0.0.1:8080",
+			socket: PeerA,
 		},
 		{
-			socket: "127.0.0.1:8081",
+			socket: PeerB,
 		},
 	}
 
@@ -85,10 +94,10 @@ func TestQuery(t *testing.T) {
 func TestInvalidQuery(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer("127.0.0.1:8080", nil))
+	router.Add(newPeer(PeerA, nil))
 
-	if peer := router.Query(Socket("127.0.0.1:8081")); peer != nil {
-		t.Errorf("expected nil for invalid socket %#v, got %sv", "127.0.0.1:8081", peer)
+	if peer := router.Query(Socket(PeerB)); peer != nil {
+		t.Errorf("expected nil for invalid socket %#v, got %sv", PeerB, peer)
 	}
 
 }
@@ -96,12 +105,12 @@ func TestInvalidQuery(t *testing.T) {
 func TestLen(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer("127.0.0.1:8080", nil)) // 1
-	router.Add(newPeer("127.0.0.1:8081", nil)) // 2
-	router.Add(newPeer("127.0.0.1:8082", nil)) // 3
-	router.Add(newPeer("127.0.0.1:8083", nil)) // 4
-	router.Add(newPeer("127.0.0.1:8084", nil)) // 5
-	router.Add(newPeer("127.0.0.1:8085", nil)) // 6
+	router.Add(newPeer(PeerA, nil)) // 1
+	router.Add(newPeer(PeerB, nil)) // 2
+	router.Add(newPeer(PeerC, nil)) // 3
+	router.Add(newPeer(PeerD, nil)) // 4
+	router.Add(newPeer(PeerE, nil)) // 5
+	router.Add(newPeer(PeerF, nil)) // 6
 
 	if router.Len() != 6 {
 		t.Errorf("expected 6 len for registered peers,  got %v", router.Len())
@@ -112,11 +121,11 @@ func TestLen(t *testing.T) {
 func TestDelete(t *testing.T) {
 	router := newRouter()
 
-	peerA := newPeer("127.0.0.1:8080", nil)
-	peerB := newPeer("127.0.0.1:8080", nil)
-	peerC := newPeer("127.0.0.1:8080", nil)
-	peerD := newPeer("127.0.0.1:8080", nil)
-	peerF := newPeer("127.0.0.1:8080", nil)
+	peerA := newPeer(PeerA, nil)
+	peerB := newPeer(PeerA, nil)
+	peerC := newPeer(PeerA, nil)
+	peerD := newPeer(PeerA, nil)
+	peerF := newPeer(PeerA, nil)
 
 	// Add new record
 	router.Add(peerA) // 1
