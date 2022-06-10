@@ -1,6 +1,10 @@
 # Small make tasks for go
 .PHONY: test
 
+USER=geolffreym
+PACKAGE=p2p-noise
+VERSION=0.1.0
+
 BINARY=main
 BINARY_WIN=${BINARY}-win
 BINARY_OSX=${BINARY}-darwin
@@ -18,15 +22,18 @@ OSX_64=${BINARY_LINUX}-${ARCH_64}
 
 # -count 1 idiomatic no cached testing
 # -race test race condition for routines
+# @ = dont echo the output
 test:
-	go test -v ./... -count 1 -race
+	@go test -v ./... -count 1 -race
+	@echo "[OK] test finished"
 
 # Could be compared using
 # make benchmark > a.old
 # make benchmark > b.new
 # benchcmp a.old b.new
 benchmark: 
-	go test ./... -bench=. -benchtime 100000x -count 5
+	@go test ./... -bench=. -benchtime 100000x -count 5
+	@echo "[OK] benchmark finished"
 
 # View standard output profiling:
 # go tool pprof -top cpu.prof 
@@ -43,44 +50,56 @@ benchmark:
 # eg. go tool pprof -web bin/main-linux-amd64 cpu.prof
 
 profiling: 
-	go test -bench=. -benchtime 100000x -run=^$ -cpuprofile=cpu.prof -memprofile=prof.mem
+	@go test -bench=. -benchtime 100000x -run=^$ -cpuprofile=cpu.prof -memprofile=prof.mem
+	@echo "[OK] profiling finished"
 
 coverage:
-	go test -coverprofile coverage ./...
+	@go test -coverprofile coverage ./...
+	@echo "[OK] coverage finished"
 	
 coverage-export: coverage
-	go tool cover -html=coverage
+	@go tool cover -html=coverage
+	@echo "[OK] code test coverage finished"
 
 build:
-	go build -v ./...
+	@go build -v ./...
 
 code-fmt: 
-	go fmt ./...
+	@go fmt ./...
+	@echo "[OK] code format finished"
 
 code-check:
-	go vet -v ./...
+	@go vet -v ./...
+	@echo "[OK] code check finished"
 
 clean:
-	go clean --cache ./... 
-	rm -f mem.prof
-	rm -f prof.mem
-	rm -rf bin
+	@go clean --cache ./... 
+	@rm -f mem.prof
+	@rm -f prof.mem
+	@rm -rf bin
+	@echo "[OK] cleaned"
 
 compile-win:
-	GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} main.go
-	GOOS=windows GOARCH=386 go build -o bin/${WIN_32} main.go
+	@GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} main.go
+	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} main.go
 
 #Go1.15 deprecates 32-bit macOS builds	
 #GOOS=darwin GOARCH=386 go build -o bin/main-mac-386 main.go
 compile-mac:
-	GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} main.go
+	@GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} main.go
 
 compile-linux:
-	GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} main.go
-	GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} main.go
+	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} main.go
+	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} main.go
 
 compile: compile-linux compile-win compile-mac
-	echo "Compiling for every OS and Platform"
+	@echo "[OK] Compiling for every OS and Platform"
 	
+run: 
+	@go run main.go
+
+update-pkg-cache:
+    GOPROXY=https://proxy.golang.org GO111MODULE=on \
+    go get github.com/${USER}/${PACKAGE}@v${VERSION}
 
 all: build test check-test-coverage code-check compile
