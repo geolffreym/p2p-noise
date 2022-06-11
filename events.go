@@ -1,22 +1,19 @@
 package noise
 
 // Aliases to handle idiomatic `Event` type
-type (
-	Event    int
-	Observer func(Message)
-)
+type Event int
 
 const (
 	// Event for loopback on start listening event
-	SELF_LISTENING Event = iota
+	SelfListening Event = iota
 	// Event to notify when a new peer connects
-	NEWPEER_DETECTED
+	NewPeerDetected
 	// On new message received event
-	MESSAGE_RECEIVED
+	MessageReceived
 	// On closed network
-	CLOSED_CONNECTION
+	ClosedConnection
 	// Closed peer event
-	PEER_DISCONNECTED
+	PeerDisconnected
 )
 
 type Events struct {
@@ -28,11 +25,11 @@ func newEvents() *Events {
 	subscriber := newSubscriber()
 	broker := newBroker()
 	// register default events
-	broker.Register(SELF_LISTENING, subscriber)
-	broker.Register(NEWPEER_DETECTED, subscriber)
-	broker.Register(MESSAGE_RECEIVED, subscriber)
-	broker.Register(CLOSED_CONNECTION, subscriber)
-	broker.Register(PEER_DISCONNECTED, subscriber)
+	broker.Register(SelfListening, subscriber)
+	broker.Register(NewPeerDetected, subscriber)
+	broker.Register(MessageReceived, subscriber)
+	broker.Register(ClosedConnection, subscriber)
+	broker.Register(PeerDisconnected, subscriber)
 
 	return &Events{
 		broker:     broker,
@@ -41,41 +38,41 @@ func newEvents() *Events {
 }
 
 // Getter for event subscriber interface
-func (events *Events) Subscriber() *Subscriber {
-	return events.subscriber
+func (e *Events) Subscriber() *Subscriber {
+	return e.subscriber
 }
 
 // dispatch event new peer detected
-func (events *Events) PeerConnected(addr []byte) {
+func (e *Events) PeerConnected(addr []byte) {
 	// Emit new notification
-	message := newMessage(NEWPEER_DETECTED, addr)
-	events.broker.Publish(message)
+	message := newMessage(NewPeerDetected, addr)
+	e.broker.Publish(message)
 }
 
 // dispatch event peer disconnected
-func (events *Events) PeerDisconnected(addr []byte) {
+func (e *Events) PeerDisconnected(addr []byte) {
 	// Emit new notification
-	message := newMessage(PEER_DISCONNECTED, addr)
-	events.broker.Publish(message)
+	message := newMessage(PeerDisconnected, addr)
+	e.broker.Publish(message)
 }
 
 // dispatch event self listening
-func (events *Events) Listening(addr []byte) {
+func (e *Events) Listening(addr []byte) {
 	// Emit new notification
-	message := newMessage(SELF_LISTENING, addr)
-	events.broker.Publish(message)
+	message := newMessage(SelfListening, addr)
+	e.broker.Publish(message)
 }
 
 // dispatch event new message
-func (events *Events) NewMessage(msg []byte) {
+func (e *Events) NewMessage(msg []byte) {
 	// Emit new notification
-	message := newMessage(MESSAGE_RECEIVED, msg)
-	events.broker.Publish(message)
+	message := newMessage(MessageReceived, msg)
+	e.broker.Publish(message)
 }
 
 // dispatch event closed connection
-func (events *Events) ClosedConnection() {
+func (e *Events) ClosedConnection() {
 	// Emit new notification
-	message := newMessage(CLOSED_CONNECTION, []byte(""))
-	events.broker.Publish(message)
+	message := newMessage(ClosedConnection, []byte(""))
+	e.broker.Publish(message)
 }

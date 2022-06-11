@@ -20,7 +20,7 @@ func (m *MockPeer) Receive(buf []byte) (n int, err error) {
 }
 
 func TestType(t *testing.T) {
-	event := CLOSED_CONNECTION
+	event := ClosedConnection
 	payload := []byte(PAYLOAD)
 	message := newMessage(event, payload)
 
@@ -30,7 +30,7 @@ func TestType(t *testing.T) {
 }
 
 func TestPayload(t *testing.T) {
-	event := CLOSED_CONNECTION
+	event := ClosedConnection
 	payload := []byte(PAYLOAD)
 	message := newMessage(event, payload)
 

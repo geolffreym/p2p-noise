@@ -1,4 +1,4 @@
-// Network implements a lightweight TCP communication.
+// Node implements a lightweight TCP communication.
 // Offers pretty basic features to communicate between nodes.
 //
 // See also: https://pkg.go.dev/net#Conn
@@ -16,20 +16,12 @@ import (
 // Default protocol
 const PROTOCOL = "tcp"
 
-type (
-	Socket = string
-	Table  = map[Socket]*Peer
-)
-
-// Node implement communication logic
 type Node struct {
 	sentinel chan bool // Channel flag waiting for signal to close connection.
 	router   *Router   // Routing hash table eg. {Socket: Conn interface}.
 	events   *Events   // Pubsub notifications.
 }
 
-// Node factory
-// It receive a param events message handler for network.
 func NewNode() *Node {
 	return &Node{
 		router:   newRouter(),
@@ -38,16 +30,19 @@ func NewNode() *Node {
 	}
 }
 
-// Proxy event to event subscriber listener
-func (node *Node) Intercept(cb Observer) context.CancelFunc {
-	ctx, cancel := context.WithCancel(context.Background())
-	go node.events.Subscriber().Listen(ctx, cb)
-	return cancel
+// Events proxy channels event to subscriber listener
+// Listen attempt to implement generator pattern
+// ref: https://github.com/tmrts/go-patterns/blob/master/concurrency/generator.md
+func (n *Node) Events(ctx context.Context) <-chan Message {
+	ch := make(chan Message)
+	go n.events.Subscriber().Listen(ctx, ch)
+	return ch // read only channel <-chan
 }
 
-// watch watchdog for incoming messages.
-// incoming message monitor is suggested to be processed in go routines.
-func (node *Node) watch(peer *Peer) {
+// watch keep running waiting for incoming messages.
+// After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
+// Incoming message monitor is suggested to be processed in go routines.
+func (n *Node) watch(peer *Peer) {
 	buf := make([]byte, 1024)
 
 KEEPALIVE:
@@ -55,8 +50,8 @@ KEEPALIVE:
 		// Sync buffer reading
 		_, err := peer.Receive(buf)
 		// If connection is closed
-		// stop routines watching peers
-		if node.Closed() {
+		if n.Closed() {
+			// stop routines watching for peers
 			return
 		}
 
@@ -65,15 +60,15 @@ KEEPALIVE:
 			// if err == io.EOF then peer connection is closed
 			_, isNetError := err.(*net.OpError)
 			if err == io.EOF || isNetError {
-				err := peer.Close() // Close disconnected peer
-				if err != nil {
+				// Close disconnected peer
+				if err := peer.Close(); err != nil {
 					log.Fatal(errors.Closing(err).Error())
 				}
 
-				//Notify to node about the peer state
-				node.events.PeerDisconnected([]byte(peer.Socket()))
+				// Notify about the remote peer state
+				n.events.PeerDisconnected([]byte(peer.Socket()))
 				// Remove peer from router table
-				node.router.Delete(peer)
+				n.router.Remove(peer)
 				return
 			}
 
@@ -82,18 +77,19 @@ KEEPALIVE:
 		}
 
 		// Emit new incoming message notification
-		node.events.NewMessage(buf)
+		n.events.NewMessage(buf)
 	}
 
 }
 
-// routing initialize route in routing table from connection interface
-// Return new peer added to table
-func (node *Node) routing(conn net.Conn) *Peer {
+// routing initialize route in routing table from connection interface.
+// If TCP protocol is used connection is enforced to keep alive.
+// It return new peer added to table.
+func (n *Node) routing(conn net.Conn) *Peer {
 
 	// Assertion for tcp connection to keep alive
-	connection, isTCP := conn.(*net.TCPConn)
-	if isTCP {
+	connection, ok := conn.(*net.TCPConn)
+	if ok {
 		// If tcp enforce keep alive connection
 		// SetKeepAlive sets whether the operating system should send keep-alive messages on the connection.
 		connection.SetKeepAlive(true)
@@ -105,13 +101,12 @@ func (node *Node) routing(conn net.Conn) *Peer {
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(socket, connection)
-	node.router.Add(peer)
-	return peer
+	return n.router.Add(peer)
 }
 
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
-func (node *Node) Listen(addr string) error {
+func (n *Node) Listen(addr string) error {
 
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
@@ -119,10 +114,10 @@ func (node *Node) Listen(addr string) error {
 	}
 
 	// Dispatch event on start listening
-	node.events.Listening([]byte(addr))
+	n.events.Listening([]byte(addr))
 	// monitor connection to close listener
 	go func(listener net.Listener) {
-		<-node.sentinel
+		<-n.sentinel
 		err := listener.Close()
 		if err != nil {
 			log.Fatal(errors.Closing(err).Error())
@@ -134,8 +129,8 @@ func (node *Node) Listen(addr string) error {
 		// Synchronized incoming connections
 		conn, err := listener.Accept()
 		// If connection is closed
-		// Graceful stop listening
-		if node.Closed() {
+		if n.Closed() {
+			// Graceful stop listening
 			return nil
 		}
 
@@ -144,25 +139,25 @@ func (node *Node) Listen(addr string) error {
 			return err
 		}
 
-		peer := node.routing(conn) // Routing for connection
-		go node.watch(peer)        // Wait for incoming messages
+		peer := n.routing(conn) // Routing for connection
+		go n.watch(peer)        // Wait for incoming messages
 		// Dispatch event for new peer connected
 		payload := []byte(peer.Socket())
-		node.events.PeerConnected(payload)
+		n.events.PeerConnected(payload)
 	}
 
 }
 
-// Return current routing table
-func (node *Node) Table() Table {
-	return node.router.Table()
+// Table return current routing table
+func (n *Node) Table() Table {
+	return n.router.Table()
 }
 
-// Closed Non-blocking check connection state.
+// Closed check connection state.
 // Return true for connection open else false
-func (node *Node) Closed() bool {
+func (n *Node) Closed() bool {
 	select {
-	case <-node.sentinel:
+	case <-n.sentinel:
 		return true
 	default:
 		return false
@@ -170,8 +165,8 @@ func (node *Node) Closed() bool {
 }
 
 // Close all peers connections and stop listening
-func (node *Node) Close() {
-	for _, peer := range node.router.Table() {
+func (n *Node) Close() {
+	for _, peer := range n.router.Table() {
 		go func(p *Peer) {
 			if err := p.Close(); err != nil {
 				log.Fatal(errors.Closing(err).Error())
@@ -180,23 +175,23 @@ func (node *Node) Close() {
 	}
 
 	// Dispatch event on node get closed
-	node.events.ClosedConnection()
+	n.events.ClosedConnection()
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
-	close(node.sentinel)
+	close(n.sentinel)
 }
 
-// Dial to node and add connected peer to routing table
+// Dial attempt to connect to remote node and add connected peer to routing table.
 // Return error if error occurred while dialing node.
-func (node *Node) Dial(addr string) error {
+func (n *Node) Dial(addr string) error {
 	conn, err := net.Dial(PROTOCOL, addr)
 	if err != nil {
 		return errors.Dialing(err, addr)
 	}
 
-	peer := node.routing(conn) // Routing for connection
-	go node.watch(peer)        // Wait for incoming messages
+	peer := n.routing(conn) // Routing for connection
+	go n.watch(peer)        // Wait for incoming messages
 	// Dispatch event for new peer connected
-	node.events.PeerConnected([]byte(peer.Socket()))
+	n.events.PeerConnected([]byte(peer.Socket()))
 	return nil
 }

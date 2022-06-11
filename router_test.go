@@ -135,8 +135,8 @@ func TestDelete(t *testing.T) {
 	router.Add(peerF) // 5
 
 	// delete B and F
-	router.Delete(peerB)
-	router.Delete(peerF)
+	router.Remove(peerB)
+	router.Remove(peerF)
 
 	if router.Query(peerB.Socket()) != nil {
 		t.Errorf("expected %v not registered in router after delete", peerB.Socket())

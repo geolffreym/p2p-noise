@@ -9,26 +9,26 @@ import (
 func TestRegister(t *testing.T) {
 	event := newBroker()
 	subscriber := newSubscriber()
-	event.Register(SELF_LISTENING, subscriber)
-	event.Register(NEWPEER_DETECTED, subscriber)
-	event.Register(CLOSED_CONNECTION, subscriber)
-	event.Register(MESSAGE_RECEIVED, subscriber)
+	event.Register(SelfListening, subscriber)
+	event.Register(NewPeerDetected, subscriber)
+	event.Register(ClosedConnection, subscriber)
+	event.Register(MessageReceived, subscriber)
 
 	registered := []struct {
 		name  string
 		event Event
 	}{{
 		name:  "Listening",
-		event: SELF_LISTENING,
+		event: SelfListening,
 	}, {
 		name:  "New peer",
-		event: NEWPEER_DETECTED,
+		event: NewPeerDetected,
 	}, {
 		name:  "Closed connection",
-		event: CLOSED_CONNECTION,
+		event: ClosedConnection,
 	}, {
 		name:  "Message received",
-		event: MESSAGE_RECEIVED,
+		event: MessageReceived,
 	}}
 
 	// Table driven test
@@ -50,17 +50,48 @@ func TestRegister(t *testing.T) {
 	}
 }
 
+func TestUnregister(t *testing.T) {
+	broker := newBroker()
+	subscriber := newSubscriber()
+	broker.Register(SelfListening, subscriber)
+	broker.Register(NewPeerDetected, subscriber)
+	// Remove self listening from broker events
+	success := broker.Unregister(SelfListening, subscriber)
+	lenListeningSubscribed := len(broker.topics[SelfListening])
+
+	if !success {
+		t.Errorf("expected success unregister for valid subscriber %v", subscriber)
+	}
+	// Only NewPeerDetected should be found.
+	if lenListeningSubscribed > 0 {
+		t.Errorf("expected SelfListening event unregistered, got %#v events remaining", lenListeningSubscribed)
+	}
+
+}
+
+func TestInvalidUnregister(t *testing.T) {
+	broker := newBroker()
+	subscriber := newSubscriber()
+	// Remove self listening from broker events
+	success := broker.Unregister(SelfListening, subscriber)
+
+	if success {
+		t.Errorf("expected fail unregister for invalid subscriber %v", subscriber)
+	}
+
+}
+
 func TestTopicAdd(t *testing.T) {
 	topic := make(Topics)
 	subscribed := newSubscriber()
 
-	topic.Add(SELF_LISTENING, subscribed)
-	topic.Add(CLOSED_CONNECTION, subscribed)
-	topic.Add(NEWPEER_DETECTED, subscribed)
+	topic.Add(SelfListening, subscribed)
+	topic.Add(ClosedConnection, subscribed)
+	topic.Add(NewPeerDetected, subscribed)
 
-	_, okListening := topic[SELF_LISTENING]
-	_, okClosed := topic[CLOSED_CONNECTION]
-	_, okNewPeer := topic[NEWPEER_DETECTED]
+	_, okListening := topic[SelfListening]
+	_, okClosed := topic[ClosedConnection]
+	_, okNewPeer := topic[NewPeerDetected]
 
 	if !okListening || !okNewPeer || !okClosed {
 		t.Errorf("expected topics keys contains added events")
@@ -70,11 +101,11 @@ func TestTopicAdd(t *testing.T) {
 func TestPublish(t *testing.T) {
 	var result Message
 	subscriber := newSubscriber()
-	event := newBroker()
+	broker := newBroker()
 
-	event.Register(SELF_LISTENING, subscriber)
-	message := newMessage(SELF_LISTENING, []byte("hello test 1"))
-	event.Publish(message)
+	broker.Register(SelfListening, subscriber)
+	message := newMessage(SelfListening, []byte("hello test 1"))
+	broker.Publish(message)
 
 	// First to finish wins
 	// Get first message from channel
@@ -91,15 +122,15 @@ func TestPublish(t *testing.T) {
 	}
 
 	// New message for new topic event
-	event.Register(NEWPEER_DETECTED, subscriber)
-	message = newMessage(NEWPEER_DETECTED, []byte(""))
-	event.Publish(message)
+	broker.Register(NewPeerDetected, subscriber)
+	message = newMessage(NewPeerDetected, []byte(""))
+	broker.Publish(message)
 
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.notification
-	if result.Type() != NEWPEER_DETECTED {
-		t.Errorf("expected message type equal to %#v", NEWPEER_DETECTED)
+	if result.Type() != NewPeerDetected {
+		t.Errorf("expected message type equal to %#v", NewPeerDetected)
 	}
 
 }
