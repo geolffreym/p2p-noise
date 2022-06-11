@@ -1,9 +1,5 @@
 package noise
 
-import (
-	"context"
-)
-
 // Aliases to handle idiomatic `Event` type
 type (
 	Event    int
@@ -28,10 +24,10 @@ type Events struct {
 	subscriber *Subscriber
 }
 
-func newMessenger() *Events {
-	broker := newBroker()
+func newEvents() *Events {
 	subscriber := newSubscriber()
-
+	broker := newBroker()
+	// register default events
 	broker.Register(SELF_LISTENING, subscriber)
 	broker.Register(NEWPEER_DETECTED, subscriber)
 	broker.Register(MESSAGE_RECEIVED, subscriber)
@@ -44,43 +40,42 @@ func newMessenger() *Events {
 	}
 }
 
-func (msgr *Events) Listen(cb Observer) context.CancelFunc {
-	ctx, cancel := context.WithCancel(context.Background())
-	msgr.subscriber.Listen(ctx, cb)
-	return cancel
+// Getter for event subscriber interface
+func (events *Events) Subscriber() *Subscriber {
+	return events.subscriber
 }
 
 // dispatch event new peer detected
-func (msgr *Events) PeerConnected(addr []byte) {
+func (events *Events) PeerConnected(addr []byte) {
 	// Emit new notification
 	message := newMessage(NEWPEER_DETECTED, addr)
-	msgr.broker.Publish(message)
+	events.broker.Publish(message)
 }
 
 // dispatch event peer disconnected
-func (msgr *Events) PeerDisconnected(addr []byte) {
+func (events *Events) PeerDisconnected(addr []byte) {
 	// Emit new notification
 	message := newMessage(PEER_DISCONNECTED, addr)
-	msgr.broker.Publish(message)
+	events.broker.Publish(message)
 }
 
 // dispatch event self listening
-func (msgr *Events) Listening(addr []byte) {
+func (events *Events) Listening(addr []byte) {
 	// Emit new notification
 	message := newMessage(SELF_LISTENING, addr)
-	msgr.broker.Publish(message)
+	events.broker.Publish(message)
 }
 
 // dispatch event new message
-func (msgr *Events) NewMessage(msg []byte) {
+func (events *Events) NewMessage(msg []byte) {
 	// Emit new notification
 	message := newMessage(MESSAGE_RECEIVED, msg)
-	msgr.broker.Publish(message)
+	events.broker.Publish(message)
 }
 
 // dispatch event closed connection
-func (msgr *Events) ClosedConnection() {
+func (events *Events) ClosedConnection() {
 	// Emit new notification
 	message := newMessage(CLOSED_CONNECTION, []byte(""))
-	msgr.broker.Publish(message)
+	events.broker.Publish(message)
 }

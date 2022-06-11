@@ -13,9 +13,9 @@ import (
 
 func main() {
 
-	// Bind node to events messenger
+	// Build node and assoc events handler
 	node := noise.NewNode()
-	// // Every time that a new event is dispatched by node the messenger will notify to listener
+	// Intercept network events
 	node.Intercept(func(msg noise.Message) {
 		switch msg.Type() {
 		case noise.SELF_LISTENING:

@@ -80,7 +80,7 @@ func TestPublish(t *testing.T) {
 	// Get first message from channel
 	// Expected Emit called to set message
 	select {
-	case result = <-subscriber.Message():
+	case result = <-subscriber.notification:
 		if string(result.Payload()) != string(message.Payload()) {
 			t.Errorf("expected message equal result")
 		}
@@ -97,7 +97,7 @@ func TestPublish(t *testing.T) {
 
 	// Get next message from channel
 	// Expected Emit called to set message
-	result = <-subscriber.Message()
+	result = <-subscriber.notification
 	if result.Type() != NEWPEER_DETECTED {
 		t.Errorf("expected message type equal to %#v", NEWPEER_DETECTED)
 	}

@@ -12,15 +12,11 @@ type Subscriber struct {
 	notification chan Message // Message exchange channel
 }
 
-// Subscriber factory
+// Messenger factory
 func newSubscriber() *Subscriber {
 	return &Subscriber{
 		notification: make(chan Message),
 	}
-}
-
-func (s *Subscriber) Message() chan Message {
-	return s.notification
 }
 
 // Send Message to channel buffer.

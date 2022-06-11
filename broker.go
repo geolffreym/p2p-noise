@@ -29,12 +29,6 @@ func newBroker() *Broker {
 	return &Broker{topics: make(Topics)}
 }
 
-// func (events *Broker) Unregister() error {
-// 	if events.topics == nil {
-
-// 	}
-// }
-
 // Register associate subscriber to a event channel;
 func (events *Broker) Register(e Event, s *Subscriber) {
 	// Mutex for writing topics.
