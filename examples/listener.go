@@ -6,31 +6,30 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	noise "github.com/geolffreym/p2p-noise"
 )
 
 func main() {
-
-	// Build node and assoc events handler
 	node := noise.NewNode()
-	// Intercept network events
-	node.Intercept(func(msg noise.Message) {
-		switch msg.Type() {
-		case noise.SELF_LISTENING:
+	// Network events channel
+	ctx, cancel := context.WithCancel(context.Background())
+	events := node.Events(ctx)
+
+	go func() {
+		for msg := range events {
 			log.Printf("Listening on: %s \n", msg.Payload())
-		case noise.NEWPEER_DETECTED:
-			log.Printf("New peer: %s \n", msg.Payload())
-		case noise.CLOSED_CONNECTION:
-			log.Print("Closed connection:")
-		case noise.MESSAGE_RECEIVED:
-			log.Printf("New message: %s \n", msg.Payload())
-		default:
-
+			cancel() // stop listening for events
 		}
-	})
+	}()
 
+	// ... some code here
+	// node.Dial("192.168.1.1:4008")
+	// node.Close()
+
+	// ... more code here
 	node.Listen("127.0.0.1:4008")
 
 }

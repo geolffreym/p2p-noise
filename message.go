@@ -3,16 +3,19 @@ package noise
 // Message hold the information needed to exchange messages via pubsub events.
 type Message struct {
 	payload []byte // Custom data message published
-	ID      Event  // Type of event published
+	event   Event  // Type of event published
 }
 
 // Message factory
-func newMessage(ID Event, payload []byte) Message {
+func newMessage(event Event, payload []byte) Message {
 	return Message{
-		ID:      ID,
+		event:   event,
 		payload: payload,
 	}
 }
 
-func (m Message) Type() Event     { return m.ID }
+// Type return Message event type published
+func (m Message) Type() Event { return m.event }
+
+// Payload return custom data published
 func (m Message) Payload() []byte { return m.payload }
