@@ -31,9 +31,8 @@ func NewNode() *Node {
 	}
 }
 
-// Events proxy channels event to subscriber listener
-// Listen attempt to implement generator pattern
-// ref: https://github.com/tmrts/go-patterns/blob/master/concurrency/generator.md
+// Events proxy channels event to subscriber
+// The listening routine should be stopped using context param.
 func (n *Node) Events(ctx context.Context) <-chan Message {
 	ch := make(chan Message)
 	go n.events.Subscriber().Listen(ctx, ch)
@@ -102,7 +101,8 @@ func (n *Node) routing(conn net.Conn) *Peer {
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(socket, connection)
-	return n.router.Add(peer)
+	n.router.Add(peer)
+	return peer
 }
 
 // Listen start listening on the given address and wait for new connection.
@@ -116,7 +116,7 @@ func (n *Node) Listen(addr string) error {
 
 	// Dispatch event on start listening
 	n.events.Listening([]byte(addr))
-	// monitor connection to close listener
+	//wait until sentinel channel is closed to close listener
 	go func(listener net.Listener) {
 		<-n.sentinel
 		err := listener.Close()

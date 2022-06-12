@@ -51,30 +51,27 @@ func (r *Router) Query(socket Socket) *Peer {
 }
 
 // Add create new socket connection association.
-// It return recently added peer.
-func (r *Router) Add(peer *Peer) *Peer {
+func (r *Router) Add(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
 	r.RWMutex.Lock()
 	r.table.Add(peer)
 	r.RWMutex.Unlock()
-	return peer
 }
 
 // Len return the number of connections
-func (r *Router) Len() int {
-	return len(r.table)
+func (r *Router) Len() uint {
+	return uint(len(r.table))
 }
 
 // Remove removes a connection from router.
 // It return recently removed peer.
-func (r *Router) Remove(peer *Peer) *Peer {
+func (r *Router) Remove(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
 	r.RWMutex.Lock()
 	r.table.Remove(peer)
 	r.RWMutex.Unlock()
-	return peer
 }

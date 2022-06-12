@@ -11,7 +11,6 @@ func Clear(v any) {
 	p.Set(reflect.Zero(p.Type()))
 }
 
-// TODO write test
 // IndexOf find index for element in slice
 // It return index if found else -1
 func IndexOf[T comparable](collection []T, el T) int {
