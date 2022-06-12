@@ -1,4 +1,3 @@
-// Package utils implements shared logic for packages
 package noise
 
 import (

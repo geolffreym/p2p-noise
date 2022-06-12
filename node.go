@@ -1,7 +1,8 @@
-// Node implements a lightweight TCP communication.
-// Offers pretty basic features to communicate between nodes.
+//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
+
+//P2P Noise Secure handshake.
 //
-// See also: https://pkg.go.dev/net#Conn
+//See also: http://www.noiseprotocol.org/noise.html#introduction
 package noise
 
 import (

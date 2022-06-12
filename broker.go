@@ -1,4 +1,3 @@
-// Pubsub event notifications.
 package noise
 
 import (
