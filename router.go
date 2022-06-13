@@ -6,6 +6,7 @@ import (
 
 type (
 	Socket string
+        // map pass by reference by default
 	Table  map[Socket]*Peer
 )
 
