@@ -43,6 +43,7 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 // After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
 func (n *Node) watch(peer *Peer) {
+	// Recycle memory buffer
 	buf := make([]byte, 1024)
 
 KEEPALIVE:

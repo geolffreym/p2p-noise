@@ -1,6 +1,8 @@
 # Small make tasks for go
 .PHONY: test
 
+# More tools:
+# https://github.com/kisielk/godepgraph
 
 USER=geolffreym
 PACKAGE=p2p-noise
