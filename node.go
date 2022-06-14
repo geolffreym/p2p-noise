@@ -48,7 +48,7 @@ func (n *Node) watch(peer *Peer) {
 
 KEEPALIVE:
 	for {
-		// Sync buffer reading
+		// Sync buffered IO reading
 		_, err := peer.Read(buf)
 		// If connection is closed
 		if n.Closed() {
@@ -89,8 +89,8 @@ KEEPALIVE:
 func (n *Node) routing(conn net.Conn) *Peer {
 
 	// Assertion for tcp connection to keep alive
-	connection, ok := conn.(*net.TCPConn)
-	if ok {
+	connection, isTCP := conn.(*net.TCPConn)
+	if isTCP {
 		// If tcp enforce keep alive connection
 		// SetKeepAlive sets whether the operating system should send keep-alive messages on the connection.
 		connection.SetKeepAlive(true)

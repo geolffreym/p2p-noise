@@ -10,7 +10,7 @@ import (
 type Peer struct {
 	net.Conn                   // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 	socket   Socket            // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
-	buffer   *bufio.ReadWriter // buffered IO. ref: https://golangdocs.com/bufio-package-golang
+	buffer   *bufio.ReadWriter // buffered IO. why? ref: https://golangdocs.com/bufio-package-golang
 }
 
 // newBufferedIO creates a new buffered r/w IO
@@ -20,6 +20,8 @@ func newBufferedIO(conn net.Conn) *bufio.ReadWriter {
 
 // Peer factory
 func newPeer(socket Socket, conn net.Conn) *Peer {
+	// Go does not provide the typical, type-driven notion of subclassing,
+	// but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
 	return &Peer{
 		conn,
 		socket,
