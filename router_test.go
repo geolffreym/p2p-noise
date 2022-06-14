@@ -83,7 +83,7 @@ func TestQuery(t *testing.T) {
 		t.Run(e.socket, func(t *testing.T) {
 
 			if peer := router.Query(Socket(e.socket)); peer == nil {
-				t.Errorf("expected peer for valid socket %#v, , got %sv", e.socket, peer)
+				t.Errorf("expected peer for valid socket %#v, got %v", e.socket, peer)
 			}
 		})
 
@@ -97,7 +97,7 @@ func TestInvalidQuery(t *testing.T) {
 	router.Add(newPeer(PeerA, nil))
 
 	if peer := router.Query(Socket(PeerB)); peer != nil {
-		t.Errorf("expected nil for invalid socket %#v, got %sv", PeerB, peer)
+		t.Errorf("expected nil for invalid socket %#v, got %v", PeerB, peer)
 	}
 
 }
