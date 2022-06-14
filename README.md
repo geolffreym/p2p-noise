@@ -12,8 +12,7 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 ## Features
 
 * [Noise](http://www.noiseprotocol.org/) Secure Handshake
-* [Adaptive Lookup for Unstructured
-Peer-to-Peer Overlays](https://arxiv.org/pdf/1509.04417.pdf#:~:text=An%20unstructured%20P2P%20system%20is,(or%20scale%20free%20networks).)
+* [Adaptive Lookup for Unstructured Peer-to-Peer Overlays](https://arxiv.org/pdf/1509.04417.pdf)
 
 ## Install
 
@@ -25,7 +24,7 @@ go get github.com/geolffreym/p2p-noise
 
 ```
 
-node := noise.NewNode()
+ node := noise.NewNode()
  // Network events channel
  ctx, cancel := context.WithCancel(context.Background())
  events := node.Events(ctx)
