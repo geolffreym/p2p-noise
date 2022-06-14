@@ -50,33 +50,32 @@ node := noise.NewNode()
 
 Some available capabilities for dev support:
 
-> **Run Tests**: `make test`
+* **Run Tests**: `make test`
 
-> **Build**: `make build`
+* **Build**: `make build`
 
-> **Test Coverage**: `make coverage`
+* **Test Coverage**: `make coverage`
 
-> **Benchmark**: `make benchmark`
+* **Benchmark**: `make benchmark`
 
-> **Profiling**: `make profiling`
+* **Profiling**: `make profiling`
 
-> **Code check**: `make code-check`
+* **Code check**: `make code-check`
 
-> **Code format**: `make code-fmt`
+* **Code format**: `make code-fmt`
 
-> **Flush cache***: `make clean`
+* **Flush cache***: `make clean`
 
-> **Code Analysis**: `make check`
+* **Code Analysis**: `make check`
 
-> **Compile**: `make compile`
+* **Compile**: `make compile`
 
-* This command will attempt to compile for every OS-arch, please check [MakeFile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
+Note: `Compile` command will attempt to compile for every OS-arch, please check [MakeFile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
 
 ## More info
 
 * [Examples](https://github.com/geolffreym/p2p-noise) directory contain advanced examples of usage.
 * For help or bugs please [create an issue](https://github.com/geolffreym/p2p-noise/issues).
-
 
 
 *Special Thanks to @aphelionz for his patience and support.*
