@@ -9,6 +9,7 @@ type (
 	Table  map[Socket]*Peer
 )
 
+// TODO handle this from conf
 // Max peers connected
 const maxPeers = 255
 
