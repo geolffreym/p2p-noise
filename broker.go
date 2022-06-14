@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// Callback interface to propagate events notifications
+// Topics type keep registered events
 type Topics map[Event][]*Subscriber
 
 // Add append a new subscriber to event

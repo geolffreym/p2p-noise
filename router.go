@@ -4,20 +4,21 @@ import (
 	"sync"
 )
 
-type (
-	Socket string
-        // map pass by reference by default
-	Table  map[Socket]*Peer
-)
+type Socket string
+
+// Table type keep a socket-> connection mapping
+type Table map[Socket]*Peer
 
 // TODO handle this from conf
 // Max peers connected
 const maxPeers = 255
 
+// Add new peer to table
 func (t Table) Add(peer *Peer) {
 	t[peer.Socket()] = peer
 }
 
+// Remove peer from table
 func (t Table) Remove(peer *Peer) {
 	delete(t, peer.Socket())
 }
