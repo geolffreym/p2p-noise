@@ -6,7 +6,7 @@ import (
 
 type Socket string
 
-// Table type keep a socket-> connection mapping
+// Table `keep` a socket:connection mapping
 type Table map[Socket]*Peer
 
 // TODO handle this from conf
