@@ -37,40 +37,40 @@ func newEvents() *Events {
 	}
 }
 
-// Getter for event subscriber interface
+// Subscriber return event subscriber interface
 func (e *Events) Subscriber() *Subscriber {
 	return e.subscriber
 }
 
-// dispatch event new peer detected
+// PeerConnected dispatch event new peer detected
 func (e *Events) PeerConnected(addr []byte) {
 	// Emit new notification
 	message := newMessage(NewPeerDetected, addr)
 	e.broker.Publish(message)
 }
 
-// dispatch event peer disconnected
+// PeerDisconnected dispatch event peer disconnected
 func (e *Events) PeerDisconnected(addr []byte) {
 	// Emit new notification
 	message := newMessage(PeerDisconnected, addr)
 	e.broker.Publish(message)
 }
 
-// dispatch event self listening
+// Listening dispatch event self listening
 func (e *Events) Listening(addr []byte) {
 	// Emit new notification
 	message := newMessage(SelfListening, addr)
 	e.broker.Publish(message)
 }
 
-// dispatch event new message
+// NewMessage dispatch event new message
 func (e *Events) NewMessage(msg []byte) {
 	// Emit new notification
 	message := newMessage(MessageReceived, msg)
 	e.broker.Publish(message)
 }
 
-// dispatch event closed connection
+// ClosedConnection dispatch event closed connection
 func (e *Events) ClosedConnection() {
 	// Emit new notification
 	message := newMessage(ClosedConnection, []byte(""))
