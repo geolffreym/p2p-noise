@@ -48,6 +48,8 @@ node := noise.NewNode()
 
 ## Development
 
+Some available capabilities for dev support:
+
 > **Run Tests**: `make test`
 
 > **Build**: `make build`
@@ -74,3 +76,7 @@ node := noise.NewNode()
 
 * [Examples](https://github.com/geolffreym/p2p-noise) directory contain advanced examples of usage.
 * For help or bugs please [create an issue](https://github.com/geolffreym/p2p-noise/issues).
+
+
+
+*Special Thanks to @aphelionz for his patience and support.*
