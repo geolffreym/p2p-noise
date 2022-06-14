@@ -1,8 +1,7 @@
 // Package errors implements custom wrapped errors
 //
-// The main idea with this package is centralize/proxy errors
-// all the modules errors could be declared in this package
-// any native error can be proxied using this package.
+// The main idea with this package is wrap/centralize errors.
+// All the modules errors could be declared in this package any native error can be wrapped using this package.
 //
 // Refs: https://www.digitalocean.com/community/tutorials/creating-custom-errors-in-go
 package errors

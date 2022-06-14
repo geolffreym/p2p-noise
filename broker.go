@@ -1,4 +1,3 @@
-// Pubsub event notifications.
 package noise
 
 import (
@@ -49,13 +48,12 @@ func newBroker() *Broker {
 
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
-func (b *Broker) Register(e Event, s *Subscriber) *Subscriber {
+func (b *Broker) Register(e Event, s *Subscriber) {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
 	b.topics.Add(e, s)
-	return s
+	b.Mutex.Unlock()
 }
 
 // Unregister remove associated subscriber from topics;
@@ -70,7 +68,7 @@ func (b *Broker) Unregister(e Event, s *Subscriber) bool {
 
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
-func (b *Broker) Publish(msg Message) int {
+func (b *Broker) Publish(msg Message) uint8 {
 	// Lock while reading operation
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
@@ -82,7 +80,7 @@ func (b *Broker) Publish(msg Message) int {
 			}(subscriber)
 		}
 		// Number of subscribers notified
-		return len(b.topics[msg.Type()])
+		return uint8(len(b.topics[msg.Type()]))
 	}
 
 	return 0

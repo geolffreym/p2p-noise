@@ -1,7 +1,8 @@
-// Node implements a lightweight TCP communication.
-// Offers pretty basic features to communicate between nodes.
+//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
+
+//P2P Noise Secure handshake.
 //
-// See also: https://pkg.go.dev/net#Conn
+//See also: http://www.noiseprotocol.org/noise.html#introduction
 package noise
 
 import (
@@ -30,9 +31,8 @@ func NewNode() *Node {
 	}
 }
 
-// Events proxy channels event to subscriber listener
-// Listen attempt to implement generator pattern
-// ref: https://github.com/tmrts/go-patterns/blob/master/concurrency/generator.md
+// Events proxy channels event to subscriber
+// The listening routine should be stopped using context param.
 func (n *Node) Events(ctx context.Context) <-chan Message {
 	ch := make(chan Message)
 	go n.events.Subscriber().Listen(ctx, ch)
@@ -43,6 +43,7 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 // After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
 func (n *Node) watch(peer *Peer) {
+	// Recycle memory buffer
 	buf := make([]byte, 1024)
 
 KEEPALIVE:
@@ -101,7 +102,8 @@ func (n *Node) routing(conn net.Conn) *Peer {
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(socket, connection)
-	return n.router.Add(peer)
+	n.router.Add(peer)
+	return peer
 }
 
 // Listen start listening on the given address and wait for new connection.
@@ -115,7 +117,7 @@ func (n *Node) Listen(addr string) error {
 
 	// Dispatch event on start listening
 	n.events.Listening([]byte(addr))
-	// monitor connection to close listener
+	//wait until sentinel channel is closed to close listener
 	go func(listener net.Listener) {
 		<-n.sentinel
 		err := listener.Close()

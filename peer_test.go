@@ -3,7 +3,6 @@ package noise
 import (
 	"errors"
 	"net"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -105,17 +104,6 @@ func TestFailClose(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected error but got %#v", err)
 	}
-}
-
-func TestConnection(t *testing.T) {
-	conn := &mockConn{}
-	address := Socket(LOCAL_ADDRESS)
-	peer := newPeer(address, conn)
-
-	if !reflect.DeepEqual(peer.Connection(), conn) {
-		t.Errorf("expected error but got %#v", peer.Connection())
-	}
-
 }
 
 func TestSendReceive(t *testing.T) {

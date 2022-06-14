@@ -10,6 +10,9 @@ type (
 	Table  map[Socket]*Peer
 )
 
+// Max peers connected
+const maxPeers = 255
+
 func (t Table) Add(peer *Peer) {
 	t[peer.Socket()] = peer
 }
@@ -52,30 +55,37 @@ func (r *Router) Query(socket Socket) *Peer {
 }
 
 // Add create new socket connection association.
-// It return recently added peer.
-func (r *Router) Add(peer *Peer) *Peer {
+func (r *Router) Add(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
+	if r.Len() > maxPeers {
+		// TODO return error here
+	}
+
 	r.RWMutex.Lock()
 	r.table.Add(peer)
 	r.RWMutex.Unlock()
-	return peer
 }
 
 // Len return the number of connections
-func (r *Router) Len() int {
-	return len(r.table)
+func (r *Router) Len() uint8 {
+	// 255 max peers len supported
+	// uint8 is enough for routing peers len
+	return uint8(len(r.table))
 }
 
 // Remove removes a connection from router.
 // It return recently removed peer.
-func (r *Router) Remove(peer *Peer) *Peer {
+func (r *Router) Remove(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
+	if r.Len() == 0 {
+		// TODO return error here
+	}
+
 	r.RWMutex.Lock()
 	r.table.Remove(peer)
 	r.RWMutex.Unlock()
-	return peer
 }
