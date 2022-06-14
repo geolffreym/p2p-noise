@@ -64,7 +64,7 @@ Some available capabilities for dev support:
 
 * **Code format**: `make code-fmt`
 
-* **Flush cache***: `make clean`
+* **Flush cache**: `make clean`
 
 * **Code Analysis**: `make check`
 
