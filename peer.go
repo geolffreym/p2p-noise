@@ -8,9 +8,9 @@ import (
 // Peer struct has a simplistic interface to describe a peer in the network.
 // Each Peer has a socket address to identify itself and a connection interface to communicate with it.
 type Peer struct {
+	net.Conn                   // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 	socket   Socket            // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
 	buffer   *bufio.ReadWriter // buffered IO. ref: https://golangdocs.com/bufio-package-golang
-	net.Conn                   // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 }
 
 // newBufferedIO creates a new buffered r/w IO
@@ -21,9 +21,9 @@ func newBufferedIO(conn net.Conn) *bufio.ReadWriter {
 // Peer factory
 func newPeer(socket Socket, conn net.Conn) *Peer {
 	return &Peer{
+		conn,
 		socket,
 		newBufferedIO(conn),
-		conn,
 	}
 }
 
@@ -31,11 +31,13 @@ func newPeer(socket Socket, conn net.Conn) *Peer {
 func (p *Peer) Socket() Socket { return p.socket }
 
 // Write buffered message over connection
-func (p *Peer) Send(data []byte) (n int, err error) {
+func (p *Peer) Write(data []byte) (n int, err error) {
+	// This forwarding method is needed since Conn and ReadWriter ambiguous method names
 	return p.buffer.Write(data)
 }
 
 // Read buffered message from connection
-func (p *Peer) Receive(buf []byte) (n int, err error) {
+func (p *Peer) Read(buf []byte) (n int, err error) {
+	// This forwarding method is needed since Conn and ReadWriter ambiguous method names
 	return p.buffer.Read(buf)
 }

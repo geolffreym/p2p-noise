@@ -49,7 +49,7 @@ func (n *Node) watch(peer *Peer) {
 KEEPALIVE:
 	for {
 		// Sync buffer reading
-		_, err := peer.Receive(buf)
+		_, err := peer.Read(buf)
 		// If connection is closed
 		if n.Closed() {
 			// stop routines watching for peers
