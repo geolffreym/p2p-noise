@@ -70,7 +70,7 @@ Some available capabilities for dev support:
 
 * **Compile**: `make compile`
 
-* This command will attempt to compile for every OS-arch, please check [MakeFile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
+Note: `Compile` command will attempt to compile for every OS-arch, please check [MakeFile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
 
 ## More info
 
