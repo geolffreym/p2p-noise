@@ -32,12 +32,12 @@ func (p *Peer) Socket() Socket { return p.socket }
 
 // Write buffered message over connection
 func (p *Peer) Write(data []byte) (n int, err error) {
-	// This forwarding method is needed since Conn and ReadWriter ambiguous method names
+	// This forwarding method is needed to handle ambiguous method names
 	return p.buffer.Write(data)
 }
 
 // Read buffered message from connection
 func (p *Peer) Read(buf []byte) (n int, err error) {
-	// This forwarding method is needed since Conn and ReadWriter ambiguous method names
+	// This forwarding method is needed to handle ambiguous method names
 	return p.buffer.Read(buf)
 }
