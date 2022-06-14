@@ -14,8 +14,8 @@ func newMessage(event Event, payload []byte) Message {
 	}
 }
 
-// Type return Message event type published
+// Type return Message event type published.
 func (m Message) Type() Event { return m.event }
 
-// Payload return custom data published
+// Payload return custom data published.
 func (m Message) Payload() []byte { return m.payload }

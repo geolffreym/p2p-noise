@@ -13,12 +13,11 @@ type Peer struct {
 	buffer   *bufio.ReadWriter // buffered IO. why? ref: https://golangdocs.com/bufio-package-golang
 }
 
-// newBufferedIO creates a new buffered r/w IO
+// newBufferedIO creates a new buffered r/w IO.
 func newBufferedIO(conn net.Conn) *bufio.ReadWriter {
 	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 }
 
-// Peer factory
 func newPeer(socket Socket, conn net.Conn) *Peer {
 	// Go does not provide the typical, type-driven notion of subclassing,
 	// but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
@@ -29,16 +28,16 @@ func newPeer(socket Socket, conn net.Conn) *Peer {
 	}
 }
 
-// Return peer socket
+// Return peer socket.
 func (p *Peer) Socket() Socket { return p.socket }
 
-// Write buffered message over connection
+// Write buffered message over connection.
 func (p *Peer) Write(data []byte) (n int, err error) {
 	// This forwarding method is needed to handle ambiguous method names
 	return p.buffer.Write(data)
 }
 
-// Read buffered message from connection
+// Read buffered message from connection.
 func (p *Peer) Read(buf []byte) (n int, err error) {
 	// This forwarding method is needed to handle ambiguous method names
 	return p.buffer.Read(buf)

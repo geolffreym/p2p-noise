@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// Topics keep registered events
+// Topics `keep` registered events
 type Topics map[Event][]*Subscriber
 
 // Add append a new subscriber to event

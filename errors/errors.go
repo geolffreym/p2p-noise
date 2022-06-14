@@ -17,7 +17,7 @@ type Error struct {
 	Err     error  // Inherited error from lower level.
 }
 
-// Error give string representation of error based on error type
+// Error give string representation of error based on error type.
 func (e *Error) Error() string {
 	switch e.Err.(type) {
 	case *net.OpError:

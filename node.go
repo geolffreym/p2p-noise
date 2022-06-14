@@ -31,7 +31,7 @@ func NewNode() *Node {
 	}
 }
 
-// Events proxy channels event to subscriber
+// Events proxy channels to subscriber.
 // The listening routine should be stopped using context param.
 func (n *Node) Events(ctx context.Context) <-chan Message {
 	ch := make(chan Message)
@@ -150,13 +150,13 @@ func (n *Node) Listen(addr string) error {
 
 }
 
-// Table return current routing table
+// Table return current routing table.
 func (n *Node) Table() Table {
 	return n.router.Table()
 }
 
 // Closed check connection state.
-// Return true for connection open else false
+// Return true for connection open else false.
 func (n *Node) Closed() bool {
 	select {
 	case <-n.sentinel:
