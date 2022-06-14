@@ -10,7 +10,7 @@ package noise
 type Noise struct {
 }
 
-func New() {
+func NewHandshake() {
 
 }
 
