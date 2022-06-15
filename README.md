@@ -34,36 +34,37 @@ go get github.com/geolffreym/p2p-noise
 package main
 
 import (
- "context"
- "log"
+	"context"
+	"log"
 
- noise "github.com/geolffreym/p2p-noise"
+	noise "github.com/geolffreym/p2p-noise"
 )
 
 func main() {
- node := noise.NewNode()
- // Network events channel
- ctx, cancel := context.WithCancel(context.Background())
- events := node.Events(ctx)
+	node := noise.NewNode()
+	// Network events channel
+	ctx, cancel := context.WithCancel(context.Background())
+	events := node.Events(ctx)
 
- go func() {
-  for msg := range events {
-   // Here could be handled events
-   if msg.Type() == noise.SelfListening {
-    log.Printf("Listening on: %s \n", msg.Payload())
-    cancel() // stop listening for events
-   }
-  }
- }()
+	go func() {
+		for msg := range events {
+			// Here could be handled events
+			if msg.Type() == noise.SelfListening {
+				log.Printf("Listening on: %s \n", msg.Payload())
+				cancel() // stop listening for events
+			}
+		}
+	}()
 
- // ... some code here
- // node.Dial("192.168.1.1:4008")
- // node.Close()
+	// ... some code here
+	// node.Dial("192.168.1.1:4008")
+	// node.Close()
 
- // ... more code here
- node.Listen("127.0.0.1:4008")
+	// ... more code here
+	node.Listen("127.0.0.1:4008")
 
 }
+
 ```
 
 ## Development
