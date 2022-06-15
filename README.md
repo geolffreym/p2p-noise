@@ -11,8 +11,16 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 
 ## Features
 
-* [Noise](http://www.noiseprotocol.org/) Secure Handshake
-* [Adaptive Lookup for Unstructured Peer-to-Peer Overlays](https://arxiv.org/pdf/1509.04417.pdf)
+> [Noise Secure Handshake](http://www.noiseprotocol.org/):
+Noise is a framework for building crypto protocols. Noise protocols support mutual and optional authentication, identity hiding, forward secrecy, zero round-trip encryption, and other advanced features.
+
+> [Adaptive Lookup for Unstructured Peer-to-Peer Overlays](https://arxiv.org/pdf/1509.04417.pdf):
+The global search comes at the expense of local
+interactions between peers. Most of the unstructured peer-topeer overlays do not provide any performance guarantee. In this
+work we propose a novel Quality of Service enabled lookup for
+unstructured peer-to-peer overlays that will allow the user’s
+query to traverse only those overlay links which satisfy the given
+constraints
 
 ## Install
 
@@ -26,31 +34,34 @@ go get github.com/geolffreym/p2p-noise
 package main
 
 import (
-	"context"
-	"log"
+ "context"
+ "log"
 
-	noise "github.com/geolffreym/p2p-noise"
+ noise "github.com/geolffreym/p2p-noise"
 )
 
 func main() {
-	node := noise.NewNode()
-	// Network events channel
-	ctx, cancel := context.WithCancel(context.Background())
-	events := node.Events(ctx)
+ node := noise.NewNode()
+ // Network events channel
+ ctx, cancel := context.WithCancel(context.Background())
+ events := node.Events(ctx)
 
-	go func() {
-		for msg := range events {
-			log.Printf("Listening on: %s \n", msg.Payload())
-			cancel() // stop listening for events
-		}
-	}()
+ go func() {
+  for msg := range events {
+   // Here could be handled events
+   if msg.Type() == noise.SelfListening {
+    log.Printf("Listening on: %s \n", msg.Payload())
+    cancel() // stop listening for events
+   }
+  }
+ }()
 
-	// ... some code here
-	// node.Dial("192.168.1.1:4008")
-	// node.Close()
+ // ... some code here
+ // node.Dial("192.168.1.1:4008")
+ // node.Close()
 
-	// ... more code here
-	node.Listen("127.0.0.1:4008")
+ // ... more code here
+ node.Listen("127.0.0.1:4008")
 
 }
 ```
@@ -85,6 +96,5 @@ Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise) for more 
 
 * [Examples](https://github.com/geolffreym/p2p-noise) directory contains advanced examples of usage.
 * For help or bugs please [create an issue](https://github.com/geolffreym/p2p-noise/issues).
-
 
 *Special Thanks to @aphelionz for his patience and support.*

@@ -20,8 +20,10 @@ func main() {
 
 	go func() {
 		for msg := range events {
-			log.Printf("Listening on: %s \n", msg.Payload())
-			cancel() // stop listening for events
+			if msg.Type() == noise.SelfListening {
+				log.Printf("Listening on: %s \n", msg.Payload())
+				cancel() // stop listening for events
+			}
 		}
 	}()
 
