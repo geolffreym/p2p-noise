@@ -59,7 +59,7 @@ profiling:
 	@echo "[OK] profiling finished"
 
 coverage:
-	@go test -coverprofile coverage ./...
+	@go test -v ./... -race -covermode=atomic -coverprofile coverage ./...
 	@echo "[OK] coverage finished"
 	
 coverage-export: coverage
