@@ -29,7 +29,7 @@ OSX_64=${BINARY_LINUX}-${ARCH_64}
 # -race test race condition for routines
 # @ = dont echo the output
 test:
-	@go test -v ./... -count 1 -race
+	@go test -v ./... -count 1 -race -covermode=atomic
 	@echo "[OK] test finished"
 
 # Could be compared using

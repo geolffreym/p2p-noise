@@ -33,5 +33,5 @@ jobs:
     - name: Coverage
       run: make coverage
 
-    - name: Compile
-      run: make compile
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
