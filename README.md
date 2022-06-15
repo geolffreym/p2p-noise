@@ -23,26 +23,36 @@ go get github.com/geolffreym/p2p-noise
 ## Basic usage
 
 ```
+package main
 
- node := noise.NewNode()
- // Network events channel
- ctx, cancel := context.WithCancel(context.Background())
- events := node.Events(ctx)
+import (
+	"context"
+	"log"
 
- go func() {
-  for msg := range events {
-   log.Printf("Listening on: %s \n", msg.Payload())
-   cancel() // stop listening for events
-  }
- }()
+	noise "github.com/geolffreym/p2p-noise"
+)
 
- // ... some code here
- // node.Dial("192.168.1.1:4008")
- // node.Close()
+func main() {
+	node := noise.NewNode()
+	// Network events channel
+	ctx, cancel := context.WithCancel(context.Background())
+	events := node.Events(ctx)
 
- // ... more code here
- node.Listen("127.0.0.1:4008")
+	go func() {
+		for msg := range events {
+			log.Printf("Listening on: %s \n", msg.Payload())
+			cancel() // stop listening for events
+		}
+	}()
 
+	// ... some code here
+	// node.Dial("192.168.1.1:4008")
+	// node.Close()
+
+	// ... more code here
+	node.Listen("127.0.0.1:4008")
+
+}
 ```
 
 ## Development
@@ -67,13 +77,13 @@ Some available capabilities for dev support:
 
 * **Code Analysis**: `make check`
 
-* **Compile**: `make compile`
+* **Build**: `make build`
 
-Note: `Compile` command will attempt to compile for every OS-arch, please check [MakeFile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
+Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
 
 ## More info
 
-* [Examples](https://github.com/geolffreym/p2p-noise) directory contain advanced examples of usage.
+* [Examples](https://github.com/geolffreym/p2p-noise) directory contains advanced examples of usage.
 * For help or bugs please [create an issue](https://github.com/geolffreym/p2p-noise/issues).
 
 
