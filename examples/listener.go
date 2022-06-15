@@ -20,6 +20,7 @@ func main() {
 
 	go func() {
 		for msg := range events {
+			// Here could be handled events
 			if msg.Type() == noise.SelfListening {
 				log.Printf("Listening on: %s \n", msg.Payload())
 				cancel() // stop listening for events
