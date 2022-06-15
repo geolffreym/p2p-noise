@@ -15,11 +15,7 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 Noise is a framework for building crypto protocols. Noise protocols support mutual and optional authentication, identity hiding, forward secrecy, zero round-trip encryption, and other advanced features.
 
 > [Adaptive Lookup for Unstructured Peer-to-Peer Overlays](https://arxiv.org/pdf/1509.04417.pdf):
-The global search comes at the expense of local
-interactions between peers. Most of the unstructured peer-topeer overlays do not provide any performance guarantee. In this
-work we propose a novel Quality of Service enabled lookup for
-unstructured peer-to-peer overlays that will allow the user’s
-query to traverse only those overlay links which satisfy the given
+Most of the unstructured peer-to-peer overlays do not provide any performance guarantee. "Adaptive Lookup" propose a novel Quality of Service enabled lookup for unstructured peer-to-peer overlays that will allow the user’s query to traverse only those overlay links which satisfy the given
 constraints
 
 ## Install
@@ -64,7 +60,6 @@ func main() {
 	node.Listen("127.0.0.1:4008")
 
 }
-
 ```
 
 ## Development
