@@ -2,8 +2,6 @@ package noise
 
 import (
 	"sync"
-
-	"github.com/geolffreym/p2p-noise/utils"
 )
 
 // Topics `keep` registered events
@@ -20,12 +18,24 @@ func (t Topics) Add(e Event, s *Subscriber) {
 	t[e] = append(t[e], s)
 }
 
+// IndexOf find index for element in slice.
+// It return index if found else -1.
+func IndexOf[T comparable](collection []T, el T) int {
+	for i, v := range collection {
+		if v == el {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // Remove subscriber from topics
 // It return true for removed subscriber from event else false.
 func (t Topics) Remove(e Event, s *Subscriber) bool {
 	// If not topic registered
 	if _, ok := t[e]; ok {
-		i := utils.IndexOf(t[e], s)
+		i := IndexOf(t[e], s)
 		// if not match index for input subscriber
 		if ^i == 0 {
 			return false
