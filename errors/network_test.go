@@ -54,3 +54,13 @@ func TestClosingError(t *testing.T) {
 		t.Errorf(STATEMENT, expected, output)
 	}
 }
+
+func TestExceededError(t *testing.T) {
+
+	output := Exceeded(10)
+	expected := fmt.Sprintf("it is not possible to accept more than %d connections: max peers exceeded", 10)
+
+	if output.Error() != expected {
+		t.Errorf(STATEMENT, expected, output)
+	}
+}

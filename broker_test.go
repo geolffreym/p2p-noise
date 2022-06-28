@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -133,4 +134,28 @@ func TestPublish(t *testing.T) {
 		t.Errorf("expected message type equal to %#v", NewPeerDetected)
 	}
 
+}
+
+func TestIndexOf(t *testing.T) {
+	slice := []int{1, 2, 3, 4, 6, 7, 8, 9}
+	// Table driven test
+	// For each expected event
+	for _, e := range slice {
+		t.Run(fmt.Sprintf("Match for %x", e), func(t *testing.T) {
+			match := IndexOf(slice, e)
+			if ^match == 0 {
+				t.Errorf("expected matched existing elements in slice index: %#v", e)
+			}
+		})
+
+	}
+}
+
+func TestInvalidIndexOf(t *testing.T) {
+	slice := []int{1, 2, 3, 4, 6, 7, 8, 9}
+	match := IndexOf(slice, 5)
+
+	if ^match != 0 {
+		t.Error("Number 5 is not in slice cannot be found")
+	}
 }

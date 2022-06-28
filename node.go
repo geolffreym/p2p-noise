@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/geolffreym/p2p-noise/conf"
 	"github.com/geolffreym/p2p-noise/errors"
 )
 
@@ -18,16 +19,22 @@ import (
 const PROTOCOL = "tcp"
 
 type Node struct {
-	sentinel chan bool // Channel flag waiting for signal to close connection.
-	router   *Router   // Routing hash table eg. {Socket: Conn interface}.
-	events   *Events   // Pubsub notifications.
+	sentinel chan bool      // Channel flag waiting for signal to close connection.
+	router   *Router        // Routing hash table eg. {Socket: Conn interface}.
+	events   *Events        // Pubsub notifications.
+	settings *conf.Settings // Configuration settings
 }
 
-func NewNode() *Node {
+func NewNode(c ...conf.Setting) *Node {
+	// Create settings from params and write in settings reference
+	settings := conf.NewSettings()
+	settings.Write(c...)
+
 	return &Node{
 		router:   newRouter(),
 		events:   newEvents(),
 		sentinel: make(chan bool),
+		settings: settings,
 	}
 }
 
@@ -86,7 +93,7 @@ KEEPALIVE:
 // routing initialize route in routing table from connection interface.
 // If TCP protocol is used connection is enforced to keep alive.
 // It return new peer added to table.
-func (n *Node) routing(conn net.Conn) *Peer {
+func (n *Node) routing(conn net.Conn) (*Peer, error) {
 
 	// Assertion for tcp connection to keep alive
 	connection, isTCP := conn.(*net.TCPConn)
@@ -96,6 +103,12 @@ func (n *Node) routing(conn net.Conn) *Peer {
 		connection.SetKeepAlive(true)
 	}
 
+	// Drop connections if max peers exceeded
+	if n.router.Len() >= n.settings.MaxPeersConnected {
+		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.settings.MaxPeersConnected)
+		return nil, errors.Exceeded(n.settings.MaxPeersConnected)
+	}
+
 	// Routing connections
 	remote := connection.RemoteAddr().String()
 	// eg. 192.168.1.1:8080
@@ -103,7 +116,7 @@ func (n *Node) routing(conn net.Conn) *Peer {
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(socket, connection)
 	n.router.Add(peer)
-	return peer
+	return peer, nil
 }
 
 // Listen start listening on the given address and wait for new connection.
@@ -141,8 +154,14 @@ func (n *Node) Listen(addr string) error {
 			return err
 		}
 
-		peer := n.routing(conn) // Routing for connection
-		go n.watch(peer)        // Wait for incoming messages
+		// Routing for accepted connection
+		peer, err := n.routing(conn)
+		if err != nil {
+			conn.Close() // Drop connection
+			continue
+		}
+
+		go n.watch(peer) // Wait for incoming messages
 		// Dispatch event for new peer connected
 		payload := []byte(peer.Socket())
 		n.events.PeerConnected(payload)
@@ -191,8 +210,14 @@ func (n *Node) Dial(addr string) error {
 		return errors.Dialing(err, addr)
 	}
 
-	peer := n.routing(conn) // Routing for connection
-	go n.watch(peer)        // Wait for incoming messages
+	// Routing for dialed connection
+	peer, err := n.routing(conn)
+	if err != nil {
+		conn.Close() // Drop connection
+		return errors.Dialing(err, addr)
+	}
+
+	go n.watch(peer) // Wait for incoming messages
 	// Dispatch event for new peer connected
 	n.events.PeerConnected([]byte(peer.Socket()))
 	return nil

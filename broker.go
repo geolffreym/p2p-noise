@@ -4,6 +4,18 @@ import (
 	"sync"
 )
 
+// IndexOf find index for element in slice.
+// It return index if found else -1.
+func IndexOf[T comparable](collection []T, el T) int {
+	for i, v := range collection {
+		if v == el {
+			return i
+		}
+	}
+
+	return -1
+}
+
 // Topics `keep` registered events
 type Topics map[Event][]*Subscriber
 

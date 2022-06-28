@@ -4,14 +4,10 @@ import (
 	"sync"
 )
 
-type Socket string
+type Socket = string
 
 // Table `keep` a socket:connection mapping.
 type Table map[Socket]*Peer
-
-// TODO handle this from conf
-// Max peers connected
-const maxPeers = 255
 
 // Add new peer to table.
 func (t Table) Add(peer *Peer) {
@@ -61,10 +57,6 @@ func (r *Router) Add(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
-	if r.Len() > maxPeers {
-		// TODO return error here
-	}
-
 	r.RWMutex.Lock()
 	r.table.Add(peer)
 	r.RWMutex.Unlock()
@@ -83,10 +75,6 @@ func (r *Router) Remove(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
-	if r.Len() == 0 {
-		// TODO return error here
-	}
-
 	r.RWMutex.Lock()
 	r.table.Remove(peer)
 	r.RWMutex.Unlock()

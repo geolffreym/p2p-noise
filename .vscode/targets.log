@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Jun 13 10:21:53 2022
+# Make data base, printed on Tue Jun 28 12:05:11 2022
 
 # Variables
 
@@ -79,7 +79,7 @@ OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
 MANAGERPID = 2030
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-0bc8f70f-be70-4a04-ace4-a8f9bab585d8.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-b3ba7e69-6671-491c-afaa-88fad1b11dcc.sock
 # environment
 LC_NAME = es_NI.UTF-8
 # makefile (from 'Makefile', line 8)
@@ -119,7 +119,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 1318380
+GIO_LAUNCHED_DESKTOP_FILE_PID = 3515681
 # automatic
 %F = $(notdir $%)
 # environment
@@ -151,7 +151,7 @@ WIN_32 = ${BINARY_WIN}-${ARCH_32}
 # makefile (from 'Makefile', line 13)
 BINARY = main
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/4af164ea3a06f701fe3e89a2bcbb421d2026b68f
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/30d9c6cd9483b2cc586687151bcbcd635f373630
 # environment
 LOGNAME = gmena
 # environment
@@ -203,7 +203,7 @@ LINUX_32 = ${BINARY_LINUX}-${ARCH_32}
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.68.0-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.68.1-main.sock
 # makefile
 MAKEFLAGS = pqrR
 # environment
@@ -259,7 +259,7 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 1318380
+VSCODE_PID = 3515681
 # makefile (from 'Makefile', line 11)
 INPUT = examples/listener.go
 # variable set hash-table stats:
@@ -289,6 +289,7 @@ update-pkg-cache:
 code-check:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
+ 
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 77):
 	@go vet -v ./...
@@ -301,7 +302,6 @@ all: build test check-test-coverage code-check compile
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # variable set hash-table stats:
- 
 # Load=0/32=0%, Rehash=0, Collisions=0/3=0%
 
 .PHONY: test
@@ -326,7 +326,7 @@ profiling:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-13 09:53:50.117573381
+#  Last modified 2022-06-15 10:36:54.341401446
 #  File has been updated.
 #  Successfully updated.
 
@@ -344,7 +344,7 @@ test:
 #  File does not exist.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 32):
-	@go test -v ./... -count 1 -race
+	@go test -v ./... -count 1 -race -covermode=atomic
 	@echo "[OK] test finished"
 
 build:
@@ -434,7 +434,7 @@ coverage:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 62):
-	@go test -coverprofile coverage ./...
+	@go test -v ./... -race -covermode=atomic -coverprofile coverage ./...
 	@echo "[OK] coverage finished"
 	
 
@@ -468,12 +468,12 @@ check-test-coverage:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 50 / storage = 518 B / avg = 10 B
-# current buf: size = 8162 B / used = 518 B / count = 50 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 50 / storage = 498 B / avg = 9 B
+# current buf: size = 8162 B / used = 498 B / count = 50 / avg = 9 B
 
 # strcache performance: lookups = 82 / hit rate = 39%
 # hash-table stats:
 # Load=50/8192=1%, Rehash=0, Collisions=1/82=1%
-# Finished Make data base on Mon Jun 13 10:21:53 2022
+# Finished Make data base on Tue Jun 28 12:05:11 2022
 
  
