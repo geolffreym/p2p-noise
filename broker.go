@@ -2,6 +2,8 @@ package noise
 
 import (
 	"sync"
+
+	"github.com/geolffreym/p2p-noise/utils"
 )
 
 // Topics `keep` registered events
@@ -23,7 +25,7 @@ func (t Topics) Add(e Event, s *Subscriber) {
 func (t Topics) Remove(e Event, s *Subscriber) bool {
 	// If not topic registered
 	if _, ok := t[e]; ok {
-		i := IndexOf(t[e], s)
+		i := utils.IndexOf(t[e], s)
 		// if not match index for input subscriber
 		if ^i == 0 {
 			return false
