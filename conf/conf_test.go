@@ -55,3 +55,13 @@ func TestSetMaxPeersConnected(t *testing.T) {
 		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected)
 	}
 }
+
+func TestPeerDeadline(t *testing.T) {
+	settings := NewSettings()
+	callable := SetPeerDeadline(100)
+	callable(settings)
+
+	if settings.PeerDeadline != 100 {
+		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected)
+	}
+}
