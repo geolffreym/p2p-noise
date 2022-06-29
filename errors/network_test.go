@@ -67,8 +67,8 @@ func TestExceededError(t *testing.T) {
 
 func TestMessageError(t *testing.T) {
 
-	output := Message("192.168.1.1:8080")
-	expected := fmt.Sprintf("error trying to send a message to %v: peer disconnected", "192.168.1.1:8080")
+	output := Message(MOCK_ADDRESS)
+	expected := fmt.Sprintf("error trying to send a message to %v: peer disconnected", MOCK_ADDRESS)
 
 	if output.Error() != expected {
 		t.Errorf(STATEMENT, expected, output)
