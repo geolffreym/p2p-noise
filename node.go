@@ -19,6 +19,11 @@ import (
 // Default protocol
 const PROTOCOL = "tcp"
 
+// futureDeadline calculate a new time for deadline since now.
+func futureDeadLine(deadline time.Duration) time.Time {
+	return time.Now().Add(deadline * time.Second)
+}
+
 type Node struct {
 	sentinel chan bool      // Channel flag waiting for signal to close connection.
 	router   *Router        // Routing hash table eg. {Socket: Conn interface}.
@@ -49,6 +54,7 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 
 // MessageTo emit a new message to socket.
 // If socket doesn't exists or peer is not connected return error.
+// Calling MessageTo extends write deadline.
 func (n *Node) MessageTo(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
@@ -62,7 +68,7 @@ func (n *Node) MessageTo(socket Socket, message []byte) (int, error) {
 	// and any currently-blocked Write call.
 	// Even if write times out, it may return n > 0, indicating that
 	// some of the data was successfully written.
-	peer.SetWriteDeadline(time.Now().Add(n.settings.PeerDeadline * time.Second))
+	peer.SetWriteDeadline(futureDeadLine(n.settings.PeerDeadline))
 	return bytes, err
 }
 
@@ -110,7 +116,7 @@ KEEPALIVE:
 		// the deadline after successful Read or Write calls.
 		// SetReadDeadline sets the deadline for future Read calls
 		// and any currently-blocked Read call.
-		peer.SetReadDeadline(time.Now().Add(n.settings.PeerDeadline * time.Second))
+		peer.SetReadDeadline(futureDeadLine(n.settings.PeerDeadline))
 	}
 
 }
@@ -141,7 +147,7 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 	// Read or Write. After a deadline has been exceeded, the
 	// connection can be refreshed by setting a deadline in the future.
 	// ref: https://pkg.go.dev/net#Conn
-	connection.SetDeadline(time.Now().Add(n.settings.PeerDeadline * time.Second))
+	connection.SetDeadline(futureDeadLine(n.settings.PeerDeadline))
 	// Routing connections
 	remote := connection.RemoteAddr().String()
 	// eg. 192.168.1.1:8080
