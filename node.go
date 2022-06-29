@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"time"
 
 	"github.com/geolffreym/p2p-noise/conf"
 	"github.com/geolffreym/p2p-noise/errors"
@@ -44,6 +45,18 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 	ch := make(chan Message)
 	go n.events.Subscriber().Listen(ctx, ch)
 	return ch // read only channel <-chan
+}
+
+// MessageTo emit a new message to socket.
+// If socket doesn't exists or peer is not connected return error.
+func (n *Node) MessageTo(socket Socket, message []byte) (int, error) {
+	peer := n.router.Query(socket)
+	if peer == nil {
+		// TODO add error here
+		return 0, nil
+	}
+
+	return peer.Write(message)
 }
 
 // watch keep running waiting for incoming messages.
@@ -109,12 +122,21 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 		return nil, errors.Exceeded(n.settings.MaxPeersConnected)
 	}
 
+	// Persist I/O for connections until get closed.
+	// A deadline is an absolute time after which I/O operations
+	// fail instead of blocking. The deadline applies to all future
+	// and pending I/O, not just the immediately following call to
+	// Read or Write.
+	// A zero value for t means I/O operations will not time out.
+	// ref: https://pkg.go.dev/net#Conn
+	connection.SetDeadline(time.Time{})
 	// Routing connections
 	remote := connection.RemoteAddr().String()
 	// eg. 192.168.1.1:8080
 	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(socket, connection)
+	// Store new peer in router table
 	n.router.Add(peer)
 	return peer, nil
 }

@@ -1,8 +1,11 @@
 package conf
 
+import "time"
+
 // Functional options
 type Settings struct {
 	MaxPeersConnected uint8
+	PeerDeadline      time.Duration
 }
 
 type Setting func(*Settings)
