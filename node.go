@@ -52,11 +52,18 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 func (n *Node) MessageTo(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
-		// TODO add error here
-		return 0, nil
+		return 0, errors.Message(socket)
 	}
 
-	return peer.Write(message)
+	bytes, err := peer.Write(message)
+	// An idle timeout can be implemented by repeatedly extending
+	// the deadline after successful Read or Write calls.
+	// SetWriteDeadline sets the deadline for future Write calls
+	// and any currently-blocked Write call.
+	// Even if write times out, it may return n > 0, indicating that
+	// some of the data was successfully written.
+	peer.SetWriteDeadline(time.Now().Add(n.settings.PeerDeadline * time.Second))
+	return bytes, err
 }
 
 // watch keep running waiting for incoming messages.
@@ -99,6 +106,11 @@ KEEPALIVE:
 
 		// Emit new incoming message notification
 		n.events.NewMessage(buf)
+		// An idle timeout can be implemented by repeatedly extending
+		// the deadline after successful Read or Write calls.
+		// SetReadDeadline sets the deadline for future Read calls
+		// and any currently-blocked Read call.
+		peer.SetReadDeadline(time.Now().Add(n.settings.PeerDeadline * time.Second))
 	}
 
 }
@@ -122,14 +134,14 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 		return nil, errors.Exceeded(n.settings.MaxPeersConnected)
 	}
 
-	// Persist I/O for connections until get closed.
+	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
 	// fail instead of blocking. The deadline applies to all future
 	// and pending I/O, not just the immediately following call to
-	// Read or Write.
-	// A zero value for t means I/O operations will not time out.
+	// Read or Write. After a deadline has been exceeded, the
+	// connection can be refreshed by setting a deadline in the future.
 	// ref: https://pkg.go.dev/net#Conn
-	connection.SetDeadline(time.Time{})
+	connection.SetDeadline(time.Now().Add(n.settings.PeerDeadline * time.Second))
 	// Routing connections
 	remote := connection.RemoteAddr().String()
 	// eg. 192.168.1.1:8080

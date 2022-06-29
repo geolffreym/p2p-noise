@@ -64,3 +64,13 @@ func TestExceededError(t *testing.T) {
 		t.Errorf(STATEMENT, expected, output)
 	}
 }
+
+func TestMessageError(t *testing.T) {
+
+	output := Message("192.168.1.1:8080")
+	expected := fmt.Sprintf("error trying to send a message to %v: peer disconnected", "192.168.1.1:8080")
+
+	if output.Error() != expected {
+		t.Errorf(STATEMENT, expected, output)
+	}
+}

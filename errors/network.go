@@ -32,3 +32,10 @@ func Exceeded(max uint8) error {
 		fmt.Sprintf("it is not possible to accept more than %d connections", max),
 	)
 }
+
+func Message(addr string) error {
+	return WrapErr(
+		errors.New("peer disconnected"),
+		fmt.Sprintf("error trying to send a message to %v", addr),
+	)
+}
