@@ -212,7 +212,7 @@ func (n *Node) Listen(addr Socket) error {
 }
 
 // Table return current routing table.
-func (n *Node) Table() table {
+func (n *Node) Table() Table {
 	return n.router.Table()
 }
 

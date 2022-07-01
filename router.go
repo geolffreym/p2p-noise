@@ -7,16 +7,16 @@ import (
 // ip:port eg. 127.0.0.1:8000
 type Socket = string
 
-// table `keep` a socket:connection mapping.
-type table map[Socket]*Peer
+// Table `keep` a socket:connection mapping.
+type Table map[Socket]*Peer
 
 // Add new peer to table.
-func (t table) Add(peer *Peer) {
+func (t Table) Add(peer *Peer) {
 	t[peer.Socket()] = peer
 }
 
 // Remove peer from table.
-func (t table) Remove(peer *Peer) {
+func (t Table) Remove(peer *Peer) {
 	delete(t, peer.Socket())
 }
 
@@ -25,17 +25,17 @@ func (t table) Remove(peer *Peer) {
 // eg. {127.0.0.1:4000: Peer}
 type router struct {
 	sync.RWMutex
-	table table
+	table Table
 }
 
 func newRouter() *router {
 	return &router{
-		table: make(table),
+		table: make(Table),
 	}
 }
 
 // Table return current routing table.
-func (r *router) Table() table { return r.table }
+func (r *router) Table() Table { return r.table }
 
 // Return connection interface based on socket.
 func (r *router) Query(socket Socket) *Peer {
