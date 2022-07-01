@@ -22,7 +22,10 @@ func (m *MockPeer) Receive(buf []byte) (n int, err error) {
 func TestType(t *testing.T) {
 	event := ClosedConnection
 	payload := []byte(PAYLOAD)
-	message := newMessage(event, payload)
+	message := Message{
+		event,
+		payload,
+	}
 
 	if message.Type() != event {
 		t.Errorf("expected message with type %v, got %v", event, message.Type())
@@ -32,7 +35,10 @@ func TestType(t *testing.T) {
 func TestPayload(t *testing.T) {
 	event := ClosedConnection
 	payload := []byte(PAYLOAD)
-	message := newMessage(event, payload)
+	message := Message{
+		event,
+		payload,
+	}
 
 	if string(message.Payload()) != string(payload) {
 		t.Errorf("expected message with payload %v, got %v", event, message.Type())

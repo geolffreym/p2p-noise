@@ -4,40 +4,41 @@ import (
 	"sync"
 )
 
+// ip:port eg. 127.0.0.1:8000
 type Socket = string
 
-// Table `keep` a socket:connection mapping.
-type Table map[Socket]*Peer
+// table `keep` a socket:connection mapping.
+type table map[Socket]*Peer
 
 // Add new peer to table.
-func (t Table) Add(peer *Peer) {
+func (t table) Add(peer *Peer) {
 	t[peer.Socket()] = peer
 }
 
 // Remove peer from table.
-func (t Table) Remove(peer *Peer) {
+func (t table) Remove(peer *Peer) {
 	delete(t, peer.Socket())
 }
 
-// Router hash table to associate Socket with Peers.
+// router hash table to associate Socket with Peers.
 // Unstructured mesh architecture.
 // eg. {127.0.0.1:4000: Peer}
-type Router struct {
+type router struct {
 	sync.RWMutex
-	table Table
+	table table
 }
 
-func newRouter() *Router {
-	return &Router{
-		table: make(Table),
+func newRouter() *router {
+	return &router{
+		table: make(table),
 	}
 }
 
 // Table return current routing table.
-func (r *Router) Table() Table { return r.table }
+func (r *router) Table() table { return r.table }
 
 // Return connection interface based on socket.
-func (r *Router) Query(socket Socket) *Peer {
+func (r *router) Query(socket Socket) *Peer {
 	// Mutex for reading topics.
 	// Do not write while topics are read.
 	// Write Lock can’t be acquired until all Read Locks are released.
@@ -53,7 +54,7 @@ func (r *Router) Query(socket Socket) *Peer {
 }
 
 // Add create new socket connection association.
-func (r *Router) Add(peer *Peer) {
+func (r *router) Add(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
@@ -63,7 +64,7 @@ func (r *Router) Add(peer *Peer) {
 }
 
 // Len return the number of connections.
-func (r *Router) Len() uint8 {
+func (r *router) Len() uint8 {
 	// 255 max peers len supported
 	// uint8 is enough for routing peers len
 	return uint8(len(r.table))
@@ -71,7 +72,7 @@ func (r *Router) Len() uint8 {
 
 // Remove removes a connection from router.
 // It return recently removed peer.
-func (r *Router) Remove(peer *Peer) {
+func (r *router) Remove(peer *Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock

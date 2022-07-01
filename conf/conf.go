@@ -4,8 +4,8 @@ import "time"
 
 // Functional options
 type Settings struct {
-	MaxPeersConnected uint8
-	PeerDeadline      time.Duration
+	maxPeersConnected uint8
+	peerDeadline      time.Duration
 }
 
 type Setting func(*Settings)
@@ -15,10 +15,10 @@ func NewSettings() *Settings {
 	return &Settings{
 		// Max peer consecutively connected.
 		// Each of this peers is equivalent to one routine, limit this is a performance consideration.
-		MaxPeersConnected: 100,
+		maxPeersConnected: 100,
 		// Max time waiting for I/O or peer interaction. After this time the connection will timeout and considered inactive.
 		// Default 1800 seconds = 30 minutes.
-		PeerDeadline: 1800,
+		peerDeadline: 1800,
 	}
 }
 
@@ -31,11 +31,21 @@ func (s *Settings) Write(c ...Setting) {
 	}
 }
 
+// MaxPeersConnected returns the max number of connections.
+func (s *Settings) MaxPeersConnected() uint8 {
+	return s.maxPeersConnected
+}
+
+// PeerDeadline returns the max time waiting for I/O or peer interaction
+func (s *Settings) PeerDeadline() time.Duration {
+	return s.peerDeadline
+}
+
 // SetMaxPeersConnected sets the maximum number of connections allowed for routing.
 // If the number of connections > MaxPeersConnected then router drop new connections.
 func SetMaxPeersConnected(maxPeers uint8) Setting {
 	return func(conf *Settings) {
-		conf.MaxPeersConnected = maxPeers
+		conf.maxPeersConnected = maxPeers
 	}
 }
 
@@ -47,6 +57,6 @@ func SetMaxPeersConnected(maxPeers uint8) Setting {
 // ref: https://pkg.go.dev/net#Conn
 func SetPeerDeadline(timeout time.Duration) Setting {
 	return func(conf *Settings) {
-		conf.PeerDeadline = timeout
+		conf.peerDeadline = timeout
 	}
 }
