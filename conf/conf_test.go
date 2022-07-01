@@ -36,8 +36,8 @@ func TestWrite(t *testing.T) {
 		t.Run(e.Name, func(t *testing.T) {
 			libWithSettings := myLib(SetMaxPeersConnected(e.MaxPeersConnected))
 
-			if libWithSettings.MaxPeersConnected != e.MaxPeersConnected {
-				t.Errorf("expected MaxPeerConnected %#v, get settings %v", e.MaxPeersConnected, libWithSettings.MaxPeersConnected)
+			if libWithSettings.MaxPeersConnected() != e.MaxPeersConnected {
+				t.Errorf("expected MaxPeerConnected %#v, get settings %v", e.MaxPeersConnected, libWithSettings.MaxPeersConnected())
 			}
 
 		})
@@ -51,7 +51,17 @@ func TestSetMaxPeersConnected(t *testing.T) {
 	callable := SetMaxPeersConnected(10)
 	callable(settings)
 
-	if settings.MaxPeersConnected != 10 {
-		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected)
+	if settings.MaxPeersConnected() != 10 {
+		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected())
+	}
+}
+
+func TestPeerDeadline(t *testing.T) {
+	settings := NewSettings()
+	callable := SetPeerDeadline(100)
+	callable(settings)
+
+	if settings.PeerDeadline() != 100 {
+		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected())
 	}
 }

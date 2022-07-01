@@ -83,7 +83,7 @@ func TestInvalidUnregister(t *testing.T) {
 }
 
 func TestTopicAdd(t *testing.T) {
-	topic := make(Topics)
+	topic := make(topics)
 	subscribed := newSubscriber()
 
 	topic.Add(SelfListening, subscribed)
@@ -105,7 +105,11 @@ func TestPublish(t *testing.T) {
 	broker := newBroker()
 
 	broker.Register(SelfListening, subscriber)
-	message := newMessage(SelfListening, []byte("hello test 1"))
+	message := Message{
+		SelfListening,
+		[]byte("hello test 1"),
+	}
+
 	broker.Publish(message)
 
 	// First to finish wins
@@ -124,9 +128,12 @@ func TestPublish(t *testing.T) {
 
 	// New message for new topic event
 	broker.Register(NewPeerDetected, subscriber)
-	message = newMessage(NewPeerDetected, []byte(""))
-	broker.Publish(message)
+	message = Message{
+		NewPeerDetected,
+		[]byte(""),
+	}
 
+	broker.Publish(message)
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.notification

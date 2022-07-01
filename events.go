@@ -16,12 +16,12 @@ const (
 	PeerDisconnected
 )
 
-type Events struct {
-	broker     *Broker
-	subscriber *Subscriber
+type events struct {
+	broker     *broker
+	subscriber *subscriber
 }
 
-func newEvents() *Events {
+func newEvents() *events {
 	subscriber := newSubscriber()
 	broker := newBroker()
 	// register default events
@@ -31,48 +31,58 @@ func newEvents() *Events {
 	broker.Register(ClosedConnection, subscriber)
 	broker.Register(PeerDisconnected, subscriber)
 
-	return &Events{
-		broker:     broker,
-		subscriber: subscriber,
+	return &events{
+		broker,
+		subscriber,
 	}
 }
 
 // Subscriber return event subscriber interface.
-func (e *Events) Subscriber() *Subscriber {
+func (e *events) Subscriber() *subscriber {
 	return e.subscriber
 }
 
 // PeerConnected dispatch event new peer detected.
-func (e *Events) PeerConnected(addr []byte) {
+func (e *events) PeerConnected(addr []byte) {
 	// Emit new notification
-	message := newMessage(NewPeerDetected, addr)
-	e.broker.Publish(message)
+	e.broker.Publish(Message{
+		NewPeerDetected,
+		addr,
+	})
 }
 
 // PeerDisconnected dispatch event peer disconnected.
-func (e *Events) PeerDisconnected(addr []byte) {
+func (e *events) PeerDisconnected(addr []byte) {
 	// Emit new notification
-	message := newMessage(PeerDisconnected, addr)
-	e.broker.Publish(message)
+	e.broker.Publish(Message{
+		PeerDisconnected,
+		addr,
+	})
 }
 
 // Listening dispatch event self listening.
-func (e *Events) Listening(addr []byte) {
+func (e *events) Listening(addr []byte) {
 	// Emit new notification
-	message := newMessage(SelfListening, addr)
-	e.broker.Publish(message)
+	e.broker.Publish(Message{
+		SelfListening,
+		addr,
+	})
 }
 
 // NewMessage dispatch event new message.
-func (e *Events) NewMessage(msg []byte) {
+func (e *events) NewMessage(msg []byte) {
 	// Emit new notification
-	message := newMessage(MessageReceived, msg)
-	e.broker.Publish(message)
+	e.broker.Publish(Message{
+		MessageReceived,
+		msg,
+	})
 }
 
 // ClosedConnection dispatch event closed connection.
-func (e *Events) ClosedConnection() {
+func (e *events) ClosedConnection() {
 	// Emit new notification
-	message := newMessage(ClosedConnection, []byte(""))
-	e.broker.Publish(message)
+	e.broker.Publish(Message{
+		ClosedConnection,
+		[]byte(""),
+	})
 }
