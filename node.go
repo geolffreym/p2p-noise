@@ -51,9 +51,9 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 	return ch // read only channel <-chan
 }
 
-// MessageTo emit a new message to socket.
+// Message emit a new message to socket.
 // If socket doesn't exists or peer is not connected return error.
-// Calling MessageTo extends write deadline.
+// Calling Message extends write deadline.
 func (n *Node) Message(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
