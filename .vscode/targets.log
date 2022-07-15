@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jul  1 16:35:01 2022
+# Make data base, printed on Fri Jul 15 08:05:36 2022
 
 # Variables
 
@@ -47,7 +47,7 @@ VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupp
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 8:53925
+JOURNAL_STREAM = 8:63631
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from 'Makefile', line 1)
@@ -65,7 +65,6 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/local/share/:/usr/share/:/var/lib/snapd/d
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
- 
 DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # makefile (from 'Makefile', line 9)
 VERSION = 0.1.0
@@ -78,9 +77,9 @@ INFOPATH = /home/linuxbrew/.linuxbrew/share/info:
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
-MANAGERPID = 2030
+MANAGERPID = 1804
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-4f8ad0a8-281e-415b-b4ff-44b893534b36.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5e288d88-1617-435b-b10d-926a727833a7.sock
 # environment
 LC_NAME = es_NI.UTF-8
 # makefile (from 'Makefile', line 8)
@@ -92,13 +91,13 @@ GOPROXY = https://proxy.golang.org GO111MODULE=on go get github.com/${USER}/${PA
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
-PATH = /home/gmena/sdk/go1.18.1/bin:/home/gmena/golang/go/bin:/home/gmena/.cargo/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gmena/.local/bin:/home/gmena/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/usr/local/go/bin
+PATH = /home/gmena/sdk/go1.18.1/bin:/home/gmena/go/bin:/home/gmena/.cargo/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gmena/.local/bin:/home/gmena/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/usr/local/go/bin:/home/gmena/.local/share/JetBrains/Toolbox/scripts:/home/gmena/.local/share/JetBrains/Toolbox/scripts
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
 GJS_DEBUG_OUTPUT = stderr
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2453,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2453
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/3936,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/3936
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -112,7 +111,7 @@ VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = b05d88ab21bb486e92ba72cee5cbad46
+INVOCATION_ID = bcf6ca6bcd6b4889a85d4d7ccb71525e
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -120,7 +119,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 3515681
+GIO_LAUNCHED_DESKTOP_FILE_PID = 9199
 # automatic
 %F = $(notdir $%)
 # environment
@@ -132,7 +131,7 @@ PWD = /home/gmena/GoLangProjects/p2p-chat
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 2418
+SSH_AGENT_PID = 3856
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -260,7 +259,7 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 3515681
+VSCODE_PID = 9199
 # makefile (from 'Makefile', line 11)
 INPUT = examples/listener.go
 # variable set hash-table stats:
@@ -272,9 +271,9 @@ INPUT = examples/listener.go
 
 # Directories
 
-# . (device 66311, inode 16384686): 26 files, no impossibilities.
+# . (device 66311, inode 16384686): 28 files, no impossibilities.
 
-# 26 files, no impossibilities in 1 directories.
+# 28 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -294,6 +293,7 @@ code-check:
 #  recipe to execute (from 'Makefile', line 77):
 	@go vet -v ./...
 	@echo "[OK] code check finished"
+ 
 
 all: build test check-test-coverage code-check compile
 #  Command line target.
@@ -326,7 +326,7 @@ profiling:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-15 10:36:54.341401446
+#  Last modified 2022-07-11 11:58:12.399851481
 #  File has been updated.
 #  Successfully updated.
 
@@ -370,7 +370,6 @@ build:
 # automatic
 # ? := 
 # variable set hash-table stats:
- 
 # Load=8/32=25%, Rehash=0, Collisions=1/11=9%
 #  recipe to execute (from 'Makefile', line 70):
 	@go build -v ./...
@@ -469,12 +468,12 @@ check-test-coverage:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 48 / storage = 486 B / avg = 10 B
-# current buf: size = 8162 B / used = 486 B / count = 48 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 50 / storage = 501 B / avg = 10 B
+# current buf: size = 8162 B / used = 501 B / count = 50 / avg = 10 B
 
-# strcache performance: lookups = 80 / hit rate = 40%
+# strcache performance: lookups = 82 / hit rate = 39%
 # hash-table stats:
-# Load=48/8192=1%, Rehash=0, Collisions=1/80=1%
-# Finished Make data base on Fri Jul  1 16:35:01 2022
+# Load=50/8192=1%, Rehash=0, Collisions=1/82=1%
+# Finished Make data base on Fri Jul 15 08:05:36 2022
 
  

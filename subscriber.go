@@ -23,10 +23,12 @@ func (s *subscriber) Emit(msg Message) {
 // Listen and wait for message synchronization from channel.
 // When a new message is added to channel buffer the message is proxied to input channel.
 func (s *subscriber) Listen(ctx context.Context, ch chan<- Message) {
+	// Wait until message synchronization finish to close channel
 	defer close(s.notification)
 
 	for {
 		// Close if callback returns false.
+		// select await both of these values simultaneously, executing each one as it arrives.
 		select {
 		case <-ctx.Done():
 			return

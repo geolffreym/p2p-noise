@@ -74,8 +74,8 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
-	return b.topics.Remove(e, s)
+	defer b.Mutex.Unlock()       // This will be executed at the end of the enclosing function.
+	return b.topics.Remove(e, s) // call first then return until then the mutex is available.
 }
 
 // Publish Emit/send concurrently messages to topic subscribers

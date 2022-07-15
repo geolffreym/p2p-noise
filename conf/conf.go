@@ -1,3 +1,5 @@
+// Package conf provide a "functional option" design pattern to handle node settings.
+// See also: https://github.com/crazybber/awesome-patterns/blob/master/idiom/functional-options.md
 package conf
 
 import "time"

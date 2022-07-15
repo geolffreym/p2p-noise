@@ -1,7 +1,6 @@
 //Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
-
-//P2P Noise Secure handshake.
 //
+//P2P Noise Secure handshake.
 //See also: http://www.noiseprotocol.org/noise.html#introduction
 package noise
 
@@ -51,10 +50,10 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 	return ch // read only channel <-chan
 }
 
-// Message emit a new message to socket.
+// SendMessage emit a new message to socket.
 // If socket doesn't exists or peer is not connected return error.
-// Calling Message extends write deadline.
-func (n *Node) Message(socket Socket, message []byte) (int, error) {
+// Calling SendMessage extends write deadline.
+func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
 		return 0, ErrSendingMessage(socket)
@@ -173,13 +172,12 @@ func (n *Node) Listen(addr Socket) error {
 	// Dispatch event on start listening
 	n.events.Listening([]byte(addr))
 	//wait until sentinel channel is closed to close listener
-	go func(listener net.Listener) {
-		<-n.sentinel
+	defer func() {
 		err := listener.Close()
 		if err != nil {
 			log.Fatal(ErrClosingConnection(err).Error())
 		}
-	}(listener)
+	}()
 
 	for {
 		// Block/Hold while waiting for new incoming connection
@@ -220,6 +218,7 @@ func (n *Node) Table() Table {
 // Return true for connection open else false.
 func (n *Node) Closed() bool {
 	select {
+	// select await for sentinel if not closed then default is returned.
 	case <-n.sentinel:
 		return true
 	default:
