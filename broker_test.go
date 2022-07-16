@@ -58,13 +58,22 @@ func TestUnregister(t *testing.T) {
 	broker.Register(NewPeerDetected, subscriber)
 	// Remove self listening from broker events
 	success := broker.Unregister(SelfListening, subscriber)
-	lenListeningSubscribed := len(broker.topics[SelfListening])
 
 	if !success {
 		t.Errorf("expected success unregister for valid subscriber %v", subscriber)
 	}
+
+}
+
+func TestUnregisterExpectedLen(t *testing.T) {
+	broker := newBroker()
+	subscriber := newSubscriber()
+	broker.Register(SelfListening, subscriber)
+	broker.Register(NewPeerDetected, subscriber)
+	lenListeningSubscribed := len(broker.topics[SelfListening])
+
 	// Only NewPeerDetected should be found.
-	if lenListeningSubscribed > 0 {
+	if lenListeningSubscribed == 2 {
 		t.Errorf("expected SelfListening event unregistered, got %#v events remaining", lenListeningSubscribed)
 	}
 
