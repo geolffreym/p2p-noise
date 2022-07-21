@@ -20,20 +20,20 @@ func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
-type Settings interface {
+type Configuration interface {
 	MaxPeersConnected() uint8
 	PeerDeadline() time.Duration
 }
 
 type Node struct {
-	sentinel chan bool // Channel flag waiting for signal to close connection.
-	router   *router   // Routing hash table eg. {Socket: Conn interface}.
-	events   *events   // Pubsub notifications.
-	settings Settings  // Configuration settings
+	sentinel chan bool     // Channel flag waiting for signal to close connection.
+	router   *router       // Routing hash table eg. {Socket: Conn interface}.
+	events   *events       // Pubsub notifications.
+	config   Configuration // Configuration settings
 }
 
 // New create a new node with default
-func New(settings Settings) *Node {
+func New(settings Configuration) *Node {
 	return &Node{
 		make(chan bool),
 		newRouter(),
@@ -66,7 +66,7 @@ func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {
 	// and any currently-blocked Write call.
 	// Even if write times out, it may return n > 0, indicating that
 	// some of the data was successfully written.
-	idle := futureDeadLine(n.settings.PeerDeadline())
+	idle := futureDeadLine(n.config.PeerDeadline())
 	peer.SetWriteDeadline(idle)
 	return bytes, err
 }
@@ -115,7 +115,7 @@ KEEPALIVE:
 		// the deadline after successful Read or Write calls.
 		// SetReadDeadline sets the deadline for future Read calls
 		// and any currently-blocked Read call.
-		idle := futureDeadLine(n.settings.PeerDeadline())
+		idle := futureDeadLine(n.config.PeerDeadline())
 		peer.SetReadDeadline(idle)
 	}
 
@@ -135,9 +135,9 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 	}
 
 	// Drop connections if max peers exceeded
-	if n.router.Len() >= n.settings.MaxPeersConnected() {
-		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.settings.MaxPeersConnected())
-		return nil, ErrExceededMaxPeers(n.settings.MaxPeersConnected())
+	if n.router.Len() >= n.config.MaxPeersConnected() {
+		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
+		return nil, ErrExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
 	// Initial deadline for connection.
@@ -147,7 +147,7 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 	// Read or Write. After a deadline has been exceeded, the
 	// connection can be refreshed by setting a deadline in the future.
 	// ref: https://pkg.go.dev/net#Conn
-	idle := futureDeadLine(n.settings.PeerDeadline())
+	idle := futureDeadLine(n.config.PeerDeadline())
 	connection.SetDeadline(idle)
 	// Routing connections
 	remote := connection.RemoteAddr().String()

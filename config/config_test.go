@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"testing"
@@ -26,8 +26,8 @@ func TestWrite(t *testing.T) {
 		MaxPeersConnected: 255,
 	}}
 
-	myLib := func(c ...Setting) *Settings {
-		s := NewSettings()
+	myLib := func(c ...Config) *Configs {
+		s := New()
 		s.Write(c...)
 		return s
 	}
@@ -47,7 +47,7 @@ func TestWrite(t *testing.T) {
 }
 
 func TestSetMaxPeersConnected(t *testing.T) {
-	settings := NewSettings()
+	settings := New()
 	callable := SetMaxPeersConnected(10)
 	callable(settings)
 
@@ -57,7 +57,7 @@ func TestSetMaxPeersConnected(t *testing.T) {
 }
 
 func TestPeerDeadline(t *testing.T) {
-	settings := NewSettings()
+	settings := New()
 	callable := SetPeerDeadline(100)
 	callable(settings)
 
