@@ -26,7 +26,7 @@ func TestWrite(t *testing.T) {
 		MaxPeersConnected: 255,
 	}}
 
-	myLib := func(c ...Config) *Configs {
+	myLib := func(c ...Setter) *Config {
 		s := New()
 		s.Write(c...)
 		return s

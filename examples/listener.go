@@ -15,15 +15,15 @@ import (
 
 func main() {
 
-	// Create configurations from params and write in configurations reference
-	configurations := config.New()
-	configurations.Write(
+	// Create configuration from params and write in configuration reference
+	configuration := config.New()
+	configuration.Write(
 		config.SetMaxPeersConnected(10),
 		config.SetPeerDeadline(1800),
 	)
 
 	// Node factory
-	node := noise.New(configurations)
+	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
 	var events <-chan noise.Message = node.Events(ctx)
