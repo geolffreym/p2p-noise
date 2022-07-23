@@ -1,6 +1,6 @@
 package noise
 
-type noise struct {
+type Noise struct {
 }
 
 // handshake
