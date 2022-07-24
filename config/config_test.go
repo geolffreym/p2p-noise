@@ -68,10 +68,22 @@ func TestPeerDeadline(t *testing.T) {
 
 func TestMaxPayloadExceeded(t *testing.T) {
 	settings := New()
-	callable := SetMaxPayloadSize(1024)
+	payloadSize := uint32(1024)
+	callable := SetMaxPayloadSize(payloadSize)
 	callable(settings)
 
-	if settings.MaxPayloadSize() != 1024 {
-		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", 1024, settings.MaxPayloadSize())
+	if settings.MaxPayloadSize() != payloadSize {
+		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", payloadSize, settings.MaxPayloadSize())
+	}
+}
+
+func TestSelfListeningAddress(t *testing.T) {
+	settings := New()
+	address := "127.0.0.1:5003"
+	callable := SetSelfListeningAddress(address)
+	callable(settings)
+
+	if settings.SelfListeningAddress() != address {
+		t.Errorf("expected SelfListeningAddress %#v, got settings %v", address, settings.SelfListeningAddress())
 	}
 }

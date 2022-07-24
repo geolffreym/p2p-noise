@@ -16,6 +16,7 @@ func futureDeadLine(deadline time.Duration) time.Time {
 }
 
 type Config interface {
+	SelfListeningAddress() string
 	MaxPeersConnected() uint8
 	MaxPayloadSize() uint32
 	PeerDeadline() time.Duration
@@ -51,6 +52,11 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 	ch := make(chan Message)
 	go n.events.Subscriber().Listen(ctx, ch)
 	return ch // read only channel for raw messages
+}
+
+// Addr return current self listening node address.
+func (n *Node) Addr() Socket {
+	return n.config.SelfListeningAddress()
 }
 
 // EmitMessage emit a new message to socket.
@@ -164,8 +170,9 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
-func (n *Node) Listen(addr Socket) error {
+func (n *Node) Listen() error {
 
+	addr := n.config.SelfListeningAddress()
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
 		return err
