@@ -13,7 +13,7 @@ func (m Signal) Type() Event { return m.event }
 func (m Signal) Payload() []byte { return m.payload }
 
 // SignalContext keep message exchange context between network events.
-// Each SignalContext keep a state holding original Signal and Peer associated.
+// Each SignalContext keep a state holding original Signal and related Peer.
 type SignalContext struct {
 	signal Signal
 	peer   *Peer
@@ -25,11 +25,6 @@ func newSignalContext(event Event, payload []byte, peer *Peer) SignalContext {
 		signal: Signal{event, payload},
 		peer:   peer,
 	}
-}
-
-// Signal return internal signal event message.
-func (s *SignalContext) Signal() Signal {
-	return s.signal
 }
 
 // Payload forward internal signal event message payload.

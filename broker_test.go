@@ -119,7 +119,7 @@ func TestPublish(t *testing.T) {
 	// Expected Emit called to set message
 	select {
 	case result = <-subscriber.notification:
-		if string(result.Signal().Payload()) != string(message.Signal().Payload()) {
+		if string(result.Payload()) != string(message.Payload()) {
 			t.Errorf("expected message equal result")
 		}
 	case <-time.After(1 * time.Second):
@@ -136,7 +136,7 @@ func TestPublish(t *testing.T) {
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.notification
-	if result.Signal().Type() != NewPeerDetected {
+	if result.Type() != NewPeerDetected {
 		t.Errorf("expected message type equal to %#v", NewPeerDetected)
 	}
 
