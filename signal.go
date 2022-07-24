@@ -12,6 +12,8 @@ func (m Signal) Type() Event { return m.event }
 // Payload return custom data published.
 func (m Signal) Payload() []byte { return m.payload }
 
+// SignalContext keep message exchange context between network events.
+// Each SignalContext keep a state holding original Signal and Peer associated.
 type SignalContext struct {
 	signal Signal
 	peer   *Peer

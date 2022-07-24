@@ -53,8 +53,8 @@ func (e *events) PeerDisconnected(peer *Peer) {
 }
 
 // NewMessage dispatch event new message.
-func (e *events) NewMessage(from *Peer, msg []byte) {
+func (e *events) NewMessage(peer *Peer, msg []byte) {
 	// Emit new notification
-	context := newSignalContext(MessageReceived, msg, from)
+	context := newSignalContext(MessageReceived, msg, peer)
 	e.broker.Publish(context)
 }
