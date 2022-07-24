@@ -52,7 +52,7 @@ func TestSetMaxPeersConnected(t *testing.T) {
 	callable(settings)
 
 	if settings.MaxPeersConnected() != 10 {
-		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected())
+		t.Errorf("expected MaxPeerConnected %#v, got settings %v", 10, settings.MaxPeersConnected())
 	}
 }
 
@@ -62,6 +62,16 @@ func TestPeerDeadline(t *testing.T) {
 	callable(settings)
 
 	if settings.PeerDeadline() != 100 {
-		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected())
+		t.Errorf("expected MaxPeerConnected %#v, got settings %v", 10, settings.MaxPeersConnected())
+	}
+}
+
+func TestMaxPayloadExceeded(t *testing.T) {
+	settings := New()
+	callable := SetMaxPayloadSize(1024)
+	callable(settings)
+
+	if settings.MaxPayloadSize() != 1024 {
+		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", 1024, settings.MaxPayloadSize())
 	}
 }

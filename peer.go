@@ -3,6 +3,7 @@ package noise
 import (
 	"encoding/binary"
 	"io"
+	"log"
 	"net"
 )
 
@@ -37,16 +38,25 @@ func (p *Peer) Send(msg []byte) (int, error) {
 	return bytesSent + 4, err
 }
 
-func (p *Peer) Listen() ([]byte, error) {
+func (p *Peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 
 	var size uint32 // read bytes size from header
 	err := binary.Read(p, binary.BigEndian, &size)
+
+	// Error trying to read `size`
+	if err != nil {
+		return nil, err
+	}
+
+	if size > maxPayloadSize {
+		log.Fatalf("max payload size exceeded: MaxPayloadSize = %d", maxPayloadSize)
+		return nil, ErrExceededMaxPayloadSize(maxPayloadSize)
+	}
 
 	// Dynamic allocation based on msg size
 	buf := make([]byte, size)
 
 	// Sync buffered IO reading
-	// TODO add here max payload size exceeded
 	_, err = p.Read(buf)
 
 	if err != nil {

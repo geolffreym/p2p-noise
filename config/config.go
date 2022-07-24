@@ -6,6 +6,7 @@ import "time"
 
 // Functional options
 type Config struct {
+	maxPayloadSize    uint32
 	maxPeersConnected uint8
 	peerDeadline      time.Duration
 }
@@ -15,6 +16,8 @@ type Setter func(*Config)
 // Return default settings
 func New() *Config {
 	return &Config{
+		// Max payload size received from peers
+		maxPayloadSize: 10 << 20, // 10MB
 		// Max peer consecutively connected.
 		// Each of this peers is equivalent to one routine, limit this is a performance consideration.
 		maxPeersConnected: 100,
@@ -38,6 +41,11 @@ func (s *Config) MaxPeersConnected() uint8 {
 	return s.maxPeersConnected
 }
 
+// MaxPayloadSize returns the max payload size allowed to received from peers.
+func (s *Config) MaxPayloadSize() uint32 {
+	return s.maxPayloadSize
+}
+
 // PeerDeadline returns the max time waiting for I/O or peer interaction
 func (s *Config) PeerDeadline() time.Duration {
 	return s.peerDeadline
@@ -48,6 +56,14 @@ func (s *Config) PeerDeadline() time.Duration {
 func SetMaxPeersConnected(maxPeers uint8) Setter {
 	return func(conf *Config) {
 		conf.maxPeersConnected = maxPeers
+	}
+}
+
+// SetMaxPayloadSize sets the maximum bytes size received from peers.
+// If the size exceed > MaxPayloadSize then payload is dropped.
+func SetMaxPayloadSize(maxPayloadSize uint32) Setter {
+	return func(conf *Config) {
+		conf.maxPayloadSize = maxPayloadSize
 	}
 }
 

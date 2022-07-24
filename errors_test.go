@@ -9,23 +9,6 @@ import (
 const MOCK_ADDRESS = "127.0.0.1:2379"
 const STATEMENT = "Expected error: %v, got: %v"
 
-func TestWrapError(t *testing.T) {
-	err := errors.New("wrap test")
-	context := "testing errors"
-	wrapper := WrapErr(err, context)
-	expected := fmt.Sprintf("%s: %v", context, err)
-
-	// Check assertion
-	_, ok := wrapper.(*Error)
-	if !ok {
-		t.Error("Expected 'error' interface implementation")
-	}
-
-	if wrapper.Error() != expected {
-		t.Error("Expected context and error wrapper to be equal to output")
-	}
-}
-
 func TestListeningError(t *testing.T) {
 	customError := "Fail listening"
 	err := errors.New(customError)
@@ -72,7 +55,7 @@ func TestClosingError(t *testing.T) {
 	}
 }
 
-func TestExceededError(t *testing.T) {
+func TestExceededMaxPeersError(t *testing.T) {
 
 	output := ErrExceededMaxPeers(10)
 	expected := fmt.Sprintf("it is not possible to accept more than %d connections: max peers exceeded", 10)
@@ -82,9 +65,19 @@ func TestExceededError(t *testing.T) {
 	}
 }
 
-func TestMessageError(t *testing.T) {
+func TestExceededMaxPayloadSize(t *testing.T) {
 
-	output := ErrSendingMessage(MOCK_ADDRESS)
+	output := ErrExceededMaxPayloadSize(10 << 20)
+	expected := fmt.Sprintf("it is not possible to accept more than %d bytes: max payload size exceeded", 10<<20)
+
+	if output.Error() != expected {
+		t.Errorf(STATEMENT, expected, output)
+	}
+}
+
+func TestSendingMessageToInvalidPeer(t *testing.T) {
+
+	output := ErrSendingMessageToInvalidPeer(MOCK_ADDRESS)
 	expected := fmt.Sprintf("error trying to send a message to %v: peer disconnected", MOCK_ADDRESS)
 
 	if output.Error() != expected {
