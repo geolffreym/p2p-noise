@@ -30,7 +30,7 @@ func (s *SignalContext) Signal() Signal {
 	return s.signal
 }
 
-// Payload forward internal signal event message.
+// Payload forward internal signal event message payload.
 func (s *SignalContext) Payload() []byte {
 	return s.signal.Payload()
 }
@@ -41,6 +41,6 @@ func (s *SignalContext) Type() Event {
 }
 
 // Reply send an answer to contextual peer.
-func (s *SignalContext) Reply(msg []byte) {
+func (s *SignalContext) Send(msg []byte) {
 	s.peer.Send(msg)
 }

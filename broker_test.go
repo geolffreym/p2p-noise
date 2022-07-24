@@ -10,23 +10,19 @@ import (
 func TestRegister(t *testing.T) {
 	event := newBroker()
 	subscriber := newSubscriber()
-	event.Register(SelfListening, subscriber)
 	event.Register(NewPeerDetected, subscriber)
-	event.Register(ClosedConnection, subscriber)
+	event.Register(PeerDisconnected, subscriber)
 	event.Register(MessageReceived, subscriber)
 
 	registered := []struct {
 		name  string
 		event Event
 	}{{
-		name:  "Listening",
-		event: SelfListening,
-	}, {
 		name:  "New peer",
 		event: NewPeerDetected,
 	}, {
-		name:  "Closed connection",
-		event: ClosedConnection,
+		name:  "Peer Disconnected",
+		event: PeerDisconnected,
 	}, {
 		name:  "Message received",
 		event: MessageReceived,
@@ -54,10 +50,10 @@ func TestRegister(t *testing.T) {
 func TestUnregister(t *testing.T) {
 	broker := newBroker()
 	subscriber := newSubscriber()
-	broker.Register(SelfListening, subscriber)
+	broker.Register(MessageReceived, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
 	// Remove self listening from broker events
-	success := broker.Unregister(SelfListening, subscriber)
+	success := broker.Unregister(MessageReceived, subscriber)
 
 	if !success {
 		t.Errorf("expected success unregister for valid subscriber %v", subscriber)
@@ -68,13 +64,13 @@ func TestUnregister(t *testing.T) {
 func TestUnregisterExpectedLen(t *testing.T) {
 	broker := newBroker()
 	subscriber := newSubscriber()
-	broker.Register(SelfListening, subscriber)
+	broker.Register(MessageReceived, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
-	lenListeningSubscribed := len(broker.topics[SelfListening])
+	lenListeningSubscribed := len(broker.topics[MessageReceived])
 
 	// Only NewPeerDetected should be found.
 	if lenListeningSubscribed == 2 {
-		t.Errorf("expected SelfListening event unregistered, got %#v events remaining", lenListeningSubscribed)
+		t.Errorf("expected MessageReceived event unregistered, got %#v events remaining", lenListeningSubscribed)
 	}
 
 }
@@ -83,7 +79,7 @@ func TestInvalidUnregister(t *testing.T) {
 	broker := newBroker()
 	subscriber := newSubscriber()
 	// Remove self listening from broker events
-	success := broker.Unregister(SelfListening, subscriber)
+	success := broker.Unregister(MessageReceived, subscriber)
 
 	if success {
 		t.Errorf("expected fail unregister for invalid subscriber %v", subscriber)
@@ -95,15 +91,15 @@ func TestTopicAdd(t *testing.T) {
 	topic := make(topics)
 	subscribed := newSubscriber()
 
-	topic.Add(SelfListening, subscribed)
-	topic.Add(ClosedConnection, subscribed)
+	topic.Add(MessageReceived, subscribed)
+	topic.Add(PeerDisconnected, subscribed)
 	topic.Add(NewPeerDetected, subscribed)
 
-	_, okListening := topic[SelfListening]
-	_, okClosed := topic[ClosedConnection]
+	_, okMsg := topic[MessageReceived]
+	_, okPeerDisconnect := topic[PeerDisconnected]
 	_, okNewPeer := topic[NewPeerDetected]
 
-	if !okListening || !okNewPeer || !okClosed {
+	if !okMsg || !okNewPeer || !okPeerDisconnect {
 		t.Errorf("expected topics keys contains added events")
 	}
 }
@@ -113,8 +109,8 @@ func TestPublish(t *testing.T) {
 	subscriber := newSubscriber()
 	broker := newBroker()
 
-	broker.Register(SelfListening, subscriber)
-	message := newSignalContext(SelfListening, []byte("hello test 1"), nil)
+	broker.Register(NewPeerDetected, subscriber)
+	message := newSignalContext(NewPeerDetected, []byte("Hello"), nil)
 
 	broker.Publish(message)
 

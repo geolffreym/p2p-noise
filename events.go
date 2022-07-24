@@ -4,14 +4,10 @@ package noise
 type Event int
 
 const (
-	// Event for loopback on start listening event
-	SelfListening Event = iota
 	// Event to notify when a new peer connects
-	NewPeerDetected
+	NewPeerDetected Event = iota
 	// On new message received event
 	MessageReceived
-	// On closed network
-	ClosedConnection
 	// Closed peer event
 	PeerDisconnected
 )
@@ -25,10 +21,8 @@ func newEvents() *events {
 	subscriber := newSubscriber()
 	broker := newBroker()
 	// register default events
-	broker.Register(SelfListening, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
 	broker.Register(MessageReceived, subscriber)
-	broker.Register(ClosedConnection, subscriber)
 	broker.Register(PeerDisconnected, subscriber)
 
 	return &events{
@@ -58,23 +52,9 @@ func (e *events) PeerDisconnected(peer *Peer) {
 	e.broker.Publish(context)
 }
 
-// Listening dispatch event self listening.
-func (e *events) Listening(addr []byte) {
-	// Emit new notification
-	context := newSignalContext(SelfListening, addr, nil)
-	e.broker.Publish(context)
-}
-
 // NewMessage dispatch event new message.
-func (e *events) NewMessage(msg []byte, from *Peer) {
+func (e *events) NewMessage(from *Peer, msg []byte) {
 	// Emit new notification
 	context := newSignalContext(MessageReceived, msg, from)
-	e.broker.Publish(context)
-}
-
-// ClosedConnection dispatch event closed connection.
-func (e *events) ClosedConnection() {
-	// Emit new notification
-	context := newSignalContext(ClosedConnection, nil, nil)
 	e.broker.Publish(context)
 }

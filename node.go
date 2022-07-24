@@ -116,8 +116,7 @@ KEEPALIVE:
 		}
 
 		// Emit new incoming message notification
-		n.events.NewMessage(buf, peer)
-
+		n.events.NewMessage(peer, buf)
 		// An idle timeout can be implemented by repeatedly extending
 		// the deadline after successful Read or Write calls.
 		// SetReadDeadline sets the deadline for future Read calls
@@ -178,8 +177,6 @@ func (n *Node) Listen() error {
 		return err
 	}
 
-	// Dispatch event on start listening
-	n.events.Listening([]byte(addr))
 	//wait until sentinel channel is closed to close listener
 	defer func() {
 		err := listener.Close()
@@ -244,8 +241,6 @@ func (n *Node) Close() {
 		}(peer)
 	}
 
-	// Dispatch event on node get closed
-	n.events.ClosedConnection()
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
 	close(n.sentinel)

@@ -8,7 +8,7 @@ import (
 
 func TestListen(t *testing.T) {
 	sub := newSubscriber()
-	message := newSignalContext(SelfListening, []byte("hello test 1"), nil)
+	message := newSignalContext(NewPeerDetected, nil, nil)
 
 	canceled := make(chan struct{})
 	msg := make(chan SignalContext)
