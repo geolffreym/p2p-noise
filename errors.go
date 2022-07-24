@@ -13,7 +13,7 @@ type NetError struct {
 
 // Error give string representation of error based on error type.
 func (e NetError) Error() string {
-	return fmt.Sprintf("%s: %v", e.Context, e.Err)
+	return fmt.Sprintf("net: %s -> %v", e.Context, e.Err)
 }
 
 type OperationalError struct {
@@ -23,7 +23,7 @@ type OperationalError struct {
 
 // Error give string representation of error based on error type.
 func (e OperationalError) Error() string {
-	return fmt.Sprintf("%s: %v", e.Context, e.Err)
+	return fmt.Sprintf("ops: %s -> %v", e.Context, e.Err)
 }
 
 type OverflowError struct {
@@ -33,7 +33,7 @@ type OverflowError struct {
 
 // Error give string representation of error based on error type.
 func (e OverflowError) Error() string {
-	return fmt.Sprintf("%s: %v", e.Context, e.Err)
+	return fmt.Sprintf("overflow: %s -> %v", e.Context, e.Err)
 }
 
 // ErrSelfListening error represent an issue for node address listening.
