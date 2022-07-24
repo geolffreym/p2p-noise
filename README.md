@@ -27,20 +27,28 @@ go get github.com/geolffreym/p2p-noise
 ## Basic usage
 
 ```
-package main
-
 import (
 	"context"
 	"log"
 
 	noise "github.com/geolffreym/p2p-noise"
+	"github.com/geolffreym/p2p-noise/config"
 )
 
 func main() {
-	node := noise.NewNode()
+
+	// Create configurations from params and write in configurations reference
+	configurations := config.New()
+	configurations.Write(
+		config.SetMaxPeersConnected(10),
+		config.SetPeerDeadline(1800),
+	)
+
+	// Node factory
+	node := noise.New(configurations)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	events := node.Events(ctx)
+	var events <-chan noise.Message = node.Events(ctx)
 
 	go func() {
 		for msg := range events {

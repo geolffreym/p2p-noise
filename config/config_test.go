@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"testing"
@@ -26,8 +26,8 @@ func TestWrite(t *testing.T) {
 		MaxPeersConnected: 255,
 	}}
 
-	myLib := func(c ...Setting) *Settings {
-		s := NewSettings()
+	myLib := func(c ...Setter) *Config {
+		s := New()
 		s.Write(c...)
 		return s
 	}
@@ -47,21 +47,31 @@ func TestWrite(t *testing.T) {
 }
 
 func TestSetMaxPeersConnected(t *testing.T) {
-	settings := NewSettings()
+	settings := New()
 	callable := SetMaxPeersConnected(10)
 	callable(settings)
 
 	if settings.MaxPeersConnected() != 10 {
-		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected())
+		t.Errorf("expected MaxPeerConnected %#v, got settings %v", 10, settings.MaxPeersConnected())
 	}
 }
 
 func TestPeerDeadline(t *testing.T) {
-	settings := NewSettings()
+	settings := New()
 	callable := SetPeerDeadline(100)
 	callable(settings)
 
 	if settings.PeerDeadline() != 100 {
-		t.Errorf("expected MaxPeerConnected %#v, get settings %v", 10, settings.MaxPeersConnected())
+		t.Errorf("expected MaxPeerConnected %#v, got settings %v", 10, settings.MaxPeersConnected())
+	}
+}
+
+func TestMaxPayloadExceeded(t *testing.T) {
+	settings := New()
+	callable := SetMaxPayloadSize(1024)
+	callable(settings)
+
+	if settings.MaxPayloadSize() != 1024 {
+		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", 1024, settings.MaxPayloadSize())
 	}
 }

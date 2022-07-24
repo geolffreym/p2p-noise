@@ -10,20 +10,20 @@ import (
 	"log"
 
 	noise "github.com/geolffreym/p2p-noise"
-	"github.com/geolffreym/p2p-noise/conf"
+	"github.com/geolffreym/p2p-noise/config"
 )
 
-func main() {
+func handshake() {
 
-	// Create settings from params and write in settings reference
-	settings := conf.NewSettings()
-	settings.Write(
-		conf.SetMaxPeersConnected(10),
-		conf.SetPeerDeadline(1800),
+	// Create configuration from params and write in configuration reference
+	configuration := config.New()
+	configuration.Write(
+		config.SetMaxPeersConnected(10),
+		config.SetPeerDeadline(1800),
 	)
 
 	// Node factory
-	node := noise.New(settings)
+	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
 	var events <-chan noise.Message = node.Events(ctx)

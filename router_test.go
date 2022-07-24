@@ -47,10 +47,9 @@ func TestAdd(t *testing.T) {
 	}
 
 	// Table driven test
-	// For each expected event
 	for _, e := range expected {
 		t.Run(e.socket, func(t *testing.T) {
-
+			// Match recently added peer
 			if _, ok := router.Table()[Socket(e.socket)]; !ok {
 				t.Errorf("expected routed socket %#v", e.socket)
 			}
@@ -78,10 +77,9 @@ func TestQuery(t *testing.T) {
 	}
 
 	// Table driven test
-	// For each expected event
 	for _, e := range expected {
 		t.Run(e.socket, func(t *testing.T) {
-
+			// Return the socket related peer
 			if peer := router.Query(Socket(e.socket)); peer == nil {
 				t.Errorf("expected peer for valid socket %#v, got %v", e.socket, peer)
 			}

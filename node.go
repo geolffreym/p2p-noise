@@ -1,13 +1,7 @@
-//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
-
-//P2P Noise Secure handshake.
-//
-//See also: http://www.noiseprotocol.org/noise.html#introduction
 package noise
 
 import (
 	"context"
-	"io"
 	"log"
 	"net"
 	"time"
@@ -21,25 +15,33 @@ func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
-type Settings interface {
+type Config interface {
 	MaxPeersConnected() uint8
+	MaxPayloadSize() uint32
 	PeerDeadline() time.Duration
 }
 
 type Node struct {
-	sentinel chan bool // Channel flag waiting for signal to close connection.
-	router   *router   // Routing hash table eg. {Socket: Conn interface}.
-	events   *events   // Pubsub notifications.
-	settings Settings  // Configuration settings
+	// Channel flag waiting for signal to close connection.
+	sentinel chan bool
+
+	// Routing hash table eg. {Socket: Conn interface}.
+	router *router
+
+	// Pubsub notifications.
+	events *events
+
+	// Configuration settings
+	config Config
 }
 
 // New create a new node with default
-func New(settings Settings) *Node {
+func New(config Config) *Node {
 	return &Node{
 		make(chan bool),
 		newRouter(),
 		newEvents(),
-		settings,
+		config,
 	}
 }
 
@@ -48,26 +50,26 @@ func New(settings Settings) *Node {
 func (n *Node) Events(ctx context.Context) <-chan Message {
 	ch := make(chan Message)
 	go n.events.Subscriber().Listen(ctx, ch)
-	return ch // read only channel <-chan
+	return ch // read only channel for raw messages
 }
 
-// Message emit a new message to socket.
+// EmitMessage emit a new message to socket.
 // If socket doesn't exists or peer is not connected return error.
-// Calling Message extends write deadline.
-func (n *Node) Message(socket Socket, message []byte) (int, error) {
+// Calling EmitMessage extends write deadline.
+func (n *Node) EmitMessage(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
-		return 0, ErrSendingMessage(socket)
+		return 0, ErrSendingMessageToInvalidPeer(socket)
 	}
 
-	bytes, err := peer.Write(message)
+	bytes, err := peer.Send(message)
 	// An idle timeout can be implemented by repeatedly extending
 	// the deadline after successful Read or Write calls.
 	// SetWriteDeadline sets the deadline for future Write calls
 	// and any currently-blocked Write call.
 	// Even if write times out, it may return n > 0, indicating that
 	// some of the data was successfully written.
-	idle := futureDeadLine(n.settings.PeerDeadline())
+	idle := futureDeadLine(n.config.PeerDeadline())
 	peer.SetWriteDeadline(idle)
 	return bytes, err
 }
@@ -76,48 +78,47 @@ func (n *Node) Message(socket Socket, message []byte) (int, error) {
 // After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
 func (n *Node) watch(peer *Peer) {
-	// Recycle memory buffer
-	buf := make([]byte, 1024)
 
 KEEPALIVE:
 	for {
-		// Sync buffered IO reading
-		_, err := peer.Read(buf)
+
+		// Waiting for new incoming message
+		buf, err := peer.Listen(n.config.MaxPayloadSize())
 		// If connection is closed
 		if n.Closed() {
 			// stop routines watching for peers
 			return
 		}
 
-		if err != nil {
+		// OverflowError is returned when the incoming payload exceed the expected size
+		_, overflow := err.(OverflowError)
+
+		// Don't stop listening for peer if overflow payload is returned.
+		if err != nil && !overflow {
 			// net: don't return io.EOF from zero byte reads
-			// if err == io.EOF then peer connection is closed
-			_, isNetError := err.(*net.OpError)
-			if err == io.EOF || isNetError {
-				// Close disconnected peer
-				if err := peer.Close(); err != nil {
-					log.Fatal(ErrClosingConnection(err).Error())
-				}
+			// Notify about the remote peer state
+			n.events.PeerDisconnected([]byte(peer.Socket()))
+			// Remove peer from router table
+			n.router.Remove(peer)
+			return
+		}
 
-				// Notify about the remote peer state
-				n.events.PeerDisconnected([]byte(peer.Socket()))
-				// Remove peer from router table
-				n.router.Remove(peer)
-				return
-			}
-
+		if buf == nil {
+			// `buf` is nil if no more bytes received but peer is still connected
 			// Keep alive always that zero bytes are not received
 			break KEEPALIVE
 		}
 
 		// Emit new incoming message notification
 		n.events.NewMessage(buf)
+
 		// An idle timeout can be implemented by repeatedly extending
 		// the deadline after successful Read or Write calls.
 		// SetReadDeadline sets the deadline for future Read calls
 		// and any currently-blocked Read call.
-		idle := futureDeadLine(n.settings.PeerDeadline())
+		idle := futureDeadLine(n.config.PeerDeadline())
 		peer.SetReadDeadline(idle)
+
 	}
 
 }
@@ -136,9 +137,9 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 	}
 
 	// Drop connections if max peers exceeded
-	if n.router.Len() >= n.settings.MaxPeersConnected() {
-		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.settings.MaxPeersConnected())
-		return nil, ErrExceededMaxPeers(n.settings.MaxPeersConnected())
+	if n.router.Len() >= n.config.MaxPeersConnected() {
+		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
+		return nil, ErrExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
 	// Initial deadline for connection.
@@ -148,7 +149,7 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 	// Read or Write. After a deadline has been exceeded, the
 	// connection can be refreshed by setting a deadline in the future.
 	// ref: https://pkg.go.dev/net#Conn
-	idle := futureDeadLine(n.settings.PeerDeadline())
+	idle := futureDeadLine(n.config.PeerDeadline())
 	connection.SetDeadline(idle)
 	// Routing connections
 	remote := connection.RemoteAddr().String()
@@ -173,13 +174,12 @@ func (n *Node) Listen(addr Socket) error {
 	// Dispatch event on start listening
 	n.events.Listening([]byte(addr))
 	//wait until sentinel channel is closed to close listener
-	go func(listener net.Listener) {
-		<-n.sentinel
+	defer func() {
 		err := listener.Close()
 		if err != nil {
 			log.Fatal(ErrClosingConnection(err).Error())
 		}
-	}(listener)
+	}()
 
 	for {
 		// Block/Hold while waiting for new incoming connection
@@ -220,6 +220,7 @@ func (n *Node) Table() Table {
 // Return true for connection open else false.
 func (n *Node) Closed() bool {
 	select {
+	// select await for sentinel if not closed then default is returned.
 	case <-n.sentinel:
 		return true
 	default:
