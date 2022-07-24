@@ -43,46 +43,38 @@ func (e *events) Subscriber() *subscriber {
 }
 
 // PeerConnected dispatch event new peer detected.
-func (e *events) PeerConnected(addr []byte) {
+func (e *events) PeerConnected(peer *Peer) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		NewPeerDetected,
-		addr,
-	})
+	addr := peer.Socket().Bytes()
+	context := newSignalContext(NewPeerDetected, addr, peer)
+	e.broker.Publish(context)
 }
 
 // PeerDisconnected dispatch event peer disconnected.
-func (e *events) PeerDisconnected(addr []byte) {
+func (e *events) PeerDisconnected(peer *Peer) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		PeerDisconnected,
-		addr,
-	})
+	addr := peer.Socket().Bytes()
+	context := newSignalContext(PeerDisconnected, addr, peer)
+	e.broker.Publish(context)
 }
 
 // Listening dispatch event self listening.
 func (e *events) Listening(addr []byte) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		SelfListening,
-		addr,
-	})
+	context := newSignalContext(SelfListening, addr, nil)
+	e.broker.Publish(context)
 }
 
 // NewMessage dispatch event new message.
-func (e *events) NewMessage(msg []byte) {
+func (e *events) NewMessage(msg []byte, from *Peer) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		MessageReceived,
-		msg,
-	})
+	context := newSignalContext(MessageReceived, msg, from)
+	e.broker.Publish(context)
 }
 
 // ClosedConnection dispatch event closed connection.
 func (e *events) ClosedConnection() {
 	// Emit new notification
-	e.broker.Publish(Message{
-		ClosedConnection,
-		[]byte(""),
-	})
+	context := newSignalContext(ClosedConnection, nil, nil)
+	e.broker.Publish(context)
 }

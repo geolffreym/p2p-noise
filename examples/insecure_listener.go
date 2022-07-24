@@ -26,13 +26,13 @@ func main() {
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var events <-chan noise.Message = node.Events(ctx)
+	var events <-chan noise.SignalContext = node.Events(ctx)
 
 	go func() {
 		for msg := range events {
 			// Here could be handled events
 			if msg.Type() == noise.SelfListening {
-				log.Printf("Listening on: %s \n", msg.Payload())
+				log.Printf("Listening on: %s \n", msg.Signal().Payload())
 				cancel() // stop listening for events
 			}
 		}
@@ -43,6 +43,6 @@ func main() {
 	// node.Close()
 
 	// ... more code here
-	node.Listen("127.0.0.1:4008")
+	node.Listen()
 
 }

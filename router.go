@@ -4,8 +4,17 @@ import (
 	"sync"
 )
 
+// Handle socket string logic
 // ip:port eg. 127.0.0.1:8000
-type Socket = string
+type Socket string
+
+func (s Socket) Bytes() []byte {
+	return []byte(s)
+}
+
+func (s Socket) String() string {
+	return string(s)
+}
 
 // Table `keep` a socket:connection mapping.
 type Table map[Socket]*Peer

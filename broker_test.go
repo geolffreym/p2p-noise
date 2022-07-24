@@ -109,15 +109,12 @@ func TestTopicAdd(t *testing.T) {
 }
 
 func TestPublish(t *testing.T) {
-	var result Message
+	var result SignalContext
 	subscriber := newSubscriber()
 	broker := newBroker()
 
 	broker.Register(SelfListening, subscriber)
-	message := Message{
-		SelfListening,
-		[]byte("hello test 1"),
-	}
+	message := newSignalContext(SelfListening, []byte("hello test 1"), nil)
 
 	broker.Publish(message)
 
@@ -126,7 +123,7 @@ func TestPublish(t *testing.T) {
 	// Expected Emit called to set message
 	select {
 	case result = <-subscriber.notification:
-		if string(result.Payload()) != string(message.Payload()) {
+		if string(result.Signal().Payload()) != string(message.Signal().Payload()) {
 			t.Errorf("expected message equal result")
 		}
 	case <-time.After(1 * time.Second):
@@ -137,16 +134,13 @@ func TestPublish(t *testing.T) {
 
 	// New message for new topic event
 	broker.Register(NewPeerDetected, subscriber)
-	message = Message{
-		NewPeerDetected,
-		[]byte(""),
-	}
+	message = newSignalContext(NewPeerDetected, []byte(""), nil)
 
 	broker.Publish(message)
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.notification
-	if result.Type() != NewPeerDetected {
+	if result.Signal().Type() != NewPeerDetected {
 		t.Errorf("expected message type equal to %#v", NewPeerDetected)
 	}
 

@@ -7,7 +7,6 @@ package main
 
 import (
 	"context"
-	"log"
 
 	noise "github.com/geolffreym/p2p-noise"
 	"github.com/geolffreym/p2p-noise/config"
@@ -26,13 +25,13 @@ func handshake() {
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var events <-chan noise.Message = node.Events(ctx)
+	var events <-chan noise.SignalContext = node.Events(ctx)
 
 	go func() {
-		for msg := range events {
+		for signal := range events {
 			// Here could be handled events
-			if msg.Type() == noise.SelfListening {
-				log.Printf("Listening on: %s \n", msg.Payload())
+			if signal.Type() == noise.NewPeerDetected {
+				// TODO handle here handshake logic
 				cancel() // stop listening for events
 			}
 		}
