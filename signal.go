@@ -41,6 +41,6 @@ func (s *SignalContext) Type() Event {
 }
 
 // Reply send an answer to contextual peer.
-func (s *SignalContext) Send(msg []byte) {
+func (s *SignalContext) Reply(msg []byte) {
 	s.peer.Send(msg)
 }
