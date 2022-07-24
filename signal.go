@@ -1,29 +1,29 @@
 package noise
 
-// Signal hold the information needed to exchange messages via pubsub events.
-type Signal struct {
+// signal hold the information needed to exchange messages via pubsub events.
+type signal struct {
 	event   Event  // Type of event published
 	payload []byte // Custom data message published
 }
 
 // Type return Message event type published.
-func (m Signal) Type() Event { return m.event }
+func (m signal) Type() Event { return m.event }
 
 // Payload return custom data published.
-func (m Signal) Payload() []byte { return m.payload }
+func (m signal) Payload() []byte { return m.payload }
 
 // SignalContext keep message exchange context between network events.
 // Each SignalContext keep a state holding original Signal and related Peer.
 type SignalContext struct {
-	signal Signal
+	signal signal
 	peer   *Peer
 	// TODO add nonce here!!
 }
 
 func newSignalContext(event Event, payload []byte, peer *Peer) SignalContext {
 	return SignalContext{
-		signal: Signal{event, payload},
-		peer:   peer,
+		signal{event, payload},
+		peer,
 	}
 }
 

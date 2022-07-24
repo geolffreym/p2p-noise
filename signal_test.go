@@ -22,7 +22,7 @@ func (m *MockPeer) Receive(buf []byte) (n int, err error) {
 func TestType(t *testing.T) {
 	event := NewPeerDetected
 	payload := []byte(PAYLOAD)
-	message := Signal{
+	message := signal{
 		event,
 		payload,
 	}
@@ -35,7 +35,7 @@ func TestType(t *testing.T) {
 func TestPayload(t *testing.T) {
 	event := MessageReceived
 	payload := []byte(PAYLOAD)
-	message := Signal{
+	message := signal{
 		event,
 		payload,
 	}
