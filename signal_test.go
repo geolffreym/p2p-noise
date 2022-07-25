@@ -7,16 +7,14 @@ import (
 const PAYLOAD = "hello test"
 
 type MockPeer struct {
-	Exchange []byte
 }
 
-func (m *MockPeer) Send(data []byte) (n int, err error) {
-	m.Exchange = data
-	return len(data), nil
+func (m *MockPeer) Send(msg []byte) (int, error) {
+	return len(msg), nil
 }
 
-func (m *MockPeer) Receive(buf []byte) (n int, err error) {
-	return len(m.Exchange), nil
+func (m *MockPeer) Socket() Socket {
+	return Socket("192.168.1.1")
 }
 
 func TestType(t *testing.T) {
@@ -46,4 +44,17 @@ func TestPayload(t *testing.T) {
 
 }
 
-// TODO add SignalContext test
+func TestReply(t *testing.T) {
+	payload := []byte(PAYLOAD)
+	msg := []byte("hello")
+	peer := &MockPeer{}
+
+	signal := signal{NewPeerDetected, payload}
+	context := SignalCtx{signal, peer}
+	sent, _ := context.Reply(msg)
+
+	if sent != len(msg) {
+		t.Error("Expected Reply message sent to `Sent` by peer")
+	}
+
+}

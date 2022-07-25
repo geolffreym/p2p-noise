@@ -12,6 +12,15 @@ const (
 	PeerDisconnected
 )
 
+type Subscriber interface {
+	Emit(msg SignalCtx)
+}
+
+type PeerCtx interface {
+	Send(msg []byte) (int, error)
+	Socket() Socket
+}
+
 type events struct {
 	broker     *broker
 	subscriber *subscriber
@@ -37,24 +46,24 @@ func (e *events) Subscriber() *subscriber {
 }
 
 // PeerConnected dispatch event new peer detected.
-func (e *events) PeerConnected(peer *Peer) {
+func (e *events) PeerConnected(peer PeerCtx) {
 	// Emit new notification
 	addr := peer.Socket().Bytes()
-	context := newSignalContext(NewPeerDetected, addr, peer)
-	e.broker.Publish(context)
+	signal := signal{NewPeerDetected, addr}
+	e.broker.Publish(SignalCtx{signal, peer})
 }
 
 // PeerDisconnected dispatch event peer disconnected.
-func (e *events) PeerDisconnected(peer *Peer) {
+func (e *events) PeerDisconnected(peer PeerCtx) {
 	// Emit new notification
 	addr := peer.Socket().Bytes()
-	context := newSignalContext(PeerDisconnected, addr, peer)
-	e.broker.Publish(context)
+	signal := signal{PeerDisconnected, addr}
+	e.broker.Publish(SignalCtx{signal, peer})
 }
 
 // NewMessage dispatch event new message.
-func (e *events) NewMessage(peer *Peer, msg []byte) {
+func (e *events) NewMessage(peer PeerCtx, msg []byte) {
 	// Emit new notification
-	context := newSignalContext(MessageReceived, msg, peer)
-	e.broker.Publish(context)
+	signal := signal{MessageReceived, msg}
+	e.broker.Publish(SignalCtx{signal, peer})
 }

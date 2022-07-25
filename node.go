@@ -22,6 +22,13 @@ type Config interface {
 	PeerDeadline() time.Duration
 }
 
+type Peer interface {
+	net.Conn
+	Socket() Socket
+	Send(msg []byte) (int, error)
+	Listen(maxPayloadSize uint32) ([]byte, error)
+}
+
 type Node struct {
 	// Channel flag waiting for signal to close connection.
 	sentinel chan bool
@@ -45,8 +52,8 @@ func New(config Config) *Node {
 
 // Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Signals(ctx context.Context) <-chan SignalContext {
-	ch := make(chan SignalContext)
+func (n *Node) Signals(ctx context.Context) <-chan SignalCtx {
+	ch := make(chan SignalCtx)
 	go n.events.Subscriber().Listen(ctx, ch)
 	return ch // read only channel for raw messages
 }
@@ -80,7 +87,7 @@ func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {
 // watch keep running waiting for incoming messages.
 // After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
-func (n *Node) watch(peer *Peer) {
+func (n *Node) watch(peer Peer) {
 
 KEEPALIVE:
 	for {
@@ -128,7 +135,7 @@ KEEPALIVE:
 // routing initialize route in routing table from connection interface.
 // If TCP protocol is used connection is enforced to keep alive.
 // It return new peer added to table.
-func (n *Node) routing(conn net.Conn) (*Peer, error) {
+func (n *Node) routing(conn net.Conn) (Peer, error) {
 
 	// Assertion for tcp connection to keep alive
 	connection, isTCP := conn.(*net.TCPConn)
@@ -174,6 +181,7 @@ func (n *Node) Listen() error {
 		return err
 	}
 
+	log.Printf("listening on %s", addr)
 	//wait until sentinel channel is closed to close listener
 	defer func() {
 		err := listener.Close()
@@ -231,7 +239,7 @@ func (n *Node) Closed() bool {
 // Close all peers connections and stop listening
 func (n *Node) Close() {
 	for _, peer := range n.router.Table() {
-		go func(p *Peer) {
+		go func(p Peer) {
 			if err := p.Close(); err != nil {
 				log.Fatal(ErrClosingConnection(err).Error())
 			}

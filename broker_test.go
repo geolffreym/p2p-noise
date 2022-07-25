@@ -1,7 +1,6 @@
 package noise
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -33,7 +32,7 @@ func TestRegister(t *testing.T) {
 	for _, e := range registered {
 		t.Run(e.name, func(t *testing.T) {
 			s, ok := event.topics[e.event] // Registered events
-			subscribed := s[0]             // first element in event subscribed
+			subscribed := s.s[0]           // first element in event subscribed
 
 			if !ok {
 				t.Errorf("expected event %#v, get registered", e)
@@ -66,7 +65,7 @@ func TestUnregisterExpectedLen(t *testing.T) {
 	subscriber := newSubscriber()
 	broker.Register(MessageReceived, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
-	lenListeningSubscribed := len(broker.topics[MessageReceived])
+	lenListeningSubscribed := len(broker.topics[MessageReceived].s)
 
 	// Only NewPeerDetected should be found.
 	if lenListeningSubscribed == 2 {
@@ -100,7 +99,7 @@ func TestTopicAdd(t *testing.T) {
 	n, okNewPeer := topic[NewPeerDetected]
 
 	notFoundKeys := !okMsg || !okNewPeer || !okPeerDisconnect
-	emptyKeys := len(m) == 0 || len(p) == 0 || len(n) == 0
+	emptyKeys := m.size == 0 || p.size == 0 || n.size == 0
 
 	if notFoundKeys || emptyKeys {
 		t.Error("expected topics keys contains added events: MessageReceived, PeerDisconnected, NewPeerDetected")
@@ -115,12 +114,40 @@ func TestTopicRemove(t *testing.T) {
 	topic.Add(PeerDisconnected, subscribed)
 	removed := topic.Remove(MessageReceived, subscribed)
 
-	emptyKey := len(topic[MessageReceived]) == 0
-	integrityCheck := len(topic[PeerDisconnected]) > 0
+	emptyKey := len(topic[MessageReceived].s) == 0
+	integrityCheck := len(topic[PeerDisconnected].s) > 0
 
 	// If subscribed not removed and topic with subscribers has entries
 	if !removed || !emptyKey || !integrityCheck {
 		t.Errorf("expected topics MessageReceived not found after remove")
+	}
+}
+
+func TestTopicAddData(t *testing.T) {
+	topic := make(topics)
+	subscribed := newSubscriber()
+
+	topic.Add(MessageReceived, subscribed)
+	topicLen := topic[MessageReceived].Len()
+	subscribers := topic[MessageReceived].Subscribers()
+
+	if topicLen == 0 || subscribers[0] != subscribed {
+		t.Error("expected existing topics MessageReceived with data len > 0")
+	}
+}
+
+func TestTopicDataRemove(t *testing.T) {
+	topic := make(topics)
+	subscribed := newSubscriber()
+
+	topic.Add(MessageReceived, subscribed)
+	topic.Remove(MessageReceived, subscribed)
+
+	topicLen := topic[MessageReceived].Len()
+	subscribers := topic[MessageReceived].Subscribers()
+
+	if topicLen > 0 && subscribers[0] != nil {
+		t.Errorf("expected topics MessageReceived not found in data after remove")
 	}
 }
 
@@ -143,12 +170,13 @@ func TestTopicRemoveInvalid(t *testing.T) {
 }
 
 func TestPublish(t *testing.T) {
-	var result SignalContext
+	var result SignalCtx
 	subscriber := newSubscriber()
 	broker := newBroker()
 
 	broker.Register(NewPeerDetected, subscriber)
-	message := newSignalContext(NewPeerDetected, []byte("Hello"), nil)
+	signal1 := signal{NewPeerDetected, []byte("Hello")}
+	message := SignalCtx{signal1, nil}
 
 	broker.Publish(message)
 
@@ -168,7 +196,8 @@ func TestPublish(t *testing.T) {
 
 	// New message for new topic event
 	broker.Register(NewPeerDetected, subscriber)
-	message = newSignalContext(NewPeerDetected, []byte(""), nil)
+	signal2 := signal{NewPeerDetected, []byte("")}
+	message = SignalCtx{signal2, nil}
 
 	// Number of subscribers notified
 	notified := broker.Publish(message)
@@ -183,7 +212,9 @@ func TestPublish(t *testing.T) {
 
 func TestInvalidPublish(t *testing.T) {
 	broker := newBroker()
-	message := newSignalContext(NewPeerDetected, []byte("Hello"), nil)
+	signal := signal{NewPeerDetected, []byte("Hello")}
+	message := SignalCtx{signal, nil}
+
 	// Number of subscribers notified
 	notified := broker.Publish(message)
 	// Get next message from channel
@@ -192,37 +223,4 @@ func TestInvalidPublish(t *testing.T) {
 		t.Error("expected notified to 0 subscribers if not topic registered")
 	}
 
-}
-
-func TestIndexOf(t *testing.T) {
-	slice := []*subscriber{
-		newSubscriber(),
-		newSubscriber(),
-		newSubscriber(),
-		newSubscriber(),
-		newSubscriber(),
-		newSubscriber(),
-		newSubscriber(),
-	}
-
-	// Table driven test
-	// For each expected event
-	for _, e := range slice {
-		t.Run(fmt.Sprintf("Match for %x", e), func(t *testing.T) {
-			match := IndexOf(slice, e)
-			if ^match == 0 {
-				t.Errorf("expected matched existing elements in slice index: %#v", e)
-			}
-		})
-
-	}
-}
-
-func TestInvalidIndexOf(t *testing.T) {
-	slice := []int{1, 2, 3, 4, 6, 7, 8, 9}
-	match := IndexOf(slice, 5)
-
-	if ^match != 0 {
-		t.Error("Number 5 is not in slice cannot be found")
-	}
 }

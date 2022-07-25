@@ -6,23 +6,23 @@ import (
 
 // Subscriber work as message synchronization.
 type subscriber struct {
-	notification chan SignalContext // Message exchange channel
+	notification chan SignalCtx // Message exchange channel
 }
 
 func newSubscriber() *subscriber {
 	return &subscriber{
-		make(chan SignalContext),
+		make(chan SignalCtx),
 	}
 }
 
 // Emit synchronized message using not-buffered channel.
-func (s *subscriber) Emit(msg SignalContext) {
+func (s *subscriber) Emit(msg SignalCtx) {
 	s.notification <- msg
 }
 
 // Listen and wait for message synchronization from channel.
 // When a new message is added to channel buffer the message is proxied to input channel.
-func (s *subscriber) Listen(ctx context.Context, ch chan<- SignalContext) {
+func (s *subscriber) Listen(ctx context.Context, ch chan<- SignalCtx) {
 	// Wait until message synchronization finish to close channel
 	defer close(s.notification)
 
