@@ -103,7 +103,7 @@ func TestTopicAdd(t *testing.T) {
 	emptyKeys := len(m) == 0 || len(p) == 0 || len(n) == 0
 
 	if notFoundKeys || emptyKeys {
-		t.Errorf("expected topics keys contains added events: MessageReceived, PeerDisconnected, NewPeerDetected")
+		t.Error("expected topics keys contains added events: MessageReceived, PeerDisconnected, NewPeerDetected")
 	}
 }
 
@@ -138,7 +138,7 @@ func TestTopicRemoveInvalid(t *testing.T) {
 
 	// If subscribed not removed and topic with subscribers has entries
 	if removed {
-		t.Errorf("expected topics NewPeerDetected not found if not registered")
+		t.Error("expected topics NewPeerDetected not found if not registered")
 	}
 }
 
@@ -158,11 +158,11 @@ func TestPublish(t *testing.T) {
 	select {
 	case result = <-subscriber.notification:
 		if string(result.Payload()) != string(message.Payload()) {
-			t.Errorf("expected message equal result")
+			t.Error("expected message equal result")
 		}
 	case <-time.After(1 * time.Second):
 		// Wait 1 second to receive message
-		t.Errorf("expected message received after publish")
+		t.Error("expected message received after publish")
 		t.FailNow() // If fail receiving messages next test will fail too
 	}
 
@@ -170,12 +170,26 @@ func TestPublish(t *testing.T) {
 	broker.Register(NewPeerDetected, subscriber)
 	message = newSignalContext(NewPeerDetected, []byte(""), nil)
 
-	broker.Publish(message)
+	// Number of subscribers notified
+	notified := broker.Publish(message)
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.notification
-	if result.Type() != NewPeerDetected {
+	if result.Type() != NewPeerDetected || notified == 0 {
 		t.Errorf("expected message type equal to %#v", NewPeerDetected)
+	}
+
+}
+
+func TestInvalidPublish(t *testing.T) {
+	broker := newBroker()
+	message := newSignalContext(NewPeerDetected, []byte("Hello"), nil)
+	// Number of subscribers notified
+	notified := broker.Publish(message)
+	// Get next message from channel
+	// Expected Emit called to set message
+	if notified > 0 {
+		t.Error("expected notified to 0 subscribers if not topic registered")
 	}
 
 }

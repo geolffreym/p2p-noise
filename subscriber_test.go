@@ -38,7 +38,7 @@ func TestListen(t *testing.T) {
 		return
 	case <-time.After(3 * time.Second):
 		// Wait 1 second to receive message
-		t.Errorf("expected canceled listening after emit")
+		t.Error("expected canceled listening after emit")
 		t.FailNow()
 	}
 
