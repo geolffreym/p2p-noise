@@ -56,7 +56,7 @@ func (n *Node) Addr() Socket {
 	return Socket(n.config.SelfListeningAddress())
 }
 
-// SendMessage emit a new message to socket.
+// SendMessage emit a new message to peer socket.
 // If socket doesn't exists or peer is not connected return error.
 // Calling SendMessage extends write deadline.
 func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {

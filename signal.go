@@ -29,7 +29,7 @@ func (s *SignalCtx) Type() Event {
 	return s.signal.Type()
 }
 
-// Reply send an answer to contextual peer.
+// Reply send an answer to peer in context.
 func (s *SignalCtx) Reply(msg []byte) (int, error) {
 	return s.peer.Send(msg)
 }
