@@ -12,6 +12,9 @@ const (
 	PeerDisconnected
 )
 
+// PeerCtx represents Peer in signal context.
+// Each Signal keep a context with the peer involved in triggered event.
+// eg. Signal{NewPeerDetected, PeerCtx}
 type PeerCtx interface {
 	Send(msg []byte) (int, error)
 	Socket() Socket
