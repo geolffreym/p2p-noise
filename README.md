@@ -37,24 +37,24 @@ import (
 
 func main() {
 
-	// Create configurations from params and write in configurations reference
-	configurations := config.New()
-	configurations.Write(
+	// Create configuration from params and write in configuration reference
+	configuration := config.New()
+	configuration.Write(
 		config.SetMaxPeersConnected(10),
 		config.SetPeerDeadline(1800),
 	)
 
 	// Node factory
-	node := noise.New(configurations)
+	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var events <-chan noise.Message = node.Events(ctx)
+	var signals <-chan noise.SignalContext = node.Signals(ctx)
 
 	go func() {
-		for msg := range events {
+		for signal := range signals {
 			// Here could be handled events
-			if msg.Type() == noise.SelfListening {
-				log.Printf("Listening on: %s \n", msg.Payload())
+			if signal.Type() == noise.NewPeerDetected {
+				// TODO handle here handshake logic
 				cancel() // stop listening for events
 			}
 		}
@@ -65,8 +65,7 @@ func main() {
 	// node.Close()
 
 	// ... more code here
-	node.Listen("127.0.0.1:4008")
-
+	node.Listen()
 }
 ```
 

@@ -12,14 +12,18 @@ func (m signal) Type() Event { return m.event }
 // Payload return custom data published.
 func (m signal) Payload() []byte { return m.payload }
 
+type PeerContext interface {
+	Send(msg []byte) (int, error)
+}
+
 // SignalContext keep message exchange context between network events.
 // Each SignalContext keep a state holding original Signal and related Peer.
 type SignalContext struct {
 	signal signal
-	peer   *Peer
+	peer   PeerContext
 }
 
-func newSignalContext(event Event, payload []byte, peer *Peer) SignalContext {
+func newSignalContext(event Event, payload []byte, peer PeerContext) SignalContext {
 	return SignalContext{
 		signal{event, payload},
 		peer,
@@ -37,6 +41,6 @@ func (s *SignalContext) Type() Event {
 }
 
 // Reply send an answer to contextual peer.
-func (s *SignalContext) Reply(msg []byte) {
-	s.peer.Send(msg)
+func (s *SignalContext) Reply(msg []byte) (int, error) {
+	return s.peer.Send(msg)
 }

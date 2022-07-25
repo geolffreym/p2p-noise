@@ -174,6 +174,7 @@ func (n *Node) Listen() error {
 		return err
 	}
 
+	log.Printf("listening on %s", addr)
 	//wait until sentinel channel is closed to close listener
 	defer func() {
 		err := listener.Close()
