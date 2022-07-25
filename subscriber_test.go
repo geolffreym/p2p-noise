@@ -35,7 +35,7 @@ func TestListen(t *testing.T) {
 	// First to finish wins
 	select {
 	case <-canceled:
-		t.Log("canceled channel")
+		return
 	case <-time.After(3 * time.Second):
 		// Wait 1 second to receive message
 		t.Errorf("expected canceled listening after emit")

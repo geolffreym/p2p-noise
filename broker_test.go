@@ -130,12 +130,14 @@ func TestTopicRemoveInvalid(t *testing.T) {
 
 	topic.Add(MessageReceived, subscribed)
 	topic.Add(PeerDisconnected, subscribed)
+	topic.Add(NewPeerDetected, subscribed)
+	// Remove by first time the topic
+	topic.Remove(NewPeerDetected, subscribed)
+	// trying to remove an already removed subscriber
 	removed := topic.Remove(NewPeerDetected, subscribed)
 
-	_, existsNewPeer := topic[NewPeerDetected]
-
 	// If subscribed not removed and topic with subscribers has entries
-	if removed || existsNewPeer {
+	if removed {
 		t.Errorf("expected topics NewPeerDetected not found if not registered")
 	}
 }
