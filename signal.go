@@ -17,7 +17,6 @@ func (m signal) Payload() []byte { return m.payload }
 type SignalContext struct {
 	signal signal
 	peer   *Peer
-	// TODO add nonce here!!
 }
 
 func newSignalContext(event Event, payload []byte, peer *Peer) SignalContext {

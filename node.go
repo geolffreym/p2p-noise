@@ -25,13 +25,10 @@ type Config interface {
 type Node struct {
 	// Channel flag waiting for signal to close connection.
 	sentinel chan bool
-
 	// Routing hash table eg. {Socket: Conn interface}.
 	router *router
-
 	// Pubsub notifications.
 	events *events
-
 	// Configuration settings
 	config Config
 }
@@ -46,9 +43,9 @@ func New(config Config) *Node {
 	}
 }
 
-// Events proxy channels to subscriber.
+// Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Events(ctx context.Context) <-chan SignalContext {
+func (n *Node) Signals(ctx context.Context) <-chan SignalContext {
 	ch := make(chan SignalContext)
 	go n.events.Subscriber().Listen(ctx, ch)
 	return ch // read only channel for raw messages

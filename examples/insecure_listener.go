@@ -26,13 +26,13 @@ func main() {
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var events <-chan noise.SignalContext = node.Events(ctx)
+	var signals <-chan noise.SignalContext = node.Signals(ctx)
 
 	go func() {
-		for msg := range events {
+		for signal := range signals {
 			// Here could be handled events
-			if msg.Type() == noise.NewPeerDetected {
-				log.Printf("New Peer connected: %s \n", msg.Payload())
+			if signal.Type() == noise.NewPeerDetected {
+				log.Printf("New Peer connected: %s \n", signal.Payload())
 				cancel() // stop listening for events
 			}
 		}

@@ -25,10 +25,10 @@ func handshake() {
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var events <-chan noise.SignalContext = node.Events(ctx)
+	var signals <-chan noise.SignalContext = node.Signals(ctx)
 
 	go func() {
-		for signal := range events {
+		for signal := range signals {
 			// Here could be handled events
 			if signal.Type() == noise.NewPeerDetected {
 				// TODO handle here handshake logic
