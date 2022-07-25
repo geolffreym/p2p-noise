@@ -8,10 +8,11 @@ import (
 
 func TestListen(t *testing.T) {
 	sub := newSubscriber()
-	message := newSignalContext(NewPeerDetected, nil, nil)
+	signal := signal{NewPeerDetected, nil}
+	message := SignalCtx{signal, nil}
 
 	canceled := make(chan struct{})
-	msg := make(chan SignalContext)
+	msg := make(chan SignalCtx)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {

@@ -17,15 +17,15 @@ func (s Socket) String() string {
 }
 
 // Table `keep` a socket:connection mapping.
-type Table map[Socket]*Peer
+type Table map[Socket]Peer
 
 // Add new peer to table.
-func (t Table) Add(peer *Peer) {
+func (t Table) Add(peer Peer) {
 	t[peer.Socket()] = peer
 }
 
 // Remove peer from table.
-func (t Table) Remove(peer *Peer) {
+func (t Table) Remove(peer Peer) {
 	delete(t, peer.Socket())
 }
 
@@ -47,7 +47,7 @@ func newRouter() *router {
 func (r *router) Table() Table { return r.table }
 
 // Return connection interface based on socket.
-func (r *router) Query(socket Socket) *Peer {
+func (r *router) Query(socket Socket) Peer {
 	// Mutex for reading topics.
 	// Do not write while topics are read.
 	// Write Lock can’t be acquired until all Read Locks are released.
@@ -63,7 +63,7 @@ func (r *router) Query(socket Socket) *Peer {
 }
 
 // Add create new socket connection association.
-func (r *router) Add(peer *Peer) {
+func (r *router) Add(peer Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
@@ -81,7 +81,7 @@ func (r *router) Len() uint8 {
 
 // Remove removes a connection from router.
 // It return recently removed peer.
-func (r *router) Remove(peer *Peer) {
+func (r *router) Remove(peer Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock

@@ -13,6 +13,10 @@ func (m *MockPeer) Send(msg []byte) (int, error) {
 	return len(msg), nil
 }
 
+func (m *MockPeer) Socket() Socket {
+	return Socket("192.168.1.1")
+}
+
 func TestType(t *testing.T) {
 	event := NewPeerDetected
 	payload := []byte(PAYLOAD)
@@ -45,11 +49,12 @@ func TestReply(t *testing.T) {
 	msg := []byte("hello")
 	peer := &MockPeer{}
 
-	context := newSignalContext(NewPeerDetected, payload, peer)
+	signal := signal{NewPeerDetected, payload}
+	context := SignalCtx{signal, peer}
 	sent, _ := context.Reply(msg)
 
 	if sent != len(msg) {
-		t.Error("Expected Reply same as Sent by peer")
+		t.Error("Expected Reply message sent to `Sent` by peer")
 	}
 
 }

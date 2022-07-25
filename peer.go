@@ -7,26 +7,26 @@ import (
 	"net"
 )
 
-// Peer struct has a simplistic interface to describe a peer in the network.
-// Each Peer has a socket address to identify itself and a connection interface to communicate with it.
-type Peer struct {
+// peer struct has a simplistic interface to describe a peer in the network.
+// Each peer has a socket address to identify itself and a connection interface to communicate with it.
+type peer struct {
 	net.Conn        // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 	socket   Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
 }
 
-func newPeer(socket Socket, conn net.Conn) *Peer {
+func newPeer(socket Socket, conn net.Conn) *peer {
 	// Go does not provide the typical, type-driven notion of sub-classing,
 	// but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
-	return &Peer{
+	return &peer{
 		conn,
 		socket,
 	}
 }
 
 // Return peer socket.
-func (p *Peer) Socket() Socket { return p.socket }
+func (p *peer) Socket() Socket { return p.socket }
 
-func (p *Peer) Send(msg []byte) (int, error) {
+func (p *peer) Send(msg []byte) (int, error) {
 	// write 4 bytes header size to share message size for dynamic buffer allocation
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
@@ -38,7 +38,7 @@ func (p *Peer) Send(msg []byte) (int, error) {
 	return bytesSent + 4, err
 }
 
-func (p *Peer) Listen(maxPayloadSize uint32) ([]byte, error) {
+func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 
 	var size uint32 // read bytes size from header
 	err := binary.Read(p, binary.BigEndian, &size)

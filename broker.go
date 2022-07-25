@@ -4,48 +4,46 @@ import (
 	"sync"
 )
 
-// IndexOf find index for element in slice.
-// It return index if found else -1.
-func IndexOf[T comparable](collection []T, el T) int {
-	for i, v := range collection {
-		if v == el {
-			return i
-		}
-	}
-
-	return -1
+type data struct {
+	s    []Subscriber
+	sMap map[Subscriber]int
+	size uint16
 }
 
 // topics `keep` registered events
-type topics map[Event][]*subscriber
+type topics map[Event]*data
 
 // Add append a new subscriber to event
 // If topic event doesn't exist then is created.
-func (t topics) Add(e Event, s *subscriber) {
+func (t topics) Add(e Event, s Subscriber) {
 	// If not topic registered
 	if _, ok := t[e]; !ok {
-		t[e] = []*subscriber{}
+		t[e] = new(data)
+		t[e].size = 0
+		t[e].s = []Subscriber{}
+		t[e].sMap = make(map[Subscriber]int)
 	}
 
-	t[e] = append(t[e], s)
+	t[e].s = append(t[e].s, s)
+	t[e].sMap[s] = len(t[e].s) - 1
+	t[e].size++
 }
 
 // Remove subscriber from topics
 // It return true for removed subscriber from event else false.
-func (t topics) Remove(e Event, s *subscriber) bool {
+func (t topics) Remove(e Event, s Subscriber) bool {
 	// If not topic registered
 	if _, ok := t[e]; ok {
-		i := IndexOf(t[e], s)
-		// if not match index for input subscriber
-		if ^i == 0 {
-			return false
-		}
+		i := t[e].sMap[s]
 
-		t[e] = append(t[e][:i], t[e][i+1:]...)
+		// Clear topic from slice and map
+		t[e].s = append(t[e].s[:i], t[e].s[i+1:]...)
+		delete(t[e].sMap, s)
+		t[e].size--
 		return true
 	}
-	return false
 
+	return false
 }
 
 // broker hash map event subscribers
@@ -60,7 +58,7 @@ func newBroker() *broker {
 
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
-func (b *broker) Register(e Event, s *subscriber) {
+func (b *broker) Register(e Event, s Subscriber) {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
@@ -70,7 +68,7 @@ func (b *broker) Register(e Event, s *subscriber) {
 
 // Unregister remove associated subscriber from topics;
 // It return true for success else false.
-func (b *broker) Unregister(e Event, s *subscriber) bool {
+func (b *broker) Unregister(e Event, s Subscriber) bool {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
@@ -80,19 +78,19 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
-func (b *broker) Publish(msg SignalContext) uint8 {
+func (b *broker) Publish(msg SignalCtx) uint8 {
 	// Lock while reading operation
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
 	if _, ok := b.topics[msg.Type()]; ok {
-		for _, sub := range b.topics[msg.Type()] {
-			go func(s *subscriber) {
+		for _, sub := range b.topics[msg.Type()].s {
+			go func(s Subscriber) {
 				s.Emit(msg)
 			}(sub)
 		}
 		// Number of subscribers notified
-		return uint8(len(b.topics[msg.Type()]))
+		return uint8(len(b.topics[msg.Type()].s))
 	}
 
 	return 0
