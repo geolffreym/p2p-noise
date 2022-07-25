@@ -12,10 +12,6 @@ const (
 	PeerDisconnected
 )
 
-type Subscriber interface {
-	Emit(msg SignalCtx)
-}
-
 type PeerCtx interface {
 	Send(msg []byte) (int, error)
 	Socket() Socket
