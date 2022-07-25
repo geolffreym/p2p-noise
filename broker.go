@@ -35,7 +35,7 @@ func (t topics) Add(e Event, s Subscriber) {
 // Remove subscriber from topics
 // It return true for removed subscriber from event else false.
 func (t topics) Remove(e Event, s Subscriber) bool {
-	// If not topic registered
+	// If topic registered
 	if _, ok := t[e]; ok {
 		if i, ok := t[e].sMap[s]; ok {
 			// Clear topic from slice and map
