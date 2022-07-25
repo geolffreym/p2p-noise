@@ -123,6 +123,34 @@ func TestTopicRemove(t *testing.T) {
 	}
 }
 
+func TestTopicAddData(t *testing.T) {
+	topic := make(topics)
+	subscribed := newSubscriber()
+
+	topic.Add(MessageReceived, subscribed)
+	topicLen := topic[MessageReceived].Len()
+	subscribers := topic[MessageReceived].Subscribers()
+
+	if topicLen == 0 || subscribers[0] != subscribed {
+		t.Error("expected existing topics MessageReceived with data len > 0")
+	}
+}
+
+func TestTopicDataRemove(t *testing.T) {
+	topic := make(topics)
+	subscribed := newSubscriber()
+
+	topic.Add(MessageReceived, subscribed)
+	topic.Remove(MessageReceived, subscribed)
+
+	topicLen := topic[MessageReceived].Len()
+	subscribers := topic[MessageReceived].Subscribers()
+
+	if topicLen > 0 && subscribers[0] != nil {
+		t.Errorf("expected topics MessageReceived not found in data after remove")
+	}
+}
+
 func TestTopicRemoveInvalid(t *testing.T) {
 	topic := make(topics)
 	subscribed := newSubscriber()
