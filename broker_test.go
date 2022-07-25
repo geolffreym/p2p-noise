@@ -95,12 +95,32 @@ func TestTopicAdd(t *testing.T) {
 	topic.Add(PeerDisconnected, subscribed)
 	topic.Add(NewPeerDetected, subscribed)
 
-	_, okMsg := topic[MessageReceived]
-	_, okPeerDisconnect := topic[PeerDisconnected]
-	_, okNewPeer := topic[NewPeerDetected]
+	m, okMsg := topic[MessageReceived]
+	p, okPeerDisconnect := topic[PeerDisconnected]
+	n, okNewPeer := topic[NewPeerDetected]
 
-	if !okMsg || !okNewPeer || !okPeerDisconnect {
-		t.Errorf("expected topics keys contains added events")
+	notFoundKeys := !okMsg || !okNewPeer || !okPeerDisconnect
+	emptyKeys := len(m) == 0 || len(p) == 0 || len(n) == 0
+
+	if notFoundKeys || emptyKeys {
+		t.Errorf("expected topics keys contains added events: MessageReceived, PeerDisconnected, NewPeerDetected")
+	}
+}
+
+func TestTopicRemove(t *testing.T) {
+	topic := make(topics)
+	subscribed := newSubscriber()
+
+	topic.Add(MessageReceived, subscribed)
+	topic.Add(PeerDisconnected, subscribed)
+	removed := topic.Remove(MessageReceived, subscribed)
+
+	emptyKey := len(topic[MessageReceived]) == 0
+	integrityCheck := len(topic[PeerDisconnected]) > 0
+
+	// If subscribed not removed and topic with subscribers has entries
+	if !removed || !emptyKey || !integrityCheck {
+		t.Errorf("expected topics MessageReceived not found after remove")
 	}
 }
 
@@ -143,7 +163,16 @@ func TestPublish(t *testing.T) {
 }
 
 func TestIndexOf(t *testing.T) {
-	slice := []int{1, 2, 3, 4, 6, 7, 8, 9}
+	slice := []*subscriber{
+		newSubscriber(),
+		newSubscriber(),
+		newSubscriber(),
+		newSubscriber(),
+		newSubscriber(),
+		newSubscriber(),
+		newSubscriber(),
+	}
+
 	// Table driven test
 	// For each expected event
 	for _, e := range slice {
