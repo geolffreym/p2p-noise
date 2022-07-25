@@ -14,7 +14,7 @@ func (m *MockPeer) Send(msg []byte) (int, error) {
 }
 
 func (m *MockPeer) Socket() Socket {
-	return Socket("192.168.1.1")
+	return Socket(LOCAL_ADDRESS)
 }
 
 func TestType(t *testing.T) {
