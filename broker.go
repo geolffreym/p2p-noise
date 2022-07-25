@@ -7,8 +7,11 @@ import (
 type data struct {
 	s    []Subscriber
 	sMap map[Subscriber]int
-	size uint16
+	size uint8
 }
+
+func (s *data) Len() uint8                { return s.size }
+func (s *data) Subscribers() []Subscriber { return s.s }
 
 // topics `keep` registered events
 type topics map[Event]*data
@@ -34,13 +37,13 @@ func (t topics) Add(e Event, s Subscriber) {
 func (t topics) Remove(e Event, s Subscriber) bool {
 	// If not topic registered
 	if _, ok := t[e]; ok {
-		i := t[e].sMap[s]
-
-		// Clear topic from slice and map
-		t[e].s = append(t[e].s[:i], t[e].s[i+1:]...)
-		delete(t[e].sMap, s)
-		t[e].size--
-		return true
+		if i, ok := t[e].sMap[s]; ok {
+			// Clear topic from slice and map
+			t[e].s = append(t[e].s[:i], t[e].s[i+1:]...)
+			delete(t[e].sMap, s)
+			t[e].size--
+			return true
+		}
 	}
 
 	return false
@@ -84,13 +87,17 @@ func (b *broker) Publish(msg SignalCtx) uint8 {
 	defer b.Mutex.Unlock()
 
 	if _, ok := b.topics[msg.Type()]; ok {
-		for _, sub := range b.topics[msg.Type()].s {
+		topicData := b.topics[msg.Type()]
+		topicLen := b.topics[msg.Type()].Len()
+		subscribers := topicData.Subscribers()
+
+		for _, sub := range subscribers {
 			go func(s Subscriber) {
 				s.Emit(msg)
 			}(sub)
 		}
 		// Number of subscribers notified
-		return uint8(len(b.topics[msg.Type()].s))
+		return topicLen
 	}
 
 	return 0
