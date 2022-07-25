@@ -16,6 +16,7 @@ func futureDeadLine(deadline time.Duration) time.Time {
 }
 
 type Config interface {
+	SelfListeningAddress() string
 	MaxPeersConnected() uint8
 	MaxPayloadSize() uint32
 	PeerDeadline() time.Duration
@@ -24,13 +25,10 @@ type Config interface {
 type Node struct {
 	// Channel flag waiting for signal to close connection.
 	sentinel chan bool
-
 	// Routing hash table eg. {Socket: Conn interface}.
 	router *router
-
 	// Pubsub notifications.
 	events *events
-
 	// Configuration settings
 	config Config
 }
@@ -45,12 +43,17 @@ func New(config Config) *Node {
 	}
 }
 
-// Events proxy channels to subscriber.
+// Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Events(ctx context.Context) <-chan Message {
-	ch := make(chan Message)
+func (n *Node) Signals(ctx context.Context) <-chan SignalContext {
+	ch := make(chan SignalContext)
 	go n.events.Subscriber().Listen(ctx, ch)
 	return ch // read only channel for raw messages
+}
+
+// Addr return current self listening node address.
+func (n *Node) Addr() Socket {
+	return Socket(n.config.SelfListeningAddress())
 }
 
 // EmitMessage emit a new message to socket.
@@ -59,7 +62,7 @@ func (n *Node) Events(ctx context.Context) <-chan Message {
 func (n *Node) EmitMessage(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
-		return 0, ErrSendingMessageToInvalidPeer(socket)
+		return 0, ErrSendingMessageToInvalidPeer(socket.String())
 	}
 
 	bytes, err := peer.Send(message)
@@ -97,7 +100,7 @@ KEEPALIVE:
 		if err != nil && !overflow {
 			// net: don't return io.EOF from zero byte reads
 			// Notify about the remote peer state
-			n.events.PeerDisconnected([]byte(peer.Socket()))
+			n.events.PeerDisconnected(peer)
 			// Remove peer from router table
 			n.router.Remove(peer)
 			return
@@ -110,8 +113,7 @@ KEEPALIVE:
 		}
 
 		// Emit new incoming message notification
-		n.events.NewMessage(buf)
-
+		n.events.NewMessage(peer, buf)
 		// An idle timeout can be implemented by repeatedly extending
 		// the deadline after successful Read or Write calls.
 		// SetReadDeadline sets the deadline for future Read calls
@@ -164,15 +166,14 @@ func (n *Node) routing(conn net.Conn) (*Peer, error) {
 
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
-func (n *Node) Listen(addr Socket) error {
+func (n *Node) Listen() error {
 
+	addr := n.config.SelfListeningAddress()
 	listener, err := net.Listen(PROTOCOL, addr)
 	if err != nil {
 		return err
 	}
 
-	// Dispatch event on start listening
-	n.events.Listening([]byte(addr))
 	//wait until sentinel channel is closed to close listener
 	defer func() {
 		err := listener.Close()
@@ -205,8 +206,7 @@ func (n *Node) Listen(addr Socket) error {
 
 		go n.watch(peer) // Wait for incoming messages
 		// Dispatch event for new peer connected
-		payload := []byte(peer.Socket())
-		n.events.PeerConnected(payload)
+		n.events.PeerConnected(peer)
 	}
 
 }
@@ -238,8 +238,6 @@ func (n *Node) Close() {
 		}(peer)
 	}
 
-	// Dispatch event on node get closed
-	n.events.ClosedConnection()
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
 	close(n.sentinel)
@@ -247,7 +245,9 @@ func (n *Node) Close() {
 
 // Dial attempt to connect to remote node and add connected peer to routing table.
 // Return error if error occurred while dialing node.
-func (n *Node) Dial(addr Socket) error {
+func (n *Node) Dial(socket Socket) error {
+
+	addr := socket.String()
 	conn, err := net.Dial(PROTOCOL, addr)
 	if err != nil {
 		return ErrDialingNode(err, addr)
@@ -262,6 +262,6 @@ func (n *Node) Dial(addr Socket) error {
 
 	go n.watch(peer) // Wait for incoming messages
 	// Dispatch event for new peer connected
-	n.events.PeerConnected([]byte(peer.Socket()))
+	n.events.PeerConnected(peer)
 	return nil
 }

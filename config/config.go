@@ -6,9 +6,10 @@ import "time"
 
 // Functional options
 type Config struct {
-	maxPayloadSize    uint32
-	maxPeersConnected uint8
-	peerDeadline      time.Duration
+	selfListeningAddress string
+	maxPayloadSize       uint32
+	maxPeersConnected    uint8
+	peerDeadline         time.Duration
 }
 
 type Setter func(*Config)
@@ -16,6 +17,8 @@ type Setter func(*Config)
 // Return default settings
 func New() *Config {
 	return &Config{
+		// Self listening address
+		selfListeningAddress: "127.0.0.1:8010",
 		// Max payload size received from peers
 		maxPayloadSize: 10 << 20, // 10MB
 		// Max peer consecutively connected.
@@ -36,6 +39,11 @@ func (s *Config) Write(c ...Setter) {
 	}
 }
 
+// SelfListeningAddress returns the local node address.
+func (s *Config) SelfListeningAddress() string {
+	return s.selfListeningAddress
+}
+
 // MaxPeersConnected returns the max number of connections.
 func (s *Config) MaxPeersConnected() uint8 {
 	return s.maxPeersConnected
@@ -49,6 +57,13 @@ func (s *Config) MaxPayloadSize() uint32 {
 // PeerDeadline returns the max time waiting for I/O or peer interaction
 func (s *Config) PeerDeadline() time.Duration {
 	return s.peerDeadline
+}
+
+// SetSelfListeningAddress sets the listening address for local node.
+func SetSelfListeningAddress(address string) Setter {
+	return func(conf *Config) {
+		conf.selfListeningAddress = address
+	}
 }
 
 // SetMaxPeersConnected sets the maximum number of connections allowed for routing.

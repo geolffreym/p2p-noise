@@ -4,14 +4,10 @@ package noise
 type Event int
 
 const (
-	// Event for loopback on start listening event
-	SelfListening Event = iota
 	// Event to notify when a new peer connects
-	NewPeerDetected
+	NewPeerDetected Event = iota
 	// On new message received event
 	MessageReceived
-	// On closed network
-	ClosedConnection
 	// Closed peer event
 	PeerDisconnected
 )
@@ -25,10 +21,8 @@ func newEvents() *events {
 	subscriber := newSubscriber()
 	broker := newBroker()
 	// register default events
-	broker.Register(SelfListening, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
 	broker.Register(MessageReceived, subscriber)
-	broker.Register(ClosedConnection, subscriber)
 	broker.Register(PeerDisconnected, subscriber)
 
 	return &events{
@@ -43,46 +37,24 @@ func (e *events) Subscriber() *subscriber {
 }
 
 // PeerConnected dispatch event new peer detected.
-func (e *events) PeerConnected(addr []byte) {
+func (e *events) PeerConnected(peer *Peer) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		NewPeerDetected,
-		addr,
-	})
+	addr := peer.Socket().Bytes()
+	context := newSignalContext(NewPeerDetected, addr, peer)
+	e.broker.Publish(context)
 }
 
 // PeerDisconnected dispatch event peer disconnected.
-func (e *events) PeerDisconnected(addr []byte) {
+func (e *events) PeerDisconnected(peer *Peer) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		PeerDisconnected,
-		addr,
-	})
-}
-
-// Listening dispatch event self listening.
-func (e *events) Listening(addr []byte) {
-	// Emit new notification
-	e.broker.Publish(Message{
-		SelfListening,
-		addr,
-	})
+	addr := peer.Socket().Bytes()
+	context := newSignalContext(PeerDisconnected, addr, peer)
+	e.broker.Publish(context)
 }
 
 // NewMessage dispatch event new message.
-func (e *events) NewMessage(msg []byte) {
+func (e *events) NewMessage(peer *Peer, msg []byte) {
 	// Emit new notification
-	e.broker.Publish(Message{
-		MessageReceived,
-		msg,
-	})
-}
-
-// ClosedConnection dispatch event closed connection.
-func (e *events) ClosedConnection() {
-	// Emit new notification
-	e.broker.Publish(Message{
-		ClosedConnection,
-		[]byte(""),
-	})
+	context := newSignalContext(MessageReceived, msg, peer)
+	e.broker.Publish(context)
 }
