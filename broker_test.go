@@ -124,6 +124,22 @@ func TestTopicRemove(t *testing.T) {
 	}
 }
 
+func TestTopicRemoveInvalid(t *testing.T) {
+	topic := make(topics)
+	subscribed := newSubscriber()
+
+	topic.Add(MessageReceived, subscribed)
+	topic.Add(PeerDisconnected, subscribed)
+	removed := topic.Remove(NewPeerDetected, subscribed)
+
+	_, existsNewPeer := topic[NewPeerDetected]
+
+	// If subscribed not removed and topic with subscribers has entries
+	if removed || existsNewPeer {
+		t.Errorf("expected topics NewPeerDetected not found if not registered")
+	}
+}
+
 func TestPublish(t *testing.T) {
 	var result SignalContext
 	subscriber := newSubscriber()

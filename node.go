@@ -56,10 +56,10 @@ func (n *Node) Addr() Socket {
 	return Socket(n.config.SelfListeningAddress())
 }
 
-// EmitMessage emit a new message to socket.
+// SendMessage emit a new message to socket.
 // If socket doesn't exists or peer is not connected return error.
-// Calling EmitMessage extends write deadline.
-func (n *Node) EmitMessage(socket Socket, message []byte) (int, error) {
+// Calling SendMessage extends write deadline.
+func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
 		return 0, ErrSendingMessageToInvalidPeer(socket.String())
