@@ -99,3 +99,5 @@ Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise) for more 
 
 * [Examples](https://github.com/geolffreym/p2p-noise) directory contains advanced examples of usage.
 * For help or bugs please [create an issue](https://github.com/geolffreym/p2p-noise/issues).
+
+*Special Thanks to @aphelionz.*
