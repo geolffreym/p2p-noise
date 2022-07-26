@@ -24,8 +24,11 @@ func newPeer(socket Socket, conn net.Conn) *peer {
 }
 
 // Return peer socket.
+// eg. "127.0.0.1:2000"
 func (p *peer) Socket() Socket { return p.socket }
 
+// Send emit a message to peer.
+// Message keep message size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {
 	// write 4 bytes header size to share message size for dynamic buffer allocation
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
@@ -38,6 +41,8 @@ func (p *peer) Send(msg []byte) (int, error) {
 	return bytesSent + 4, err
 }
 
+// Listen wait for incoming messages from peer.
+// Each message keep a header with message size to allocate buffer dynamically.
 func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 
 	var size uint32 // read bytes size from header
