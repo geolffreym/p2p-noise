@@ -49,44 +49,25 @@ func main() {
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.SignalCtx = node.Signals(ctx)
+	var signals <-chan noise.SignalContext = node.Signals(ctx)
 
 	go func() {
 		for signal := range signals {
 			// Here could be handled events
-			switch signal.Type() {
-			// When a new peer is connected. Start ping pong game.
-			case noise.NewPeerDetected:
-				log.Printf("New Peer connected: %s \n", signal.Payload())
-				signal.Reply([]byte("ping")) // start game
-			// When we receive a message, check the content message and reply "ping" or "pong"
-			case noise.MessageReceived:
-				message := string(signal.Payload())
-				if message == "ping" {
-					signal.Reply([]byte("pong"))
-				} else {
-					signal.Reply([]byte("ping"))
-				}
-			// What we do when a peer get disconnected?
-			case noise.PeerDisconnected:
-				log.Printf("Peer disconnected")
+			if signal.Type() == noise.NewPeerDetected {
+				// TODO handle here handshake logic
 				cancel() // stop listening for events
 			}
 		}
 	}()
 
 	// ... some code here
-	err := node.Dial("192.168.1.17:8010")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// node.Dial("192.168.1.1:4008")
 	// node.Close()
 
 	// ... more code here
 	node.Listen()
-
 }
-
 ```
 
 ## Development
