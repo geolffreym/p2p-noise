@@ -4,24 +4,24 @@ import (
 	"sync"
 )
 
-type data struct {
+type topic struct {
 	s    []*subscriber
 	sMap map[*subscriber]int
 	size uint8
 }
 
-func (s *data) Len() uint8                 { return s.size }
-func (s *data) Subscribers() []*subscriber { return s.s }
+func (s *topic) Len() uint8                 { return s.size }
+func (s *topic) Subscribers() []*subscriber { return s.s }
 
 // topics `keep` registered events
-type topics map[Event]*data
+type topics map[Event]*topic
 
 // Add append a new subscriber to event
 // If topic event doesn't exist then is created.
 func (t topics) Add(e Event, s *subscriber) {
 	// If not topic registered
 	if _, ok := t[e]; !ok {
-		t[e] = new(data)
+		t[e] = new(topic)
 		t[e].size = 0
 		t[e].s = []*subscriber{}
 		t[e].sMap = make(map[*subscriber]int)
@@ -36,12 +36,13 @@ func (t topics) Add(e Event, s *subscriber) {
 // It return true for removed subscriber from event else false.
 func (t topics) Remove(e Event, s *subscriber) bool {
 	// If topic registered
-	if _, ok := t[e]; ok {
-		if i, ok := t[e].sMap[s]; ok {
+	if to, existsTopic := t[e]; existsTopic {
+		// If subscriber exists in topic
+		if i, subscribed := to.sMap[s]; subscribed {
 			// Clear topic from slice and map
-			t[e].s = append(t[e].s[:i], t[e].s[i+1:]...)
-			delete(t[e].sMap, s)
-			t[e].size--
+			to.s = append(to.s[:i], to.s[i+1:]...) // re-slice current subscribers list
+			delete(to.sMap, s)                     // remove index from mapping
+			to.size--                              // reduce size of subscribers in topic
 			return true
 		}
 	}
@@ -86,9 +87,8 @@ func (b *broker) Publish(msg SignalCtx) uint8 {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
-	if _, ok := b.topics[msg.Type()]; ok {
-		topicData := b.topics[msg.Type()]
-		topicLen := b.topics[msg.Type()].Len()
+	if topicData, ok := b.topics[msg.Type()]; ok {
+		topicLen := topicData.Len()
 		subscribers := topicData.Subscribers()
 
 		for _, sub := range subscribers {

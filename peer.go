@@ -30,7 +30,7 @@ func (p *peer) Socket() Socket { return p.socket }
 // Send emit a message to peer.
 // Message keep message size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {
-	// write 4 bytes header size to share message size for dynamic buffer allocation
+	// write 4-bytes size header to share payload size
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
 		return 0, err
@@ -62,24 +62,23 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	buf := make([]byte, size)
 
 	// Sync buffered IO reading
-	_, err = p.Read(buf)
-
-	if err != nil {
+	if _, err = p.Read(buf); err != nil {
 		// net: don't return io.EOF from zero byte reads
 		// if err == io.EOF then peer connection is closed
 		_, isNetError := err.(*net.OpError)
-		if err == io.EOF || isNetError {
-			// Close disconnected peer
-			if err := p.Close(); err != nil {
-				return nil, err
-			}
+		if err != io.EOF && !isNetError {
+			// end of message, but peer is still connected
+			return nil, nil
+		}
 
-			// Peer disconnected
+		// Close disconnected peer
+		if err := p.Close(); err != nil {
 			return nil, err
 		}
 
-		// end of message, but peer is still connected
-		return nil, nil
+		// Peer disconnected
+		return nil, err
+
 	}
 
 	// Sync incoming message
