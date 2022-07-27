@@ -31,15 +31,35 @@ func main() {
 	go func() {
 		for signal := range signals {
 			// Here could be handled events
+			// When a new peer is connected. Start ping pong game.
 			if signal.Type() == noise.NewPeerDetected {
 				log.Printf("New Peer connected: %s \n", signal.Payload())
+				signal.Reply([]byte("ping")) // start game
+			}
+
+			// When we receive a message, check the content message and reply "ping" or "pong"
+			if signal.Type() == noise.MessageReceived {
+				message := string(signal.Payload())
+				if message == "ping" {
+					signal.Reply([]byte("pong"))
+				} else {
+					signal.Reply([]byte("ping"))
+				}
+			}
+
+			// What we do when a peer get disconnected?
+			if signal.Type() == noise.PeerDisconnected {
+				log.Printf("Peer disconnected")
 				cancel() // stop listening for events
 			}
 		}
 	}()
 
 	// ... some code here
-	// node.Dial("192.168.1.1:4008")
+	err := node.Dial("192.168.1.17:8010")
+	if err != nil {
+		log.Fatal(err)
+	}
 	// node.Close()
 
 	// ... more code here

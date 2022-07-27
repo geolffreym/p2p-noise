@@ -8,7 +8,7 @@ USER=geolffreym
 PACKAGE=p2p-noise
 VERSION=0.1.0
 
-INPUT=examples/listener.go
+INPUT=examples/insecure_listener.go
 
 BINARY=main
 BINARY_WIN=${BINARY}-win

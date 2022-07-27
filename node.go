@@ -281,6 +281,8 @@ func (n *Node) Dial(socket Socket) error {
 
 	addr := socket.String()
 	conn, err := net.Dial(n.config.Protocol(), addr)
+	log.Printf("dialing to %s", addr)
+
 	if err != nil {
 		return ErrDialingNode(err, addr)
 	}

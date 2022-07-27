@@ -21,7 +21,7 @@ func New() *Config {
 		// default protocol
 		protocol: "tcp",
 		// Self listening address
-		selfListeningAddress: "127.0.0.1:8010",
+		selfListeningAddress: "0.0.0.0:8010",
 		// Max payload size received from peers
 		maxPayloadSize: 10 << 20, // 10MB
 		// Max peer consecutively connected.
