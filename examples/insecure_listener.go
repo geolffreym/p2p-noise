@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	noise "github.com/geolffreym/p2p-noise"
@@ -33,13 +34,27 @@ func main() {
 			// Here could be handled events
 			if signal.Type() == noise.NewPeerDetected {
 				log.Printf("New Peer connected: %s \n", signal.Payload())
-				cancel() // stop listening for events
+				signal.Reply([]byte("ping"))
+				// cancel() // stop listening for events
+			}
+
+			if signal.Type() == noise.MessageReceived {
+				fmt.Print(string(signal.Payload()))
+				signal.Reply([]byte("ping"))
+			}
+
+			if signal.Type() == noise.PeerDisconnected {
+				log.Printf("Peer disconnected")
+				cancel()
 			}
 		}
 	}()
 
 	// ... some code here
-	// node.Dial("192.168.1.1:4008")
+	err := node.Dial("192.168.1.17:8010")
+	if err != nil {
+		log.Fatal(err)
+	}
 	// node.Close()
 
 	// ... more code here
