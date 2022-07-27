@@ -7,23 +7,23 @@ import (
 	"time"
 )
 
-// Default protocol
-const PROTOCOL = "tcp"
-
 // futureDeadline calculate a new time for deadline since now.
 func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
+// Peer has a simplistic interface to describe a peer in the network.
+// Each peer has a socket address to identify itself and a connection interface to communicate with it.
 type Peer interface {
-	Socket() Socket
+	PeerCtx
 	Close() error
-	Send(msg []byte) (int, error)
 	SetReadDeadline(t time.Time) error
 	SetWriteDeadline(t time.Time) error
 	Listen(maxPayloadSize uint32) ([]byte, error)
 }
 
+// Router keep a hash table to associate Socket with Peers.
+// It implement a unstructured mesh topology with basic methods to operate it.
 type Router interface {
 	Query(socket Socket) Peer
 	Remove(peer Peer)
@@ -32,17 +32,24 @@ type Router interface {
 	Len() uint8
 }
 
+// Event handle event exchange between node and the network.
 type Events interface {
-	Subscriber() Subscriber
 	PeerConnected(peer PeerCtx)
 	PeerDisconnected(peer PeerCtx)
 	NewMessage(peer PeerCtx, msg []byte)
+	Listen(ctx context.Context, ch chan<- SignalCtx)
 }
 
 type Config interface {
+	// Default "tcp"
+	Protocol() string
+	// Default 127.0.0.1:8010
 	SelfListeningAddress() string
+	// Default 100
 	MaxPeersConnected() uint8
+	// Default 10 << 20 = 10MB
 	MaxPayloadSize() uint32
+	// Default 1800 seconds = 30 minutes
 	PeerDeadline() time.Duration
 }
 
@@ -71,7 +78,7 @@ func New(config Config) *Node {
 // The listening routine should be stopped using context param.
 func (n *Node) Signals(ctx context.Context) <-chan SignalCtx {
 	ch := make(chan SignalCtx)
-	go n.events.Subscriber().Listen(ctx, ch)
+	go n.events.Listen(ctx, ch)
 	return ch // read only channel for raw messages
 }
 
@@ -80,10 +87,15 @@ func (n *Node) Addr() Socket {
 	return Socket(n.config.SelfListeningAddress())
 }
 
-// SendMessage emit a new message to peer socket.
+// Table forward to internal router Table
+func (n *Node) Table() Table {
+	return n.router.Table()
+}
+
+// Send emit a new message to peer socket.
 // If socket doesn't exists or peer is not connected return error.
-// Calling SendMessage extends write deadline.
-func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {
+// Calling Send extends write deadline.
+func (n *Node) Send(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
 		return 0, ErrSendingMessageToInvalidPeer(socket.String())
@@ -193,7 +205,7 @@ func (n *Node) routing(conn net.Conn) (Peer, error) {
 func (n *Node) Listen() error {
 
 	addr := n.config.SelfListeningAddress()
-	listener, err := net.Listen(PROTOCOL, addr)
+	listener, err := net.Listen(n.config.Protocol(), addr)
 	if err != nil {
 		return err
 	}
@@ -268,7 +280,7 @@ func (n *Node) Close() {
 func (n *Node) Dial(socket Socket) error {
 
 	addr := socket.String()
-	conn, err := net.Dial(PROTOCOL, addr)
+	conn, err := net.Dial(n.config.Protocol(), addr)
 	if err != nil {
 		return ErrDialingNode(err, addr)
 	}

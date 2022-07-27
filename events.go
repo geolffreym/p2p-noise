@@ -14,17 +14,6 @@ const (
 	PeerDisconnected
 )
 
-// Broker exchange messages between node and subscribers.
-type Broker interface {
-	Register(e Event, s Subscriber)
-	Publish(msg SignalCtx) uint8
-}
-
-type Subscriber interface {
-	Emit(msg SignalCtx)
-	Listen(ctx context.Context, ch chan<- SignalCtx)
-}
-
 // PeerCtx represents Peer in signal context.
 // Each Signal keep a context with the peer involved in triggered event.
 type PeerCtx interface {
@@ -33,8 +22,8 @@ type PeerCtx interface {
 }
 
 type events struct {
-	broker     Broker
-	subscriber Subscriber
+	broker     *broker
+	subscriber *subscriber
 }
 
 func newEvents() *events {
@@ -51,9 +40,9 @@ func newEvents() *events {
 	}
 }
 
-// Subscriber return event subscriber interface.
-func (e *events) Subscriber() Subscriber {
-	return e.subscriber
+// Listen forward to Listen method to internal subscriber.
+func (e *events) Listen(ctx context.Context, ch chan<- SignalCtx) {
+	e.subscriber.Listen(ctx, ch)
 }
 
 // PeerConnected dispatch event new peer detected.

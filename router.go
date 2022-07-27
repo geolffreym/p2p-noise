@@ -30,8 +30,7 @@ func (t Table) Remove(peer Peer) {
 }
 
 // router hash table to associate Socket with Peers.
-// Unstructured mesh architecture.
-// eg. {127.0.0.1:4000: Peer}
+// Unstructured mesh topology.
 type router struct {
 	sync.RWMutex
 	table Table
