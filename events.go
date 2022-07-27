@@ -48,22 +48,26 @@ func (e *events) Listen(ctx context.Context, ch chan<- SignalCtx) {
 // PeerConnected dispatch event new peer detected.
 func (e *events) PeerConnected(peer PeerCtx) {
 	// Emit new notification
-	addr := peer.Socket().Bytes()
-	signal := signal{NewPeerDetected, addr, peer}
+	body := body{peer.Socket().Bytes()}
+	header := header{NewPeerDetected}
+	signal := signal{header, body, peer}
 	e.broker.Publish(signal)
 }
 
 // PeerDisconnected dispatch event peer disconnected.
 func (e *events) PeerDisconnected(peer PeerCtx) {
 	// Emit new notification
-	addr := peer.Socket().Bytes()
-	signal := signal{PeerDisconnected, addr, peer}
+	body := body{peer.Socket().Bytes()}
+	header := header{PeerDisconnected}
+	signal := signal{header, body, peer}
 	e.broker.Publish(signal)
 }
 
 // NewMessage dispatch event new message.
 func (e *events) NewMessage(peer PeerCtx, msg []byte) {
 	// Emit new notification
-	signal := signal{MessageReceived, msg, peer}
+	body := body{msg}
+	header := header{MessageReceived}
+	signal := signal{header, body, peer}
 	e.broker.Publish(signal)
 }

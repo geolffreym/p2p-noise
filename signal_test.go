@@ -20,11 +20,7 @@ func (m *MockPeer) Socket() Socket {
 func TestType(t *testing.T) {
 	event := NewPeerDetected
 	payload := []byte(PAYLOAD)
-	message := signal{
-		event,
-		payload,
-		nil,
-	}
+	message := signal{header{event}, body{payload}, nil}
 
 	if message.Type() != event {
 		t.Errorf("expected message with type %v, got %v", event, message.Type())
@@ -34,11 +30,7 @@ func TestType(t *testing.T) {
 func TestPayload(t *testing.T) {
 	event := MessageReceived
 	payload := []byte(PAYLOAD)
-	message := signal{
-		event,
-		payload,
-		nil,
-	}
+	message := signal{header{event}, body{payload}, nil}
 
 	if string(message.Payload()) != string(payload) {
 		t.Errorf("expected message with payload %v, got %v", event, message.Type())
@@ -47,11 +39,12 @@ func TestPayload(t *testing.T) {
 }
 
 func TestReply(t *testing.T) {
+	event := NewPeerDetected
 	payload := []byte(PAYLOAD)
 	msg := []byte("hello")
 	peer := &MockPeer{}
 
-	context := signal{NewPeerDetected, payload, peer}
+	context := signal{header{event}, body{payload}, peer}
 	sent, _ := context.Reply(msg)
 
 	if sent != len(msg) {
