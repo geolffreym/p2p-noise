@@ -6,6 +6,7 @@ import "time"
 
 // Functional options
 type Config struct {
+	protocol             string
 	selfListeningAddress string
 	maxPayloadSize       uint32
 	maxPeersConnected    uint8
@@ -17,6 +18,8 @@ type Setter func(*Config)
 // Return default settings
 func New() *Config {
 	return &Config{
+		// default protocol
+		protocol: "tcp",
 		// Self listening address
 		selfListeningAddress: "127.0.0.1:8010",
 		// Max payload size received from peers
@@ -39,6 +42,11 @@ func (s *Config) Write(c ...Setter) {
 	}
 }
 
+// Protocol returns the protocol to use for communication.
+func (s *Config) Protocol() string {
+	return s.protocol
+}
+
 // SelfListeningAddress returns the local node address.
 func (s *Config) SelfListeningAddress() string {
 	return s.selfListeningAddress
@@ -57,6 +65,13 @@ func (s *Config) MaxPayloadSize() uint32 {
 // PeerDeadline returns the max time waiting for I/O or peer interaction
 func (s *Config) PeerDeadline() time.Duration {
 	return s.peerDeadline
+}
+
+// Protocol sets the protocol to use when communicating.
+func SetProtocol(protocol string) Setter {
+	return func(conf *Config) {
+		conf.protocol = protocol
+	}
 }
 
 // SetSelfListeningAddress sets the listening address for local node.

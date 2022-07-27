@@ -87,3 +87,14 @@ func TestSelfListeningAddress(t *testing.T) {
 		t.Errorf("expected SelfListeningAddress %#v, got settings %v", address, settings.SelfListeningAddress())
 	}
 }
+
+func TestProtocol(t *testing.T) {
+	settings := New()
+	protocol := "tcp"
+	callable := SetProtocol(protocol)
+	callable(settings)
+
+	if settings.Protocol() != protocol {
+		t.Errorf("expected Protocol %#v, got settings %v", protocol, settings.Protocol())
+	}
+}

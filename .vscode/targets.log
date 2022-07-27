@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jul 15 08:05:36 2022
+# Make data base, printed on Wed Jul 27 09:46:11 2022
 
 # Variables
 
@@ -24,8 +24,6 @@ DESKTOP_SESSION = ubuntu
 XDG_SESSION_CLASS = user
 # environment
 XDG_SESSION_TYPE = x11
-# environment
-VSCODE_LOG_NATIVE = false
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
@@ -47,7 +45,7 @@ VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupp
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 8:63631
+JOURNAL_STREAM = 8:54748
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from 'Makefile', line 1)
@@ -68,8 +66,6 @@ VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # makefile (from 'Makefile', line 9)
 VERSION = 0.1.0
-# environment
-VSCODE_VERBOSE_LOGGING = true
 # makefile (from 'Makefile', line 16)
 BINARY_LINUX = ${BINARY}-linux
 # environment
@@ -77,9 +73,7 @@ INFOPATH = /home/linuxbrew/.linuxbrew/share/info:
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
-MANAGERPID = 1804
-# environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-5e288d88-1617-435b-b10d-926a727833a7.sock
+MANAGERPID = 1896
 # environment
 LC_NAME = es_NI.UTF-8
 # makefile (from 'Makefile', line 8)
@@ -97,7 +91,7 @@ GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
 GJS_DEBUG_OUTPUT = stderr
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/3936,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/3936
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2319,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2319
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -107,11 +101,9 @@ WIN_64 = ${BINARY_WIN}-${ARCH_64}
 # environment
 XDG_MENU_PREFIX = gnome-
 # environment
-VSCODE_LOG_STACK = false
-# environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = bcf6ca6bcd6b4889a85d4d7ccb71525e
+INVOCATION_ID = 56b1096166e3485f91e6e2d1d608954d
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -119,19 +111,17 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 9199
+GIO_LAUNCHED_DESKTOP_FILE_PID = 52716
 # automatic
 %F = $(notdir $%)
 # environment
 DISPLAY = :0
 # environment
-VSCODE_PIPE_LOGGING = true
-# environment
 PWD = /home/gmena/GoLangProjects/p2p-chat
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 3856
+SSH_AGENT_PID = 2283
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -141,6 +131,7 @@ MANPATH = /home/linuxbrew/.linuxbrew/share/man:
 # environment
 GOMODCACHE = /home/gmena/GoLangProjects/eshop/pkg/mod
 # environment
+ 
 HOME = /home/gmena
 # makefile (from 'Makefile', line 18)
 ARCH_64 = amd64
@@ -151,7 +142,7 @@ WIN_32 = ${BINARY_WIN}-${ARCH_32}
 # makefile (from 'Makefile', line 13)
 BINARY = main
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/30d9c6cd9483b2cc586687151bcbcd635f373630
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/3b889b090b5ad5793f524b5d1d39fda662b96a2a
 # environment
 LOGNAME = gmena
 # environment
@@ -203,7 +194,7 @@ LINUX_32 = ${BINARY_LINUX}-${ARCH_32}
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.68.1-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.69.2-main.sock
 # makefile
 MAKEFLAGS = pqrR
 # environment
@@ -259,11 +250,11 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 9199
+VSCODE_PID = 52716
 # makefile (from 'Makefile', line 11)
 INPUT = examples/listener.go
 # variable set hash-table stats:
-# Load=126/1024=12%, Rehash=0, Collisions=19/156=12%
+# Load=121/1024=12%, Rehash=0, Collisions=19/151=13%
 
 # Pattern-specific Variable Values
 
@@ -271,9 +262,9 @@ INPUT = examples/listener.go
 
 # Directories
 
-# . (device 66311, inode 16384686): 28 files, no impossibilities.
+# . (device 66311, inode 16384686): 29 files, no impossibilities.
 
-# 28 files, no impossibilities in 1 directories.
+# 29 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -293,7 +284,6 @@ code-check:
 #  recipe to execute (from 'Makefile', line 77):
 	@go vet -v ./...
 	@echo "[OK] code check finished"
- 
 
 all: build test check-test-coverage code-check compile
 #  Command line target.
@@ -436,6 +426,7 @@ coverage:
 #  recipe to execute (from 'Makefile', line 62):
 	@go test -v ./... -race -covermode=atomic -coverprofile coverage ./...
 	@echo "[OK] coverage finished"
+ 
 	
 
 coverage-export: coverage
@@ -468,12 +459,12 @@ check-test-coverage:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 50 / storage = 501 B / avg = 10 B
-# current buf: size = 8162 B / used = 501 B / count = 50 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 51 / storage = 509 B / avg = 9 B
+# current buf: size = 8162 B / used = 509 B / count = 51 / avg = 9 B
 
-# strcache performance: lookups = 82 / hit rate = 39%
+# strcache performance: lookups = 83 / hit rate = 38%
 # hash-table stats:
-# Load=50/8192=1%, Rehash=0, Collisions=1/82=1%
-# Finished Make data base on Fri Jul 15 08:05:36 2022
+# Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
+# Finished Make data base on Wed Jul 27 09:46:11 2022
 
  

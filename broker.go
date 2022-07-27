@@ -5,26 +5,26 @@ import (
 )
 
 type topic struct {
-	s    []Subscriber
-	sMap map[Subscriber]int
+	s    []*subscriber
+	sMap map[*subscriber]int
 	size uint8
 }
 
-func (s *topic) Len() uint8                { return s.size }
-func (s *topic) Subscribers() []Subscriber { return s.s }
+func (s *topic) Len() uint8                 { return s.size }
+func (s *topic) Subscribers() []*subscriber { return s.s }
 
 // topics `keep` registered events
 type topics map[Event]*topic
 
 // Add append a new subscriber to event
 // If topic event doesn't exist then is created.
-func (t topics) Add(e Event, s Subscriber) {
+func (t topics) Add(e Event, s *subscriber) {
 	// If not topic registered
 	if _, ok := t[e]; !ok {
 		t[e] = new(topic)
 		t[e].size = 0
-		t[e].s = []Subscriber{}
-		t[e].sMap = make(map[Subscriber]int)
+		t[e].s = []*subscriber{}
+		t[e].sMap = make(map[*subscriber]int)
 	}
 
 	t[e].s = append(t[e].s, s)
@@ -34,7 +34,7 @@ func (t topics) Add(e Event, s Subscriber) {
 
 // Remove subscriber from topics
 // It return true for removed subscriber from event else false.
-func (t topics) Remove(e Event, s Subscriber) bool {
+func (t topics) Remove(e Event, s *subscriber) bool {
 	// Is topic registered?
 	if to, existsTopic := t[e]; existsTopic {
 		// If subscriber exists in topic
@@ -62,7 +62,7 @@ func newBroker() *broker {
 
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
-func (b *broker) Register(e Event, s Subscriber) {
+func (b *broker) Register(e Event, s *subscriber) {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
@@ -72,7 +72,7 @@ func (b *broker) Register(e Event, s Subscriber) {
 
 // Unregister remove associated subscriber from topics;
 // It return true for success else false.
-func (b *broker) Unregister(e Event, s Subscriber) bool {
+func (b *broker) Unregister(e Event, s *subscriber) bool {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
@@ -93,7 +93,7 @@ func (b *broker) Publish(msg SignalCtx) uint8 {
 		subscribers := topicData.Subscribers() // Subscribers in topic!!
 
 		for _, sub := range subscribers {
-			go func(s Subscriber) {
+			go func(s *subscriber) {
 				s.Emit(msg)
 			}(sub)
 		}
