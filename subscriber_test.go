@@ -8,7 +8,7 @@ import (
 
 func TestListen(t *testing.T) {
 	sub := newSubscriber()
-	message := signal{NewPeerDetected, nil, nil}
+	signaling := signal{header{NewPeerDetected}, body{nil}, nil}
 
 	canceled := make(chan struct{})
 	msg := make(chan SignalCtx)
@@ -29,7 +29,7 @@ func TestListen(t *testing.T) {
 	go func() {
 		// send message after 1 second
 		time.Sleep(1 * time.Second)
-		sub.Emit(message)
+		sub.Emit(signaling)
 	}()
 
 	// First to finish wins

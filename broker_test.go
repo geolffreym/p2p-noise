@@ -173,17 +173,19 @@ func TestPublish(t *testing.T) {
 	var result SignalCtx
 	subscriber := newSubscriber()
 	broker := newBroker()
+	body1 := body{[]byte("Hello")}
+	header1 := header{NewPeerDetected}
+	signaling := signal{header1, body1, nil}
 
 	broker.Register(NewPeerDetected, subscriber)
-	message := signal{NewPeerDetected, []byte("Hello"), nil}
-	broker.Publish(message)
+	broker.Publish(signaling)
 
 	// First to finish wins
 	// Get first message from channel
 	// Expected Emit called to set message
 	select {
 	case result = <-subscriber.notification:
-		if string(result.Payload()) != string(message.Payload()) {
+		if string(result.Payload()) != string(signaling.Payload()) {
 			t.Error("expected message equal result")
 		}
 	case <-time.After(1 * time.Second):
@@ -194,10 +196,12 @@ func TestPublish(t *testing.T) {
 
 	// New message for new topic event
 	broker.Register(NewPeerDetected, subscriber)
-	message = signal{NewPeerDetected, []byte(""), nil}
+	body2 := body{[]byte("")}
+	header2 := header{NewPeerDetected}
+	signaling = signal{header2, body2, nil}
 
 	// Number of subscribers notified
-	notified := broker.Publish(message)
+	notified := broker.Publish(signaling)
 	// Get next message from channel
 	// Expected Emit called to set message
 	result = <-subscriber.notification
@@ -209,10 +213,12 @@ func TestPublish(t *testing.T) {
 
 func TestInvalidPublish(t *testing.T) {
 	broker := newBroker()
-	message := signal{NewPeerDetected, []byte("Hello"), nil}
+	body1 := body{[]byte("Hello")}
+	header1 := header{NewPeerDetected}
+	signaling := signal{header1, body1, nil}
 
 	// Number of subscribers notified
-	notified := broker.Publish(message)
+	notified := broker.Publish(signaling)
 	// Get next message from channel
 	// Expected Emit called to set message
 	if notified > 0 {

@@ -1,23 +1,43 @@
 package noise
 
-// signal keep message exchange context between network events.
-// Each signal keep a state holding original Signal and related Peer.
-type signal struct {
+// header keep message exchange context between network events.
+// Each header keep a state holding original Signal and related Peer.
+type header struct {
 	// Type of event published
 	event Event
-	// Custom data message published
-	payload []byte
-	// Related peer interface
-	peer PeerCtx
 }
 
 // Type return Message event type published.
-func (m signal) Type() Event { return m.event }
+func (m header) Type() Event { return m.event }
+
+type body struct {
+	// Custom data message published
+	payload []byte
+}
 
 // Payload return custom data published.
-func (m signal) Payload() []byte { return m.payload }
+func (m body) Payload() []byte { return m.payload }
 
-// Reply send an answer to peer in context.
+// signal keep message exchange context between network events.
+// Each signal keep a state holding original header, body and related peer.
+// Anatomy of a signal.
+type signal struct {
+	header header
+	body   body
+	peer   PeerCtx
+}
+
+// Payload forward internal signal event message payload.
+func (s signal) Payload() []byte {
+	return s.body.Payload()
+}
+
+// Type forward internal signal event message type.
+func (s signal) Type() Event {
+	return s.header.Type()
+}
+
+// Reply send an answer to contextual peer.
 func (s signal) Reply(msg []byte) (int, error) {
 	return s.peer.Send(msg)
 }
