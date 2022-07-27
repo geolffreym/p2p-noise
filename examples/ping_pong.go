@@ -23,6 +23,7 @@ func main() {
 	)
 
 	// Node factory
+	remote := noise.Socket("192.168.1.17:8010")
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
@@ -53,7 +54,7 @@ func main() {
 	}()
 
 	// ... some code here
-	err := node.Dial("192.168.1.17:8010")
+	err := node.Dial(remote)
 	if err != nil {
 		log.Fatal(err)
 	}
