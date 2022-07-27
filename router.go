@@ -16,16 +16,16 @@ func (s Socket) String() string {
 	return string(s)
 }
 
-// table `keep` a socket:connection mapping.
-type table map[Socket]*peer
+// Table `keep` a socket:connection mapping.
+type Table map[Socket]Peer
 
 // Add new peer to table.
-func (t table) Add(peer *peer) {
+func (t Table) Add(peer Peer) {
 	t[peer.Socket()] = peer
 }
 
 // Remove peer from table.
-func (t table) Remove(peer *peer) {
+func (t Table) Remove(peer Peer) {
 	delete(t, peer.Socket())
 }
 
@@ -34,20 +34,20 @@ func (t table) Remove(peer *peer) {
 // eg. {127.0.0.1:4000: Peer}
 type router struct {
 	sync.RWMutex
-	table table
+	table Table
 }
 
 func newRouter() *router {
 	return &router{
-		table: make(table),
+		table: make(Table),
 	}
 }
 
 // Table return current routing table.
-func (r *router) Table() table { return r.table }
+func (r *router) Table() Table { return r.table }
 
 // Return connection interface based on socket.
-func (r *router) Query(socket Socket) *peer {
+func (r *router) Query(socket Socket) Peer {
 	// Mutex for reading topics.
 	// Do not write while topics are read.
 	// Write Lock can’t be acquired until all Read Locks are released.
@@ -55,6 +55,7 @@ func (r *router) Query(socket Socket) *peer {
 	r.RWMutex.RLock()
 	defer r.RWMutex.RUnlock()
 
+	// exist socket related peer?
 	if peer, ok := r.table[socket]; ok {
 		return peer
 	}
@@ -63,7 +64,7 @@ func (r *router) Query(socket Socket) *peer {
 }
 
 // Add create new socket connection association.
-func (r *router) Add(peer *peer) {
+func (r *router) Add(peer Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock
@@ -81,7 +82,7 @@ func (r *router) Len() uint8 {
 
 // Remove removes a connection from router.
 // It return recently removed peer.
-func (r *router) Remove(peer *peer) {
+func (r *router) Remove(peer Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
 	// ref: https://pkg.go.dev/sync#RWMutex.Lock

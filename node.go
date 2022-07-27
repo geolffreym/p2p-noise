@@ -15,6 +15,30 @@ func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
+type Peer interface {
+	Socket() Socket
+	Close() error
+	Send(msg []byte) (int, error)
+	SetReadDeadline(t time.Time) error
+	SetWriteDeadline(t time.Time) error
+	Listen(maxPayloadSize uint32) ([]byte, error)
+}
+
+type Router interface {
+	Query(socket Socket) Peer
+	Remove(peer Peer)
+	Add(peer Peer)
+	Table() Table
+	Len() uint8
+}
+
+type Events interface {
+	Subscriber() Subscriber
+	PeerConnected(peer PeerCtx)
+	PeerDisconnected(peer PeerCtx)
+	NewMessage(peer PeerCtx, msg []byte)
+}
+
 type Config interface {
 	SelfListeningAddress() string
 	MaxPeersConnected() uint8
@@ -26,9 +50,9 @@ type Node struct {
 	// Channel flag waiting for signal to close connection.
 	sentinel chan bool
 	// Routing hash table eg. {Socket: Conn interface}.
-	router *router
+	router Router
 	// Pubsub notifications.
-	events *events
+	events Events
 	// Configuration settings
 	config Config
 }
@@ -80,7 +104,7 @@ func (n *Node) SendMessage(socket Socket, message []byte) (int, error) {
 // watch keep running waiting for incoming messages.
 // After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
-func (n *Node) watch(peer *peer) {
+func (n *Node) watch(peer Peer) {
 
 KEEPALIVE:
 	for {
@@ -128,7 +152,7 @@ KEEPALIVE:
 // routing initialize route in routing table from connection interface.
 // If TCP protocol is used connection is enforced to keep alive.
 // It return new peer added to table.
-func (n *Node) routing(conn net.Conn) (*peer, error) {
+func (n *Node) routing(conn net.Conn) (Peer, error) {
 
 	// Assertion for tcp connection to keep alive
 	connection, isTCP := conn.(*net.TCPConn)
@@ -227,7 +251,7 @@ func (n *Node) Closed() bool {
 // Close all peers connections and stop listening
 func (n *Node) Close() {
 	for _, p := range n.router.Table() {
-		go func(peer *peer) {
+		go func(peer Peer) {
 			if err := peer.Close(); err != nil {
 				log.Fatal(ErrClosingConnection(err).Error())
 			}

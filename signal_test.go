@@ -23,6 +23,7 @@ func TestType(t *testing.T) {
 	message := signal{
 		event,
 		payload,
+		nil,
 	}
 
 	if message.Type() != event {
@@ -36,6 +37,7 @@ func TestPayload(t *testing.T) {
 	message := signal{
 		event,
 		payload,
+		nil,
 	}
 
 	if string(message.Payload()) != string(payload) {
@@ -49,8 +51,7 @@ func TestReply(t *testing.T) {
 	msg := []byte("hello")
 	peer := &MockPeer{}
 
-	signal := signal{NewPeerDetected, payload}
-	context := SignalCtx{signal, peer}
+	context := signal{NewPeerDetected, payload, peer}
 	sent, _ := context.Reply(msg)
 
 	if sent != len(msg) {

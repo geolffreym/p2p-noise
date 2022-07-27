@@ -5,26 +5,26 @@ import (
 )
 
 type topic struct {
-	s    []*subscriber
-	sMap map[*subscriber]int
+	s    []Subscriber
+	sMap map[Subscriber]int
 	size uint8
 }
 
-func (s *topic) Len() uint8                 { return s.size }
-func (s *topic) Subscribers() []*subscriber { return s.s }
+func (s *topic) Len() uint8                { return s.size }
+func (s *topic) Subscribers() []Subscriber { return s.s }
 
 // topics `keep` registered events
 type topics map[Event]*topic
 
 // Add append a new subscriber to event
 // If topic event doesn't exist then is created.
-func (t topics) Add(e Event, s *subscriber) {
+func (t topics) Add(e Event, s Subscriber) {
 	// If not topic registered
 	if _, ok := t[e]; !ok {
 		t[e] = new(topic)
 		t[e].size = 0
-		t[e].s = []*subscriber{}
-		t[e].sMap = make(map[*subscriber]int)
+		t[e].s = []Subscriber{}
+		t[e].sMap = make(map[Subscriber]int)
 	}
 
 	t[e].s = append(t[e].s, s)
@@ -34,13 +34,13 @@ func (t topics) Add(e Event, s *subscriber) {
 
 // Remove subscriber from topics
 // It return true for removed subscriber from event else false.
-func (t topics) Remove(e Event, s *subscriber) bool {
-	// If topic registered
+func (t topics) Remove(e Event, s Subscriber) bool {
+	// Is topic registered?
 	if to, existsTopic := t[e]; existsTopic {
 		// If subscriber exists in topic
 		if i, subscribed := to.sMap[s]; subscribed {
 			// Clear topic from slice and map
-			to.s = append(to.s[:i], to.s[i+1:]...) // re-slice current subscribers list
+			to.s = append(to.s[:i], to.s[i+1:]...) // re-slice to remove old subscriber
 			delete(to.sMap, s)                     // remove index from mapping
 			to.size--                              // reduce size of subscribers in topic
 			return true
@@ -62,7 +62,7 @@ func newBroker() *broker {
 
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
-func (b *broker) Register(e Event, s *subscriber) {
+func (b *broker) Register(e Event, s Subscriber) {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
@@ -72,7 +72,7 @@ func (b *broker) Register(e Event, s *subscriber) {
 
 // Unregister remove associated subscriber from topics;
 // It return true for success else false.
-func (b *broker) Unregister(e Event, s *subscriber) bool {
+func (b *broker) Unregister(e Event, s Subscriber) bool {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
 	b.Mutex.Lock()
@@ -87,12 +87,13 @@ func (b *broker) Publish(msg SignalCtx) uint8 {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
 
+	// Check if topic is registered before try to emit messages to subscribers.
 	if topicData, ok := b.topics[msg.Type()]; ok {
-		topicLen := topicData.Len()
-		subscribers := topicData.Subscribers()
+		topicLen := topicData.Len()            // How many subscribers exists in topic?
+		subscribers := topicData.Subscribers() // Subscribers in topic!!
 
 		for _, sub := range subscribers {
-			go func(s *subscriber) {
+			go func(s Subscriber) {
 				s.Emit(msg)
 			}(sub)
 		}

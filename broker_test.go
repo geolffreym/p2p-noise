@@ -175,9 +175,7 @@ func TestPublish(t *testing.T) {
 	broker := newBroker()
 
 	broker.Register(NewPeerDetected, subscriber)
-	signal1 := signal{NewPeerDetected, []byte("Hello")}
-	message := SignalCtx{signal1, nil}
-
+	message := signal{NewPeerDetected, []byte("Hello"), nil}
 	broker.Publish(message)
 
 	// First to finish wins
@@ -196,8 +194,7 @@ func TestPublish(t *testing.T) {
 
 	// New message for new topic event
 	broker.Register(NewPeerDetected, subscriber)
-	signal2 := signal{NewPeerDetected, []byte("")}
-	message = SignalCtx{signal2, nil}
+	message = signal{NewPeerDetected, []byte(""), nil}
 
 	// Number of subscribers notified
 	notified := broker.Publish(message)
@@ -212,8 +209,7 @@ func TestPublish(t *testing.T) {
 
 func TestInvalidPublish(t *testing.T) {
 	broker := newBroker()
-	signal := signal{NewPeerDetected, []byte("Hello")}
-	message := SignalCtx{signal, nil}
+	message := signal{NewPeerDetected, []byte("Hello"), nil}
 
 	// Number of subscribers notified
 	notified := broker.Publish(message)
