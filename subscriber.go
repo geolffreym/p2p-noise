@@ -4,6 +4,12 @@ import (
 	"context"
 )
 
+type SignalCtx interface {
+	Type() Event
+	Payload() []byte
+	Reply(msg []byte) (int, error)
+}
+
 // Subscriber work as message synchronization.
 type subscriber struct {
 	notification chan SignalCtx // Message exchange channel

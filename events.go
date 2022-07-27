@@ -14,6 +14,7 @@ const (
 	PeerDisconnected
 )
 
+// Broker exchange messages between node and subscribers.
 type Broker interface {
 	Register(e Event, s Subscriber)
 	Publish(msg SignalCtx) uint8
@@ -22,12 +23,6 @@ type Broker interface {
 type Subscriber interface {
 	Emit(msg SignalCtx)
 	Listen(ctx context.Context, ch chan<- SignalCtx)
-}
-
-type SignalCtx interface {
-	Type() Event
-	Payload() []byte
-	Reply(msg []byte) (int, error)
 }
 
 // PeerCtx represents Peer in signal context.
