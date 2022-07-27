@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -12,6 +13,20 @@ const (
 	PeerE = "127.0.0.1:8084"
 	PeerF = "127.0.0.1:8085"
 )
+
+func TestByteSocket(t *testing.T) {
+	socket := Socket(LOCAL_ADDRESS)
+	if !bytes.Equal(socket.Bytes(), []byte(LOCAL_ADDRESS)) {
+		t.Errorf("Expected returned bytes equal to %v", string(socket.Bytes()))
+	}
+}
+
+func TestStringSocket(t *testing.T) {
+	socket := Socket(LOCAL_ADDRESS)
+	if socket.String() != LOCAL_ADDRESS {
+		t.Errorf("Expected returned string equal to %v", socket.String())
+	}
+}
 
 func TestAdd(t *testing.T) {
 	router := newRouter()
