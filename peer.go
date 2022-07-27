@@ -65,7 +65,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	if _, err = p.Read(buf); err != nil {
 		// net: don't return io.EOF from zero byte reads
 		// if err == io.EOF then peer connection is closed
-		_, isNetError := err.(*net.OpError)
+		err, isNetError := err.(*net.OpError)
 		if err != io.EOF && !isNetError {
 			// end of message, but peer is still connected
 			return nil, nil
