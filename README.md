@@ -53,24 +53,21 @@ func main() {
 	go func() {
 		for signal := range signals {
 			// Here could be handled events
+			switch signal.Type() {
 			// When a new peer is connected. Start ping pong game.
-			if signal.Type() == noise.NewPeerDetected {
+			case noise.NewPeerDetected:
 				log.Printf("New Peer connected: %s \n", signal.Payload())
 				signal.Reply([]byte("ping")) // start game
-			}
-
 			// When we receive a message, check the content message and reply "ping" or "pong"
-			if signal.Type() == noise.MessageReceived {
+			case noise.MessageReceived:
 				message := string(signal.Payload())
 				if message == "ping" {
 					signal.Reply([]byte("pong"))
 				} else {
 					signal.Reply([]byte("ping"))
 				}
-			}
-
 			// What we do when a peer get disconnected?
-			if signal.Type() == noise.PeerDisconnected {
+			case noise.PeerDisconnected:
 				log.Printf("Peer disconnected")
 				cancel() // stop listening for events
 			}
@@ -88,6 +85,7 @@ func main() {
 	node.Listen()
 
 }
+
 ```
 
 ## Development
