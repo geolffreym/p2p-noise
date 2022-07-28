@@ -13,8 +13,6 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-const REMOTE = "192.168.1.17:8010"
-
 func main() {
 
 	// Create configuration from params and write in configuration reference
@@ -25,7 +23,8 @@ func main() {
 	)
 
 	// Node factory
-	remote := noise.Socket(REMOTE)
+	// TODO pass as environment variable
+	remote := noise.Socket("192.168.1.17:8010")
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())

@@ -98,7 +98,7 @@ func (n *Node) Table() Table {
 func (n *Node) Send(socket Socket, message []byte) (int, error) {
 	peer := n.router.Query(socket)
 	if peer == nil {
-		return 0, ErrSendingMessageToInvalidPeer(socket.String())
+		return 0, errSendingMessageToInvalidPeer(socket.String())
 	}
 
 	bytes, err := peer.Send(message)
@@ -177,7 +177,7 @@ func (n *Node) routing(conn net.Conn) (Peer, error) {
 	// Drop connections if max peers exceeded
 	if n.router.Len() >= n.config.MaxPeersConnected() {
 		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
-		return nil, ErrExceededMaxPeers(n.config.MaxPeersConnected())
+		return nil, errExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
 	// Initial deadline for connection.
@@ -215,7 +215,7 @@ func (n *Node) Listen() error {
 	defer func() {
 		err := listener.Close()
 		if err != nil {
-			log.Fatal(ErrClosingConnection(err).Error())
+			log.Fatal(errClosingConnection(err).Error())
 		}
 	}()
 
@@ -230,7 +230,7 @@ func (n *Node) Listen() error {
 		}
 
 		if err != nil {
-			log.Fatal(ErrBindingConnection(err).Error())
+			log.Fatal(errBindingConnection(err).Error())
 			return err
 		}
 
@@ -265,7 +265,7 @@ func (n *Node) Close() {
 	for _, p := range n.router.Table() {
 		go func(peer Peer) {
 			if err := peer.Close(); err != nil {
-				log.Fatal(ErrClosingConnection(err).Error())
+				log.Fatal(errClosingConnection(err).Error())
 			}
 		}(p)
 	}
@@ -284,14 +284,14 @@ func (n *Node) Dial(socket Socket) error {
 	log.Printf("dialing to %s", addr)
 
 	if err != nil {
-		return ErrDialingNode(err, addr)
+		return errDialingNode(err, addr)
 	}
 
 	// Routing for dialed connection
 	peer, err := n.routing(conn)
 	if err != nil {
 		conn.Close() // Drop connection
-		return ErrDialingNode(err, addr)
+		return errDialingNode(err, addr)
 	}
 
 	go n.watch(peer) // Wait for incoming messages

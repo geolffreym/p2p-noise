@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Jul 27 09:46:11 2022
+# Make data base, printed on Thu Jul 28 08:16:03 2022
 
 # Variables
 
@@ -131,7 +131,6 @@ MANPATH = /home/linuxbrew/.linuxbrew/share/man:
 # environment
 GOMODCACHE = /home/gmena/GoLangProjects/eshop/pkg/mod
 # environment
- 
 HOME = /home/gmena
 # makefile (from 'Makefile', line 18)
 ARCH_64 = amd64
@@ -252,7 +251,7 @@ LANG = C
 # environment
 VSCODE_PID = 52716
 # makefile (from 'Makefile', line 11)
-INPUT = examples/listener.go
+INPUT = examples/insecure_listener.go
 # variable set hash-table stats:
 # Load=121/1024=12%, Rehash=0, Collisions=19/151=13%
 
@@ -285,6 +284,7 @@ code-check:
 	@go vet -v ./...
 	@echo "[OK] code check finished"
 
+ 
 all: build test check-test-coverage code-check compile
 #  Command line target.
 #  Implicit rule search has been done.
@@ -316,7 +316,7 @@ profiling:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-11 11:58:12.399851481
+#  Last modified 2022-07-27 13:32:59.831166885
 #  File has been updated.
 #  Successfully updated.
 
@@ -426,7 +426,6 @@ coverage:
 #  recipe to execute (from 'Makefile', line 62):
 	@go test -v ./... -race -covermode=atomic -coverprofile coverage ./...
 	@echo "[OK] coverage finished"
- 
 	
 
 coverage-export: coverage
@@ -465,6 +464,6 @@ check-test-coverage:
 # strcache performance: lookups = 83 / hit rate = 38%
 # hash-table stats:
 # Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
-# Finished Make data base on Wed Jul 27 09:46:11 2022
+# Finished Make data base on Thu Jul 28 08:16:03 2022
 
  

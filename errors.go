@@ -36,28 +36,28 @@ func (e OverflowError) Error() string {
 	return fmt.Sprintf("overflow: %s -> %v", e.Context, e.Err)
 }
 
-// ErrSelfListening error represent an issue for node address listening.
-func ErrSelfListening(err error, addr string) error {
+// errSelfListening error represent an issue for node address listening.
+func errSelfListening(err error, addr string) error {
 	return &NetError{fmt.Sprintf("error trying to listen on %s", addr), err}
 }
 
-// ErrDialingNode error represent an issue trying to dial a node address.
-func ErrDialingNode(err error, addr string) error {
+// errDialingNode error represent an issue trying to dial a node address.
+func errDialingNode(err error, addr string) error {
 	return &NetError{fmt.Sprintf("failed dialing to %s", addr), err}
 }
 
-// ErrBindingConnection error represent an issue accepting connections.
-func ErrBindingConnection(err error) error {
+// errBindingConnection error represent an issue accepting connections.
+func errBindingConnection(err error) error {
 	return &NetError{"connection closed or cannot be established", err}
 }
 
-// ErrClosingConnection error represent an issue trying to close connections.
-func ErrClosingConnection(err error) error {
+// errClosingConnection error represent an issue trying to close connections.
+func errClosingConnection(err error) error {
 	return &NetError{"error when shutting down connection", err}
 }
 
-// ErrExceededMaxPeers error represent an issue if number of active connections exceed max peer connected.
-func ErrExceededMaxPeers(max uint8) error {
+// errExceededMaxPeers error represent an issue if number of active connections exceed max peer connected.
+func errExceededMaxPeers(max uint8) error {
 	return &OverflowError{
 		fmt.Sprintf("it is not possible to accept more than %d connections", max),
 		errors.New("max peers exceeded"),
@@ -65,14 +65,14 @@ func ErrExceededMaxPeers(max uint8) error {
 }
 
 // ErrExceededMaxPeers error represent an issue if number of active connections exceed max peer connected.
-func ErrExceededMaxPayloadSize(max uint32) error {
+func errExceededMaxPayloadSize(max uint32) error {
 	return &OverflowError{
 		fmt.Sprintf("it is not possible to accept more than %d bytes", max),
 		errors.New("max payload size exceeded"),
 	}
 }
 
-func ErrSendingMessageToInvalidPeer(addr string) error {
+func errSendingMessageToInvalidPeer(addr string) error {
 	return &OperationalError{
 		fmt.Sprintf("error trying to send a message to %s", addr),
 		errors.New("peer disconnected"),
