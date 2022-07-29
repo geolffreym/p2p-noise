@@ -29,6 +29,7 @@ func (e OperationalError) Error() string {
 }
 
 // OverflowError error represents a problem with the maximum setting of a parameter being exceeded.
+// eg. MaxPeersConnected exceed for incoming connections.
 type OverflowError struct {
 	Context string
 	Err     error
