@@ -6,11 +6,11 @@ import "context"
 type Event int
 
 const (
-	// Event to notify when a new peer connects
+	// Event to notify when a new peer get connected
 	NewPeerDetected Event = iota
 	// On new message received event
 	MessageReceived
-	// Closed peer event
+	// Closed peer connection
 	PeerDisconnected
 )
 

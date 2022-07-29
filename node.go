@@ -25,25 +25,34 @@ type Peer interface {
 // Router keep a hash table to associate Socket with Peers.
 // It implement a unstructured mesh topology with basic methods to operate it.
 type Router interface {
+	// Query return connection interface based on socket parameter.
 	Query(socket Socket) Peer
+	// Remove removes a connection from router.
 	Remove(peer Peer)
+	// Add create new socket connection association.
 	Add(peer Peer)
+	// Table return current routing table.
 	Table() Table
+	// Len return the number of routed connections.
 	Len() uint8
 }
 
 // Event handle event exchange between node and the network.
 type Events interface {
+	// PeerConnected dispatch event new peer detected.
 	PeerConnected(peer PeerCtx)
+	// PeerDisconnected dispatch event peer disconnected.
 	PeerDisconnected(peer PeerCtx)
+	// NewMessage dispatch event new message.
 	NewMessage(peer PeerCtx, msg []byte)
+	// Listen and wait for message synchronization from channel.
 	Listen(ctx context.Context, ch chan<- SignalCtx)
 }
 
 type Config interface {
 	// Default "tcp"
 	Protocol() string
-	// Default 127.0.0.1:8010
+	// Default 0.0.0.0:8010
 	SelfListeningAddress() string
 	// Default 100
 	MaxPeersConnected() uint8

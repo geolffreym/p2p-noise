@@ -45,7 +45,7 @@ func newRouter() *router {
 // Table return current routing table.
 func (r *router) Table() Table { return r.table }
 
-// Return connection interface based on socket.
+// Query return connection interface based on socket parameter.
 func (r *router) Query(socket Socket) Peer {
 	// Mutex for reading topics.
 	// Do not write while topics are read.
@@ -72,7 +72,7 @@ func (r *router) Add(peer Peer) {
 	r.RWMutex.Unlock()
 }
 
-// Len return the number of connections.
+// Len return the number of routed connections.
 func (r *router) Len() uint8 {
 	// 255 max peers len supported
 	// uint8 is enough for routing peers len
