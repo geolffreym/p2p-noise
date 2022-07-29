@@ -1,7 +1,6 @@
 package noise
 
-// header keep message exchange context between network events.
-// Each header keep a state holding original Signal and related Peer.
+// header keep event type related to signal
 type header struct {
 	// Type of event published
 	event Event
@@ -10,6 +9,7 @@ type header struct {
 // Type return Message event type published.
 func (m header) Type() Event { return m.event }
 
+// body keep payload related to signal
 type body struct {
 	// Custom data message published
 	payload []byte

@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jul 29 10:09:20 2022
+# Make data base, printed on Fri Jul 29 11:48:20 2022
 
 # Variables
 
@@ -111,7 +111,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 5481
+GIO_LAUNCHED_DESKTOP_FILE_PID = 46718
 # automatic
 %F = $(notdir $%)
 # environment
@@ -249,9 +249,9 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 5481
+VSCODE_PID = 46718
 # makefile (from 'Makefile', line 11)
-INPUT = examples/insecure_listener.go
+INPUT = examples/ping_pong.go
 # variable set hash-table stats:
 # Load=121/1024=12%, Rehash=0, Collisions=19/151=13%
 
@@ -284,13 +284,13 @@ code-check:
 	@go vet -v ./...
 	@echo "[OK] code check finished"
 
+ 
 all: build test check-test-coverage code-check compile
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
- 
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/3=0%
 
@@ -316,7 +316,7 @@ profiling:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-27 13:32:59.831166885
+#  Last modified 2022-07-29 10:37:08.128086206
 #  File has been updated.
 #  Successfully updated.
 
@@ -406,7 +406,7 @@ run:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 104):
-	@go run ${INPUT}
+	@go run ${INPUT} $(filter-out $@,$(MAKECMDGOALS))
 
 clean:
 #  Implicit rule search has not been done.
@@ -464,6 +464,6 @@ check-test-coverage:
 # strcache performance: lookups = 83 / hit rate = 38%
 # hash-table stats:
 # Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
-# Finished Make data base on Fri Jul 29 10:09:20 2022
+# Finished Make data base on Fri Jul 29 11:48:20 2022
 
  
