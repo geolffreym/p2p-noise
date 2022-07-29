@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+// SignalContext as message interface to handle network events.
+// Each signal keep a state holding original header, body and related peer.
 type SignalCtx interface {
 	Type() Event
 	Payload() []byte
