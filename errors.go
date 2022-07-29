@@ -5,10 +5,10 @@ import (
 	"fmt"
 )
 
-// NetError represents custom errors based on context
+// NetError represents errors related to network communication.
 type NetError struct {
-	Context string //TODO add here when this is throwing
-	Err     error  // Inherited error from lower level.
+	Context string
+	Err     error
 }
 
 // Error give string representation of error based on error type.
@@ -16,9 +16,11 @@ func (e NetError) Error() string {
 	return fmt.Sprintf("net: %s -> %v", e.Context, e.Err)
 }
 
+// OperationalError represents an error that occurred when an operation in node is invalid.
+// eg. Send a new message to invalid or not connected peer.
 type OperationalError struct {
-	Context string // Custom error message
-	Err     error  // Inherited error from lower level.
+	Context string
+	Err     error
 }
 
 // Error give string representation of error based on error type.
@@ -26,9 +28,10 @@ func (e OperationalError) Error() string {
 	return fmt.Sprintf("ops: %s -> %v", e.Context, e.Err)
 }
 
+// OverflowError error represents a problem with the maximum setting of a parameter being exceeded.
 type OverflowError struct {
-	Context string // Custom error message
-	Err     error  // Inherited error from lower level.
+	Context string
+	Err     error
 }
 
 // Error give string representation of error based on error type.

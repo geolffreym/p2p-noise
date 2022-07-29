@@ -39,11 +39,11 @@ type Router interface {
 
 // Event handle event exchange between node and the network.
 type Events interface {
-	// PeerConnected dispatch event new peer detected.
+	// PeerConnected dispatch event when new peer is detected.
 	PeerConnected(peer PeerCtx)
-	// PeerDisconnected dispatch event peer disconnected.
+	// PeerDisconnected dispatch event when a peer disconnect.
 	PeerDisconnected(peer PeerCtx)
-	// NewMessage dispatch event new message.
+	// NewMessage dispatch event when new message is received.
 	NewMessage(peer PeerCtx, msg []byte)
 	// Listen and wait for message synchronization from channel.
 	Listen(ctx context.Context, ch chan<- SignalCtx)
