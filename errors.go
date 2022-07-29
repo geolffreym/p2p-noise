@@ -7,7 +7,7 @@ import (
 
 // NetError represents custom errors based on context
 type NetError struct {
-	Context string // Custom error message
+	Context string //TODO add here when this is throwing
 	Err     error  // Inherited error from lower level.
 }
 
