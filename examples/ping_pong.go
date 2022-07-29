@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	noise "github.com/geolffreym/p2p-noise"
 	"github.com/geolffreym/p2p-noise/config"
@@ -23,8 +24,11 @@ func main() {
 	)
 
 	// Node factory
-	// TODO pass as environment variable
-	remote := noise.Socket("192.168.1.17:8010")
+	args := os.Args[1:]
+	ip := args[0]
+	port := args[1]
+
+	remote := noise.Socket(ip + ":" + port)
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
@@ -41,6 +45,7 @@ func main() {
 			// When we receive a message, check the content message and reply "ping" or "pong"
 			case noise.MessageReceived:
 				message := string(signal.Payload())
+				log.Printf("New Message: %s", message)
 				if message == "ping" {
 					signal.Reply([]byte("pong"))
 				} else {

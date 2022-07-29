@@ -8,7 +8,7 @@ USER=geolffreym
 PACKAGE=p2p-noise
 VERSION=0.1.0
 
-INPUT=examples/insecure_listener.go
+INPUT=examples/ping_pong.go
 
 BINARY=main
 BINARY_WIN=${BINARY}-win
@@ -101,7 +101,7 @@ compile: compile-linux compile-win compile-mac
 	@echo "[OK] Compiling for every OS and Platform"
 	
 run: 
-	@go run ${INPUT}
+	@go run ${INPUT} $(filter-out $@,$(MAKECMDGOALS))
 
 update-pkg-cache:
     GOPROXY=https://proxy.golang.org GO111MODULE=on \
