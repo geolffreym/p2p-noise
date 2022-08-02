@@ -20,7 +20,6 @@ func (m body) Payload() []byte { return m.payload }
 
 // signal keep message exchange context between network events.
 // Each signal keep a state holding original header, body and related peer.
-// Anatomy of a signal.
 type signal struct {
 	header header
 	body   body
