@@ -60,6 +60,8 @@ type Config interface {
 	MaxPayloadSize() uint32
 	// Default 1800 seconds = 30 minutes
 	PeerDeadline() time.Duration
+	// Default 5 seconds
+	DialTimeout() time.Duration
 }
 
 type Node struct {
@@ -288,8 +290,11 @@ func (n *Node) Close() {
 // Return error if error occurred while dialing node.
 func (n *Node) Dial(socket Socket) error {
 
-	addr := socket.String()
-	conn, err := net.Dial(n.config.Protocol(), addr)
+	addr := socket.String()           // eg. "0.0.0.0:8080"
+	protocol := n.config.Protocol()   // eg. tcp
+	timeout := n.config.DialTimeout() // max time waiting for dial.
+
+	conn, err := net.DialTimeout(protocol, addr, timeout)
 	log.Printf("dialing to %s", addr)
 
 	if err != nil {

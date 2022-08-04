@@ -10,6 +10,7 @@ type Config struct {
 	selfListeningAddress string
 	maxPayloadSize       uint32
 	maxPeersConnected    uint8
+	dialTimeout          time.Duration
 	peerDeadline         time.Duration
 }
 
@@ -27,6 +28,10 @@ func New() *Config {
 		// Max peer consecutively connected.
 		// Each of this peers is equivalent to one routine, limit this is a performance consideration.
 		maxPeersConnected: 100,
+		// Max time waiting for dial to complete.
+		// Default 5 seconds
+		// ref: https://pkg.go.dev/net#DialTimeout
+		dialTimeout: 5 * time.Second,
 		// Max time waiting for I/O or peer interaction. After this time the connection will timeout and considered inactive.
 		// Default 1800 seconds = 30 minutes.
 		peerDeadline: 1800,
@@ -60,6 +65,11 @@ func (s *Config) MaxPeersConnected() uint8 {
 // MaxPayloadSize returns the max payload size allowed to received from peers.
 func (s *Config) MaxPayloadSize() uint32 {
 	return s.maxPayloadSize
+}
+
+// DialTimeOut returns max time waiting for dial to complete.
+func (s *Config) DialTimeout() time.Duration {
+	return s.dialTimeout
 }
 
 // PeerDeadline returns the max time waiting for I/O or peer interaction
@@ -106,5 +116,12 @@ func SetMaxPayloadSize(maxPayloadSize uint32) Setter {
 func SetPeerDeadline(timeout time.Duration) Setter {
 	return func(conf *Config) {
 		conf.peerDeadline = timeout
+	}
+}
+
+// SetDialTimeOut sets how long time in seconds the node will wait for dial timeouts.
+func SetDialTimeout(timeout time.Duration) Setter {
+	return func(conf *Config) {
+		conf.dialTimeout = timeout
 	}
 }

@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jul 29 11:48:20 2022
+# Make data base, printed on Wed Aug  3 10:40:18 2022
 
 # Variables
 
@@ -111,7 +111,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 46718
+GIO_LAUNCHED_DESKTOP_FILE_PID = 570533
 # automatic
 %F = $(notdir $%)
 # environment
@@ -249,7 +249,7 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 46718
+VSCODE_PID = 570533
 # makefile (from 'Makefile', line 11)
 INPUT = examples/ping_pong.go
 # variable set hash-table stats:
@@ -261,9 +261,9 @@ INPUT = examples/ping_pong.go
 
 # Directories
 
-# . (device 66311, inode 16384686): 29 files, no impossibilities.
+# . (device 66311, inode 16384686): 28 files, no impossibilities.
 
-# 29 files, no impossibilities in 1 directories.
+# 28 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -458,12 +458,12 @@ check-test-coverage:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 51 / storage = 509 B / avg = 9 B
-# current buf: size = 8162 B / used = 509 B / count = 51 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 50 / storage = 500 B / avg = 10 B
+# current buf: size = 8162 B / used = 500 B / count = 50 / avg = 10 B
 
-# strcache performance: lookups = 83 / hit rate = 38%
+# strcache performance: lookups = 82 / hit rate = 39%
 # hash-table stats:
-# Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
-# Finished Make data base on Fri Jul 29 11:48:20 2022
+# Load=50/8192=1%, Rehash=0, Collisions=1/82=1%
+# Finished Make data base on Wed Aug  3 10:40:18 2022
 
  
