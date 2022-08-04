@@ -216,7 +216,9 @@ func (n *Node) routing(conn net.Conn) (Peer, error) {
 func (n *Node) Listen() error {
 
 	addr := n.config.SelfListeningAddress()
-	listener, err := net.Listen(n.config.Protocol(), addr)
+	protocol := n.config.Protocol()
+
+	listener, err := net.Listen(protocol, addr)
 	if err != nil {
 		return err
 	}
