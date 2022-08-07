@@ -187,7 +187,7 @@ func (n *Node) routing(conn net.Conn) (Peer, error) {
 
 	// Drop connections if max peers exceeded
 	if n.router.Len() >= n.config.MaxPeersConnected() {
-		log.Fatalf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
+		log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
 		return nil, errExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
@@ -228,7 +228,7 @@ func (n *Node) Listen() error {
 	defer func() {
 		err := listener.Close()
 		if err != nil {
-			log.Fatal(errClosingConnection(err).Error())
+			log.Print(errClosingConnection(err).Error())
 		}
 	}()
 
@@ -243,7 +243,7 @@ func (n *Node) Listen() error {
 		}
 
 		if err != nil {
-			log.Fatal(errBindingConnection(err).Error())
+			log.Print(errBindingConnection(err).Error())
 			return err
 		}
 
@@ -278,7 +278,7 @@ func (n *Node) Close() {
 	for _, p := range n.router.Table() {
 		go func(peer Peer) {
 			if err := peer.Close(); err != nil {
-				log.Fatal(errClosingConnection(err).Error())
+				log.Print(errClosingConnection(err).Error())
 			}
 		}(p)
 	}

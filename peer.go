@@ -54,7 +54,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	}
 
 	if size > maxPayloadSize {
-		log.Fatalf("max payload size exceeded: MaxPayloadSize = %d", maxPayloadSize)
+		log.Printf("max payload size exceeded: MaxPayloadSize = %d", maxPayloadSize)
 		return nil, errExceededMaxPayloadSize(maxPayloadSize)
 	}
 

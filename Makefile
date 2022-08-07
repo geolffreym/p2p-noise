@@ -89,6 +89,7 @@ compile-win:
 	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} ${INPUT}
 
 #Go1.15 deprecates 32-bit macOS builds	
+# go build -x to show compilation details
 #GOOS=darwin GOARCH=386 go build -o bin/main-mac-386 main.go
 compile-mac:
 	@GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} ${INPUT}
