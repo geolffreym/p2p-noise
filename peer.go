@@ -60,28 +60,26 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 
 	// Dynamic allocation based on msg size
 	buf := make([]byte, size)
-
 	// Sync buffered IO reading
-	if _, err = p.Read(buf); err != nil {
-		// net: don't return io.EOF from zero byte reads
-		// if err == io.EOF then peer connection is closed
-		err, isNetError := err.(*net.OpError)
-		if err != io.EOF && !isNetError {
-			// end of message, but peer is still connected
-			return nil, nil
-		}
-
-		// Close disconnected peer
-		if err := p.Close(); err != nil {
-			return nil, err
-		}
-
-		// Peer disconnected
-		return nil, err
-
+	if _, err = p.Read(buf); err == nil {
+		// Sync incoming message
+		return buf, nil
 	}
 
-	// Sync incoming message
-	return buf, nil
+	// net: don't return io.EOF from zero byte reads
+	// if err == io.EOF then peer connection is closed
+	err, isNetError := err.(*net.OpError)
+	if err != io.EOF && !isNetError {
+		// end of message, but peer is still connected
+		return nil, nil
+	}
+
+	// Close disconnected peer
+	if err := p.Close(); err != nil {
+		return nil, err
+	}
+
+	// Peer disconnected
+	return nil, err
 
 }

@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Aug  8 22:08:23 2022
+# Make data base, printed on Tue Aug  9 08:12:03 2022
 
 # Variables
 
@@ -284,13 +284,13 @@ code-check:
 	@go vet -v ./...
 	@echo "[OK] code check finished"
 
+ 
 all: build test check-test-coverage code-check compile
 #  Command line target.
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
- 
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/3=0%
 
@@ -464,6 +464,6 @@ check-test-coverage:
 # strcache performance: lookups = 83 / hit rate = 38%
 # hash-table stats:
 # Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
-# Finished Make data base on Mon Aug  8 22:08:23 2022
+# Finished Make data base on Tue Aug  9 08:12:03 2022
 
  
