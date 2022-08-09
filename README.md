@@ -12,6 +12,7 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 * Simplistic and lightweight.
 
 ## Features
+
 > [Blake2 Handshake Encryption](https://www.blake2.net/):
 BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3, yet is at least as secure as the latest standard SHA-3. BLAKE2 has been adopted by many projects due to its high speed, security, and simplicity.
 
@@ -31,44 +32,44 @@ go get github.com/geolffreym/p2p-noise
 
 ```
 import (
-	"context"
-	"log"
+ "context"
+ "log"
 
-	noise "github.com/geolffreym/p2p-noise"
-	"github.com/geolffreym/p2p-noise/config"
+ noise "github.com/geolffreym/p2p-noise"
+ "github.com/geolffreym/p2p-noise/config"
 )
 
 func main() {
 
-	// Create configuration from params and write in configuration reference
-	configuration := config.New()
-	configuration.Write(
-		config.SetMaxPeersConnected(10),
-		config.SetPeerDeadline(1800),
-	)
+ // Create configuration from params and write in configuration reference
+ configuration := config.New()
+ configuration.Write(
+  config.SetMaxPeersConnected(10),
+  config.SetPeerDeadline(1800),
+ )
 
-	// Node factory
-	node := noise.New(configuration)
-	// Network events channel
-	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.SignalContext = node.Signals(ctx)
+ // Node factory
+ node := noise.New(configuration)
+ // Network events channel
+ ctx, cancel := context.WithCancel(context.Background())
+ var signals <-chan noise.SignalContext = node.Signals(ctx)
 
-	go func() {
-		for signal := range signals {
-			// Here could be handled events
-			if signal.Type() == noise.NewPeerDetected {
-				// TODO handle here handshake logic
-				cancel() // stop listening for events
-			}
-		}
-	}()
+ go func() {
+  for signal := range signals {
+   // Here could be handled events
+   if signal.Type() == noise.NewPeerDetected {
+    // TODO handle here handshake logic
+    cancel() // stop listening for events
+   }
+  }
+ }()
 
-	// ... some code here
-	// node.Dial("192.168.1.1:4008")
-	// node.Close()
+ // ... some code here
+ // node.Dial("192.168.1.1:4008")
+ // node.Close()
 
-	// ... more code here
-	node.Listen()
+ // ... more code here
+ node.Listen()
 }
 ```
 
@@ -77,23 +78,13 @@ func main() {
 Some available capabilities for dev support:
 
 * **Run Tests**: `make test`
-
 * **Build**: `make build`
-
 * **Test Coverage**: `make coverage`
-
 * **Benchmark**: `make benchmark`
-
 * **Profiling**: `make profiling`
-
 * **Code check**: `make code-check`
-
 * **Code format**: `make code-fmt`
-
 * **Flush cache**: `make clean`
-
-* **Code Analysis**: `make check`
-
 * **Build**: `make build`
 
 Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise) for more capabilities.  

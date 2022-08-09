@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Aug  7 10:11:46 2022
+# Make data base, printed on Mon Aug  8 22:08:23 2022
 
 # Variables
 
@@ -290,8 +290,8 @@ all: build test check-test-coverage code-check compile
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
-# variable set hash-table stats:
  
+# variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/3=0%
 
 .PHONY: test
@@ -464,6 +464,6 @@ check-test-coverage:
 # strcache performance: lookups = 83 / hit rate = 38%
 # hash-table stats:
 # Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
-# Finished Make data base on Sun Aug  7 10:11:46 2022
+# Finished Make data base on Mon Aug  8 22:08:23 2022
 
  
