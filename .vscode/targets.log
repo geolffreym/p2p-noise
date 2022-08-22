@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Aug  9 08:12:03 2022
+# Make data base, printed on Tue Aug 16 07:27:36 2022
 
 # Variables
 
@@ -45,7 +45,7 @@ VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupp
 # environment
 _ = /usr/share/code/code
 # environment
-JOURNAL_STREAM = 8:53206
+JOURNAL_STREAM = 8:55629
 # environment
 XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 # makefile (from 'Makefile', line 1)
@@ -73,7 +73,7 @@ INFOPATH = /home/linuxbrew/.linuxbrew/share/info:
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
-MANAGERPID = 1828
+MANAGERPID = 1881
 # environment
 LC_NAME = es_NI.UTF-8
 # makefile (from 'Makefile', line 8)
@@ -91,7 +91,7 @@ GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
 GJS_DEBUG_OUTPUT = stderr
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2373,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2373
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2293,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2293
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -103,7 +103,7 @@ XDG_MENU_PREFIX = gnome-
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-INVOCATION_ID = ab2e88fd1689497b885fe9a45514a2d5
+INVOCATION_ID = b2182d48c4d04c7aa9fdf882609c5152
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -111,7 +111,7 @@ XDG_SESSION_DESKTOP = ubuntu
 # environment
 SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 279096
+GIO_LAUNCHED_DESKTOP_FILE_PID = 5237
 # automatic
 %F = $(notdir $%)
 # environment
@@ -121,7 +121,7 @@ PWD = /home/gmena/GoLangProjects/p2p-chat
 # default
 .LOADED := 
 # environment
-SSH_AGENT_PID = 2323
+SSH_AGENT_PID = 2258
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = ubuntu:GNOME
 # environment
@@ -249,7 +249,7 @@ LC_ADDRESS = es_NI.UTF-8
 # environment
 LANG = C
 # environment
-VSCODE_PID = 279096
+VSCODE_PID = 5237
 # makefile (from 'Makefile', line 11)
 INPUT = examples/ping_pong.go
 # variable set hash-table stats:
@@ -284,10 +284,10 @@ code-check:
 	@go vet -v ./...
 	@echo "[OK] code check finished"
 
- 
 all: build test check-test-coverage code-check compile
 #  Command line target.
 #  Implicit rule search has been done.
+ 
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
@@ -464,6 +464,6 @@ check-test-coverage:
 # strcache performance: lookups = 83 / hit rate = 38%
 # hash-table stats:
 # Load=51/8192=1%, Rehash=0, Collisions=1/83=1%
-# Finished Make data base on Tue Aug  9 08:12:03 2022
+# Finished Make data base on Tue Aug 16 07:27:36 2022
 
  

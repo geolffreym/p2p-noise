@@ -50,7 +50,7 @@ func (t topics) Remove(e Event, s *subscriber) bool {
 	return false
 }
 
-// broker hash map event subscribers
+// broker mapping event subscribers
 type broker struct {
 	sync.Mutex        // guards
 	topics     topics // topic subscriptions

@@ -31,45 +31,47 @@ go get github.com/geolffreym/p2p-noise
 ## Basic usage
 
 ```
-import (
- "context"
- "log"
+package main
 
- noise "github.com/geolffreym/p2p-noise"
- "github.com/geolffreym/p2p-noise/config"
+import (
+	"context"
+
+	noise "github.com/geolffreym/p2p-noise"
+	"github.com/geolffreym/p2p-noise/config"
 )
 
-func main() {
+func handshake() {
 
- // Create configuration from params and write in configuration reference
- configuration := config.New()
- configuration.Write(
-  config.SetMaxPeersConnected(10),
-  config.SetPeerDeadline(1800),
- )
+	// Create configuration from params and write in configuration reference
+	configuration := config.New()
+	configuration.Write(
+		config.SetMaxPeersConnected(10),
+		config.SetPeerDeadline(1800),
+	)
 
- // Node factory
- node := noise.New(configuration)
- // Network events channel
- ctx, cancel := context.WithCancel(context.Background())
- var signals <-chan noise.SignalContext = node.Signals(ctx)
+	// Node factory
+	node := noise.New(configuration)
+	// Network events channel
+	ctx, cancel := context.WithCancel(context.Background())
+	var signals <-chan noise.SignalCtx = node.Signals(ctx)
 
- go func() {
-  for signal := range signals {
-   // Here could be handled events
-   if signal.Type() == noise.NewPeerDetected {
-    // TODO handle here handshake logic
-    cancel() // stop listening for events
-   }
-  }
- }()
+	go func() {
+		for signal := range signals {
+			// Here could be handled events
+			if signal.Type() == noise.NewPeerDetected {
+				// TODO handle here handshake logic
+				cancel() // stop listening for events
+			}
+		}
+	}()
 
- // ... some code here
- // node.Dial("192.168.1.1:4008")
- // node.Close()
+	// ... some code here
+	// node.Dial("192.168.1.1:4008")
+	// node.Close()
 
- // ... more code here
- node.Listen()
+	// ... more code here
+	node.Listen()
+
 }
 ```
 
