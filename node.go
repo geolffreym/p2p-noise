@@ -18,49 +18,6 @@ func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
-// Peer extends [net.Conn] interface.
-// Each [Peer] keep needed methods to interact with it.
-// Please see [Connection Interface] for more details.
-//
-// [Connection Interface]: https://pkg.go.dev/net#Conn
-type Peer interface {
-	net.Conn
-	// Return peer socket.
-	Socket() Socket
-	// Send message to peer.
-	Send(msg []byte) (int, error)
-	// Listen wait for incoming messages from peer.
-	Listen(maxPayloadSize uint32) ([]byte, error)
-}
-
-// [Router] keep a hash table to associate [Socket] with [Peer].
-type Router interface {
-	// Query return connection interface based on socket parameter.
-	Query(socket Socket) Peer
-	// Remove removes a connection from router.
-	Remove(peer Peer)
-	// Add create new socket connection association.
-	Add(peer Peer)
-	// Table return current routing table.
-	Table() Table
-	// Flush clean table and return total peers removed.
-	Flush() uint8
-	// Len return the number of routed connections.
-	Len() uint8
-}
-
-// [Events] handle event exchange between [Node] and network.
-type Events interface {
-	// PeerConnected dispatch event when new peer is detected.
-	PeerConnected(peer Peer)
-	// PeerDisconnected dispatch event when a peer disconnect.
-	PeerDisconnected(peer Peer)
-	// NewMessage dispatch event when new message is received.
-	NewMessage(peer Peer, msg []byte)
-	// Listen and wait for message synchronization from channel.
-	Listen(ctx context.Context, ch chan<- Signal)
-}
-
 type Config interface {
 	// Default "tcp"
 	Protocol() string
@@ -80,9 +37,9 @@ type Node struct {
 	// Channel flag waiting for signal to close connection.
 	sentinel chan bool
 	// Routing hash table eg. {Socket: Conn interface}.
-	router Router
+	router *router
 	// Pubsub notifications.
-	events Events
+	events *events
 	// Configuration settings
 	config Config
 }
@@ -134,7 +91,7 @@ func (n *Node) Send(socket Socket, message []byte) (int, error) {
 // watch keep running waiting for incoming messages.
 // After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
-func (n *Node) watch(peer Peer) {
+func (n *Node) watch(peer *peer) {
 
 KEEPALIVE:
 	for {
@@ -283,7 +240,7 @@ func (n *Node) Closed() bool {
 // Close all peers connections and stop listening
 func (n *Node) Close() {
 	for _, p := range n.router.Table() {
-		go func(peer Peer) {
+		go func(peer *peer) {
 			if err := peer.Close(); err != nil {
 				log.Print(errClosingConnection(err).Error())
 			}

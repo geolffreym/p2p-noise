@@ -7,9 +7,11 @@ import (
 	"net"
 )
 
-// peer implements Peer interface.
-// peer extends the net.Conn interface.
-// Each peer has a Socket address to identify itself.
+// Peer extends [net.Conn] interface.
+// Each [Peer] keep needed methods to interact with it.
+// Please see [Connection Interface] for more details.
+//
+// [Connection Interface]: https://pkg.go.dev/net#Conn
 type peer struct {
 	net.Conn        // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 	socket   Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket

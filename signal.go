@@ -23,7 +23,7 @@ func (m body) Payload() []byte { return m.payload }
 type signal struct {
 	header header
 	body   body
-	peer   Peer
+	peer   *peer
 }
 
 // Payload forward internal signal event message payload.
