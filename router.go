@@ -84,8 +84,8 @@ func (r *router) Len() uint8 {
 // This will be garbage collected eventually.
 func (r *router) Flush() uint8 {
 	size := r.Len()
-	// nil its a valid type for mapping since its a [Reference Type].
-	// [Reference Type]: https://github.com/go101/go101/wiki/About-the-terminology-%22reference-type%22-in-Go
+	// nil its a valid type for mapping since its a reference type.
+	// ref: https://github.com/go101/go101/wiki/About-the-terminology-%22reference-type%22-in-Go
 	r.table = nil
 	return size
 
