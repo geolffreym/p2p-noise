@@ -49,7 +49,7 @@ type Router interface {
 	Len() uint8
 }
 
-// Event handle event exchange between node and the network.
+// [Events] handle event exchange between [Node] and network.
 type Events interface {
 	// PeerConnected dispatch event when new peer is detected.
 	PeerConnected(peer Peer)
@@ -91,8 +91,8 @@ type Node struct {
 func New(config Config) *Node {
 	return &Node{
 		make(chan bool),
-		newRouter(),
-		newEvents(),
+		NewRouter(),
+		NewEvents(),
 		config,
 	}
 }

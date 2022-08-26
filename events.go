@@ -32,7 +32,7 @@ type Subscriber interface {
 	Listen(ctx context.Context, ch chan<- Signal)
 }
 
-// [Broker] exchange messages between [Events] and [Subscribers].
+// [Broker] exchange messages between [Events] and [Subscriber].
 // Each [Broker] receive published [Signal] from [Event] for later emit it to [Subscriber].
 type Broker interface {
 	// Register associate Subscriber to broker topics.
@@ -49,7 +49,7 @@ type events struct {
 	subscriber Subscriber
 }
 
-func newEvents() *events {
+func NewEvents() Events {
 	subscriber := newSubscriber()
 	broker := newBroker()
 	// register default events

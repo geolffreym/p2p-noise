@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Aug 26 13:07:08 2022
+# Make data base, printed on Fri Aug 26 15:29:23 2022
 
 # Variables
 
@@ -77,7 +77,7 @@ MAKEFLAGS = pqrR
 # makefile
 CURDIR := /home/gmena/GoLangProjects/p2p-chat
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # makefile (from 'Makefile', line 9)
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 28 files, no impossibilities.
+# . (device 66311, inode 16384686): 29 files, no impossibilities.
 
-# 28 files, no impossibilities in 1 directories.
+# 29 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -282,6 +282,7 @@ compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
+ 
 #  recipe to execute (from 'Makefile', line 103):
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
@@ -297,7 +298,6 @@ coverage:
 
 compile: compile-linux compile-win compile-mac
 #  Implicit rule search has not been done.
- 
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 107):
@@ -321,7 +321,7 @@ benchmark:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-26 12:20:39.102533912
+#  Last modified 2022-08-26 13:12:00.77684594
 #  File has been updated.
 #  Successfully updated.
 
@@ -467,12 +467,12 @@ code-fmt:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 51 / storage = 518 B / avg = 10 B
-# current buf: size = 8162 B / used = 518 B / count = 51 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 52 / storage = 528 B / avg = 10 B
+# current buf: size = 8162 B / used = 528 B / count = 52 / avg = 10 B
 
-# strcache performance: lookups = 84 / hit rate = 39%
+# strcache performance: lookups = 85 / hit rate = 38%
 # hash-table stats:
-# Load=51/8192=1%, Rehash=0, Collisions=0/84=0%
-# Finished Make data base on Fri Aug 26 13:07:08 2022
+# Load=52/8192=1%, Rehash=0, Collisions=0/85=0%
+# Finished Make data base on Fri Aug 26 15:29:23 2022
 
  
