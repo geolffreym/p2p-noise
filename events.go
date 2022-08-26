@@ -49,7 +49,7 @@ type events struct {
 	subscriber Subscriber
 }
 
-func NewEvents() Events {
+func newEvents() *events {
 	subscriber := newSubscriber()
 	broker := newBroker()
 	// register default events

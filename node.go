@@ -91,8 +91,8 @@ type Node struct {
 func New(config Config) *Node {
 	return &Node{
 		make(chan bool),
-		NewRouter(),
-		NewEvents(),
+		newRouter(),
+		newEvents(),
 		config,
 	}
 }
@@ -182,7 +182,7 @@ KEEPALIVE:
 // routing initialize route in routing table from connection interface.
 // If TCP protocol is used connection is enforced to keep alive.
 // Return err if max peers connected exceed MaxPeerConnected otherwise return new peer added to table.
-func (n *Node) routing(conn net.Conn) (*peer, error) {
+func (n *Node) routing(conn net.Conn) (Peer, error) {
 
 	// Assertion for tcp connection to keep alive
 	connection, isTCP := conn.(*net.TCPConn)

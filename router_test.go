@@ -29,7 +29,7 @@ func TestStringSocket(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 	// Add new record
 	router.Add(newPeer(PeerA, nil))
 	router.Add(newPeer(PeerB, nil))
@@ -75,7 +75,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 	// Add new record
 	router.Add(newPeer(PeerA, nil))
 	router.Add(newPeer(PeerB, nil))
@@ -105,7 +105,7 @@ func TestQuery(t *testing.T) {
 }
 
 func TestInvalidQuery(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 	// Add new record
 	router.Add(newPeer(PeerA, nil))
 
@@ -116,7 +116,7 @@ func TestInvalidQuery(t *testing.T) {
 }
 
 func TestLen(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 	// Add new record
 	router.Add(newPeer(PeerA, nil)) // 1
 	router.Add(newPeer(PeerB, nil)) // 2
@@ -132,7 +132,7 @@ func TestLen(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 
 	peerA := newPeer(PeerA, nil)
 	peerB := newPeer(PeerB, nil)
@@ -162,7 +162,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestFlush(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 	peerA := newPeer(PeerA, nil)
 	// Add new record
 	router.Add(peerA) // 1
@@ -175,7 +175,7 @@ func TestFlush(t *testing.T) {
 }
 
 func TestFlushSize(t *testing.T) {
-	router := NewRouter()
+	router := newRouter()
 
 	peerA := newPeer(PeerA, nil)
 	peerB := newPeer(PeerB, nil)
