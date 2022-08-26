@@ -30,7 +30,7 @@ func (t Table) Remove(peer *peer) {
 	delete(t, peer.Socket())
 }
 
-// router implements Router interface.
+// router keep a hash table to associate [Socket] with peer.
 // It is a hash table to associate Socket with Peers in a unstructured mesh topology.
 type router struct {
 	sync.RWMutex

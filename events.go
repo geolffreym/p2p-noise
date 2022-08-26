@@ -24,7 +24,7 @@ type Signal interface {
 	Reply(msg []byte) (int, error)
 }
 
-// events implements Events interface.
+// events handle event exchange between [Node] and network.
 type events struct {
 	broker     *broker
 	subscriber *subscriber

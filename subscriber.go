@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-// subscriber implements Subscriber interface.
+// subscriber intercept Signal from already subscribed topics in broker
 // Handle actions to emit or receive events.
 type subscriber struct {
 	notification chan Signal // Message exchange channel

@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-// Peer extends [net.Conn] interface.
+// peer extends [net.Conn] interface.
 // Each [Peer] keep needed methods to interact with it.
 // Please see [Connection Interface] for more details.
 //
