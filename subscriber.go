@@ -12,7 +12,8 @@ type SignalCtx interface {
 	Reply(msg []byte) (int, error)
 }
 
-// Subscriber work as message synchronization.
+// Subscriber work as message synchronizer.
+// Handle actions to emir or receive events.
 type subscriber struct {
 	notification chan SignalCtx // Message exchange channel
 }

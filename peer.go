@@ -8,8 +8,7 @@ import (
 )
 
 // peer struct implements [noise.Peer] interface.
-// Each peer it is a connection interface and has a socket address to identify itself.
-// [net.Conn]: https://pkg.go.dev/net#Conn
+// Each peer it is a [net.Conn] interface and has a socket address to identify itself.
 type peer struct {
 	net.Conn        // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 	socket   Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
