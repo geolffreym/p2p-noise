@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Aug 24 09:54:01 2022
+# Make data base, printed on Fri Aug 26 13:07:08 2022
 
 # Variables
 
@@ -41,7 +41,7 @@ MAKE_COMMAND := make
 # environment
 QT_ACCESSIBILITY = 1
 # environment
-GOPATH = /home/gmena/GoLangProjects/eshop/
+GOPATH = /home/gmena/go
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # environment
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 5426
+VSCODE_PID = 1170206
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -143,7 +143,7 @@ MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = /home/gmena/sdk/go1.18.1/bin:/home/gmena/go/bin:/home/gmena/.cargo/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gmena/.local/bin:/home/gmena/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/usr/local/go/bin:/usr/local/go/bin:/home/gmena/.local/share/JetBrains/Toolbox/scripts:/home/gmena/.local/share/JetBrains/Toolbox/scripts
+PATH = /home/gmena/sdk/go1.19/bin:/home/gmena/go/bin:/home/gmena/.cargo/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gmena/.local/bin:/home/gmena/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/usr/local/go/bin:/usr/local/go/bin:/home/gmena/.local/share/JetBrains/Toolbox/scripts:/home/gmena/.local/share/JetBrains/Toolbox/scripts
 # default
 MAKEFILES := 
 # makefile (from 'Makefile', line 23)
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 5426
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1170206
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -223,7 +223,7 @@ GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
 JOURNAL_STREAM = 8:33143
 # environment
-GOMODCACHE = /home/gmena/GoLangProjects/eshop/pkg/mod
+GOMODCACHE = /home/gmena/go/pkg/mod
 # environment
 XDG_SESSION_CLASS = user
 # environment
@@ -238,7 +238,7 @@ ELECTRON_RUN_AS_NODE = 1
 VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.70.2-main.sock
 # environment
 IM_CONFIG_PHASE = 1
-# makefile (from 'Makefile', line 108)
+# makefile (from 'Makefile', line 113)
 GOPROXY = https://proxy.golang.org GO111MODULE=on go get github.com/${USER}/${PACKAGE}@v${VERSION}
 # default
 .RECIPEPREFIX := 
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 29 files, no impossibilities.
+# . (device 66311, inode 16384686): 28 files, no impossibilities.
 
-# 29 files, no impossibilities in 1 directories.
+# 28 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -282,7 +282,7 @@ compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 98):
+#  recipe to execute (from 'Makefile', line 103):
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
@@ -295,12 +295,12 @@ coverage:
 	@echo "[OK] coverage finished"
 	
 
- 
 compile: compile-linux compile-win compile-mac
 #  Implicit rule search has not been done.
+ 
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 102):
+#  recipe to execute (from 'Makefile', line 107):
 	@echo "[OK] Compiling for every OS and Platform"
 	
 
@@ -321,7 +321,7 @@ benchmark:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-03 20:13:49.603760816
+#  Last modified 2022-08-26 12:20:39.102533912
 #  File has been updated.
 #  Successfully updated.
 
@@ -337,7 +337,7 @@ compile-win:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 88):
+#  recipe to execute (from 'Makefile', line 93):
 	@GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} ${INPUT}
 	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} ${INPUT}
 
@@ -345,18 +345,25 @@ clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 81):
+#  recipe to execute (from 'Makefile', line 86):
 	@go clean --cache ./... 
 	@rm -f mem.prof
 	@rm -f prof.mem
 	@rm -rf bin
 	@echo "[OK] cleaned"
 
+preview-doc:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 72):
+	@godoc -http=localhost:6060 -links=true 
+
 compile-mac:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 95):
+#  recipe to execute (from 'Makefile', line 100):
 	@GOOS=darwin GOARCH=amd64 go build -o bin/${OSX_64} ${INPUT}
 
 coverage-export: coverage
@@ -386,7 +393,7 @@ run:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 105):
+#  recipe to execute (from 'Makefile', line 110):
 	@go run ${INPUT} $(filter-out $@,$(MAKECMDGOALS))
 
 build:
@@ -413,7 +420,7 @@ build:
 # | := 
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=1/11=9%
-#  recipe to execute (from 'Makefile', line 70):
+#  recipe to execute (from 'Makefile', line 75):
 	@go build -v ./...
 
 test:
@@ -429,7 +436,7 @@ code-check:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 77):
+#  recipe to execute (from 'Makefile', line 82):
 	@go vet -v ./...
 	@echo "[OK] code check finished"
 
@@ -437,7 +444,7 @@ code-fmt:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 73):
+#  recipe to execute (from 'Makefile', line 78):
 	@go fmt ./...
 	@echo "[OK] code format finished"
 
@@ -453,19 +460,19 @@ code-fmt:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=21/1024=2%, Rehash=0, Collisions=0/44=0%
+# Load=22/1024=2%, Rehash=0, Collisions=0/45=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 51 / storage = 504 B / avg = 9 B
-# current buf: size = 8162 B / used = 504 B / count = 51 / avg = 9 B
+# strcache buffers: 1 (0) / strings = 51 / storage = 518 B / avg = 10 B
+# current buf: size = 8162 B / used = 518 B / count = 51 / avg = 10 B
 
-# strcache performance: lookups = 83 / hit rate = 38%
+# strcache performance: lookups = 84 / hit rate = 39%
 # hash-table stats:
-# Load=51/8192=1%, Rehash=0, Collisions=0/83=0%
-# Finished Make data base on Wed Aug 24 09:54:02 2022
+# Load=51/8192=1%, Rehash=0, Collisions=0/84=0%
+# Finished Make data base on Fri Aug 26 13:07:08 2022
 
  

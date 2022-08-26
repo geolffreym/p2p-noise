@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-func TestListen(t *testing.T) {
+func TestSubscriberListen(t *testing.T) {
 	sub := newSubscriber()
 	signaling := signal{header{NewPeerDetected}, body{nil}, nil}
 
 	canceled := make(chan struct{})
-	msg := make(chan SignalCtx)
+	msg := make(chan Signal)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {

@@ -1,19 +1,12 @@
 package noise
 
-// PeerCtx represents [Peer] in signal context.
-// Each signal keep a context with the [Peer] involved in triggered event.
-type PeerCtx interface {
-	Send(msg []byte) (int, error)
-	Socket() Socket
-}
-
 // header keep event type related to signal.
 type header struct {
 	// Type of event published
 	event Event
 }
 
-// Type return Message event type published.
+// Type return Event type published.
 func (m header) Type() Event { return m.event }
 
 // body keep payload related to signal.
@@ -25,12 +18,12 @@ type body struct {
 // Payload return custom data published.
 func (m body) Payload() []byte { return m.payload }
 
-// signal keep message exchange context between network events.
+// signal implements Signal interface.
 // Each signal keep a state holding original header, body and related peer.
 type signal struct {
 	header header
 	body   body
-	peer   PeerCtx
+	peer   Peer
 }
 
 // Payload forward internal signal event message payload.

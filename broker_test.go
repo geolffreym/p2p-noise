@@ -170,7 +170,7 @@ func TestTopicRemoveInvalid(t *testing.T) {
 }
 
 func TestPublish(t *testing.T) {
-	var result SignalCtx
+	var result Signal
 	subscriber := newSubscriber()
 	broker := newBroker()
 	body1 := body{[]byte("Hello")}

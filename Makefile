@@ -66,6 +66,11 @@ coverage-export: coverage
 	@go tool cover -html=coverage
 	@echo "[OK] code test coverage finished"
 
+# Allow to preview documentation.
+# Please verify your GOPATH before run this command
+preview-doc: 
+	@godoc -http=localhost:6060 -links=true 
+
 build:
 	@go build -v ./...
 

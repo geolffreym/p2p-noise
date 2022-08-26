@@ -4,34 +4,26 @@ import (
 	"context"
 )
 
-// SignalContext as message interface to handle network events.
-// Each [signal] keep a state holding original header, body and related peer.
-type SignalCtx interface {
-	Type() Event
-	Payload() []byte
-	Reply(msg []byte) (int, error)
-}
-
-// Subscriber work as message synchronizer.
-// Handle actions to emir or receive events.
+// subscriber implements Subscriber interface.
+// Handle actions to emit or receive events.
 type subscriber struct {
-	notification chan SignalCtx // Message exchange channel
+	notification chan Signal // Message exchange channel
 }
 
 func newSubscriber() *subscriber {
 	return &subscriber{
-		make(chan SignalCtx),
+		make(chan Signal),
 	}
 }
 
 // Emit synchronized message using not-buffered channel.
-func (s *subscriber) Emit(msg SignalCtx) {
+func (s *subscriber) Emit(msg Signal) {
 	s.notification <- msg
 }
 
-// Listen and wait for message synchronization from channel.
-// When a new message is added to channel buffer the message is proxied to input channel.
-func (s *subscriber) Listen(ctx context.Context, ch chan<- SignalCtx) {
+// Listen and wait for Signal synchronization from channel.
+// When a new Signal is added to channel buffer the message is proxied to input channel.
+func (s *subscriber) Listen(ctx context.Context, ch chan<- Signal) {
 	// Wait until message synchronization finish to close channel
 	defer close(s.notification)
 

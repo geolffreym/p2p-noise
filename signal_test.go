@@ -42,7 +42,10 @@ func TestReply(t *testing.T) {
 	event := NewPeerDetected
 	payload := []byte(PAYLOAD)
 	msg := []byte("hello")
-	peer := &MockPeer{}
+
+	conn := &mockConn{}
+	address := Socket(LOCAL_ADDRESS)
+	peer := newPeer(address, conn)
 
 	context := signal{header{event}, body{payload}, peer}
 	sent, _ := context.Reply(msg)

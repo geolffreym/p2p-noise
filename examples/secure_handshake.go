@@ -1,8 +1,3 @@
-//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
-
-//P2P Noise Secure handshake.
-//
-//See also: http://www.noiseprotocol.org/noise.html#introduction
 package main
 
 import (
@@ -25,7 +20,7 @@ func handshake() {
 	node := noise.New(configuration)
 	// Network events channel
 	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.SignalCtx = node.Signals(ctx)
+	var signals <-chan noise.Signal = node.Signals(ctx)
 
 	go func() {
 		for signal := range signals {

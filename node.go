@@ -1,3 +1,9 @@
+//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
+
+// P2P Noise Library.
+// Please read more about [Noise Protocol].
+//
+// [Noise Protocol]: http://www.noiseprotocol.org/noise.html
 package noise
 
 import (
@@ -12,33 +18,22 @@ func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
-// PeerArbiter set time limits for I/O operations.
-// A deadline is an absolute time after which I/O operations fail instead of blocking.
-type PeerArbiter interface {
-	// SetReadDeadline sets the deadline for future Read calls and any currently-blocked Read call.
-	SetReadDeadline(t time.Time) error
-	// SetWriteDeadline sets the deadline for future Write calls and any currently-blocked Write call.
-	SetWriteDeadline(t time.Time) error
-}
-
-// PeerManager handle/set the "state" of peer.
-type PeerManager interface {
-	// Close closes the connection.
-	Close() error
+// Peer extends [net.Conn] interface.
+// Each [Peer] keep needed methods to interact with it.
+// Please see [Connection Interface] for more details.
+//
+// [Connection Interface]: https://pkg.go.dev/net#Conn
+type Peer interface {
+	net.Conn
+	// Return peer socket.
+	Socket() Socket
+	// Send message to peer.
+	Send(msg []byte) (int, error)
 	// Listen wait for incoming messages from peer.
 	Listen(maxPayloadSize uint32) ([]byte, error)
 }
 
-// Peer it is a [net.Conn] interface.
-// Each peer keep needed methods to interact with it.
-type Peer interface {
-	PeerCtx
-	PeerArbiter
-	PeerManager
-}
-
-// Router keep a hash table to associate Socket with Peers.
-// It implement a unstructured mesh topology with basic methods to operate it.
+// [Router] keep a hash table to associate [Socket] with [Peer].
 type Router interface {
 	// Query return connection interface based on socket parameter.
 	Query(socket Socket) Peer
@@ -57,13 +52,13 @@ type Router interface {
 // Event handle event exchange between node and the network.
 type Events interface {
 	// PeerConnected dispatch event when new peer is detected.
-	PeerConnected(peer PeerCtx)
+	PeerConnected(peer Peer)
 	// PeerDisconnected dispatch event when a peer disconnect.
-	PeerDisconnected(peer PeerCtx)
+	PeerDisconnected(peer Peer)
 	// NewMessage dispatch event when new message is received.
-	NewMessage(peer PeerCtx, msg []byte)
+	NewMessage(peer Peer, msg []byte)
 	// Listen and wait for message synchronization from channel.
-	Listen(ctx context.Context, ch chan<- SignalCtx)
+	Listen(ctx context.Context, ch chan<- Signal)
 }
 
 type Config interface {
@@ -104,8 +99,8 @@ func New(config Config) *Node {
 
 // Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Signals(ctx context.Context) <-chan SignalCtx {
-	ch := make(chan SignalCtx)
+func (n *Node) Signals(ctx context.Context) <-chan Signal {
+	ch := make(chan Signal)
 	go n.events.Listen(ctx, ch)
 	return ch // read only channel for raw messages
 }
@@ -187,7 +182,7 @@ KEEPALIVE:
 // routing initialize route in routing table from connection interface.
 // If TCP protocol is used connection is enforced to keep alive.
 // It return new peer added to table.
-func (n *Node) routing(conn net.Conn) (Peer, error) {
+func (n *Node) routing(conn net.Conn) (*peer, error) {
 
 	// Assertion for tcp connection to keep alive
 	connection, isTCP := conn.(*net.TCPConn)

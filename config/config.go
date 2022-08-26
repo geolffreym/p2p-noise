@@ -39,7 +39,7 @@ func New() *Config {
 }
 
 // Write stores settings in `Settings` struct reference.
-// All the settings are passed as an array of `setters` to then get called with `Settings`` reference as param.
+// All the settings are passed as an array of `setters` to then get called with `Settings“ reference as param.
 // ref: https://github.com/crazybber/awesome-patterns/blob/master/idiom/functional-options.md
 func (s *Config) Write(c ...Setter) {
 	for _, setter := range c {

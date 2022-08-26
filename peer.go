@@ -7,9 +7,9 @@ import (
 	"net"
 )
 
-// peer struct implements [noise.Peer] interface.
-// peer extends the [net.Conn] interface.
-// Each has a [Socket] address to identify itself.
+// peer implements Peer interface.
+// peer extends the net.Conn interface.
+// Each peer has a Socket address to identify itself.
 type peer struct {
 	net.Conn        // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
 	socket   Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
@@ -24,12 +24,11 @@ func newPeer(socket Socket, conn net.Conn) *peer {
 	}
 }
 
-// Return peer [Socket].
+// Return peer socket.
 // eg. "127.0.0.1:2000"
 func (p *peer) Socket() Socket { return p.socket }
 
-// Send emit a message to [Peer].
-// Message keep message size bundled in header for dynamic allocation of buffer.
+// Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {
 	// write 4-bytes size header to share payload size
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
@@ -42,7 +41,7 @@ func (p *peer) Send(msg []byte) (int, error) {
 	return bytesSent + 4, err
 }
 
-// Listen wait for incoming messages from [Peer].
+// Listen wait for incoming messages from Peer.
 // Each message keep a header with message size to allocate buffer dynamically.
 func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 

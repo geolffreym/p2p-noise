@@ -1,1 +1,1 @@
-{"buildTargets":[],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
+{"buildTargets":["all","benchmark","build","clean","code-check","code-fmt","compile","compile-linux","compile-mac","compile-win","coverage","coverage-export","preview-doc","profiling","run","test","update-pkg-cache"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

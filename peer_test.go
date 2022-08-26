@@ -29,8 +29,7 @@ type mockConn struct {
 // Read can be made to time out and return an error after a fixed
 // time limit; see SetDeadline and SetReadDeadline.
 func (c *mockConn) Read(p []byte) (n int, err error) {
-	data := <-c.channel
-	return len(data), nil
+	return 0, nil
 }
 
 // Write writes data to the connection.
@@ -38,8 +37,6 @@ func (c *mockConn) Read(p []byte) (n int, err error) {
 // time limit; see SetDeadline and SetWriteDeadline.
 // time limit; see SetDeadline and SetWriteDeadline.
 func (c *mockConn) Write(b []byte) (n int, err error) {
-	c.channel <- b
-
 	return 1, nil
 }
 
