@@ -30,7 +30,7 @@ type PeerManager interface {
 }
 
 // Peer it is a connection interface.
-// Each peer keep needed methods to interact with it and a socket address to identify itself.
+// Each peer keep needed methods to interact with it.
 type Peer interface {
 	PeerCtx
 	PeerArbiter
