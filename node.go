@@ -181,7 +181,7 @@ KEEPALIVE:
 
 // routing initialize route in routing table from connection interface.
 // If TCP protocol is used connection is enforced to keep alive.
-// It return new peer added to table.
+// Return err if max peers connected exceed MaxPeerConnected otherwise return new peer added to table.
 func (n *Node) routing(conn net.Conn) (*peer, error) {
 
 	// Assertion for tcp connection to keep alive
