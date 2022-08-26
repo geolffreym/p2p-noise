@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// NetError represents errors related to network communication.
+// [NetError] represents errors related to network communication.
 type NetError struct {
 	Context string
 	Err     error
@@ -16,7 +16,7 @@ func (e NetError) Error() string {
 	return fmt.Sprintf("net: %s -> %v", e.Context, e.Err)
 }
 
-// OperationalError represents an error that occurred when an operation in node is invalid.
+// [OperationalError] represents an error that occurred when an operation in node is invalid.
 // eg. Send a new message to invalid or not connected peer.
 type OperationalError struct {
 	Context string
@@ -28,7 +28,7 @@ func (e OperationalError) Error() string {
 	return fmt.Sprintf("ops: %s -> %v", e.Context, e.Err)
 }
 
-// OverflowError error represents a problem with the maximum setting of a parameter being exceeded.
+// [OverflowError] error represents a problem with the maximum setting of a parameter being exceeded.
 // eg. MaxPeersConnected exceeded for incoming connections.
 type OverflowError struct {
 	Context string
@@ -68,7 +68,7 @@ func errExceededMaxPeers(max uint8) error {
 	}
 }
 
-// ErrExceededMaxPeers error represent an issue if number of active connections exceed max peer connected.
+// errExceededMaxPayloadSize error represent an issue if received message size exceed max payload size.
 func errExceededMaxPayloadSize(max uint32) error {
 	return &OverflowError{
 		fmt.Sprintf("it is not possible to accept more than %d bytes", max),
@@ -76,6 +76,7 @@ func errExceededMaxPayloadSize(max uint32) error {
 	}
 }
 
+// errSendingMessageToInvalidPeer error represent an issue trying to send a message to invalid peer.
 func errSendingMessageToInvalidPeer(addr string) error {
 	return &OperationalError{
 		fmt.Sprintf("error trying to send a message to %s", addr),
