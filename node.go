@@ -91,8 +91,8 @@ type Node struct {
 func New(config Config) *Node {
 	return &Node{
 		make(chan bool),
-		NewRouter(),
-		NewEvents(),
+		newRouter(),
+		newEvents(),
 		config,
 	}
 }

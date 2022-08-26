@@ -37,7 +37,7 @@ type router struct {
 	table Table
 }
 
-func NewRouter() Router {
+func newRouter() *router {
 	return &router{
 		table: make(Table),
 	}
