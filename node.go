@@ -12,14 +12,25 @@ func futureDeadLine(deadline time.Duration) time.Time {
 	return time.Now().Add(deadline * time.Second)
 }
 
-// Peer has a simplistic interface to describe a peer in the network.
-// Each peer has a socket address to identify itself and a connection interface to communicate with it.
-type Peer interface {
-	PeerCtx
-	Close() error
+// PeerArbiter set time limits for I/O operations.
+// A deadline is an absolute time after which I/O operations fail instead of blocking.
+type PeerArbiter interface {
 	SetReadDeadline(t time.Time) error
 	SetWriteDeadline(t time.Time) error
+}
+
+// PeerManager handle/set the "state" of peer.
+type PeerManager interface {
+	Close() error
 	Listen(maxPayloadSize uint32) ([]byte, error)
+}
+
+// Peer it is a connection interface.
+// Each peer keep needed methods to interact with it and a socket address to identify itself.
+type Peer interface {
+	PeerCtx
+	PeerArbiter
+	PeerManager
 }
 
 // Router keep a hash table to associate Socket with Peers.
@@ -33,6 +44,8 @@ type Router interface {
 	Add(peer Peer)
 	// Table return current routing table.
 	Table() Table
+	// Flush clean table and return total peers removed.
+	Flush() uint8
 	// Len return the number of routed connections.
 	Len() uint8
 }
@@ -96,11 +109,6 @@ func (n *Node) Signals(ctx context.Context) <-chan SignalCtx {
 // Addr return current self listening node address.
 func (n *Node) Addr() Socket {
 	return Socket(n.config.SelfListeningAddress())
-}
-
-// Table forward to internal router Table
-func (n *Node) Table() Table {
-	return n.router.Table()
 }
 
 // Send emit a new message to peer socket.
@@ -283,6 +291,8 @@ func (n *Node) Close() {
 		}(p)
 	}
 
+	// flush connected peers
+	n.router.Flush()
 	// If channel get closed then all routines waiting for connections
 	// or waiting for incoming messages get closed too.
 	close(n.sentinel)

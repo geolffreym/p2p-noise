@@ -79,6 +79,17 @@ func (r *router) Len() uint8 {
 	return uint8(len(r.table))
 }
 
+// Flush clean table and return total peers removed.
+// This will be garbage collected eventually.
+func (r *router) Flush() uint8 {
+	size := r.Len()
+	// nil its a valid type for mapping since its a reference type.
+	// ref: https://github.com/go101/go101/wiki/About-the-terminology-%22reference-type%22-in-Go
+	r.table = nil
+	return size
+
+}
+
 // Remove removes a connection from router.
 // It return recently removed peer.
 func (r *router) Remove(peer Peer) {

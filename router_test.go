@@ -135,28 +135,67 @@ func TestDelete(t *testing.T) {
 	router := newRouter()
 
 	peerA := newPeer(PeerA, nil)
-	peerB := newPeer(PeerA, nil)
-	peerC := newPeer(PeerA, nil)
-	peerD := newPeer(PeerA, nil)
-	peerF := newPeer(PeerA, nil)
+	peerB := newPeer(PeerB, nil)
+	peerC := newPeer(PeerC, nil)
+	peerD := newPeer(PeerD, nil)
+	peerE := newPeer(PeerE, nil)
 
 	// Add new record
 	router.Add(peerA) // 1
 	router.Add(peerB) // 2
 	router.Add(peerC) // 3
 	router.Add(peerD) // 4
-	router.Add(peerF) // 5
+	router.Add(peerE) // 5
 
 	// delete B and F
 	router.Remove(peerB)
-	router.Remove(peerF)
+	router.Remove(peerE)
 
 	if router.Query(peerB.Socket()) != nil {
 		t.Errorf("expected %v not registered in router after delete", peerB.Socket())
 	}
 
-	if router.Query(peerF.Socket()) != nil {
-		t.Errorf("expected %v not registered in router after delete", peerF.Socket())
+	if router.Query(peerE.Socket()) != nil {
+		t.Errorf("expected %v not registered in router after delete", peerE.Socket())
+	}
+
+}
+
+func TestFlush(t *testing.T) {
+	router := newRouter()
+	peerA := newPeer(PeerA, nil)
+	// Add new record
+	router.Add(peerA) // 1
+	router.Flush()
+
+	if router.Table() != nil {
+		t.Errorf("expected empty table, got %v", router.Table())
+	}
+
+}
+
+func TestFlushSize(t *testing.T) {
+	router := newRouter()
+
+	peerA := newPeer(PeerA, nil)
+	peerB := newPeer(PeerB, nil)
+	peerC := newPeer(PeerC, nil)
+	peerD := newPeer(PeerD, nil)
+	peerE := newPeer(PeerE, nil)
+
+	// Add new record
+	router.Add(peerA) // 1
+	router.Add(peerB) // 2
+	router.Add(peerC) // 3
+	router.Add(peerD) // 4
+	router.Add(peerE) // 5
+
+	// delete B and F
+	len := router.Len()
+	deleted := router.Flush()
+
+	if deleted != len {
+		t.Errorf("expected %v table flushed peers, got %v", len, deleted)
 	}
 
 }

@@ -1,5 +1,12 @@
 package noise
 
+// PeerCtx represents Peer in signal context.
+// Each Signal keep a context with the peer involved in triggered event.
+type PeerCtx interface {
+	Send(msg []byte) (int, error)
+	Socket() Socket
+}
+
 // header keep event type related to signal.
 type header struct {
 	// Type of event published

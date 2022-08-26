@@ -31,6 +31,7 @@ func (h blake2Fn) Hash() hash.Hash {
 
 var HashBLAKE2 noise.HashFunc = blake2Fn{}
 
+// Cipher algorithm.
 // ChaCha20-Poly1305 usually offers better performance than the more prevalent AES-GCM algorithm on systems where the CPU(s)
 // does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
 // AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.

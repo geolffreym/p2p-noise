@@ -14,13 +14,6 @@ const (
 	PeerDisconnected
 )
 
-// PeerCtx represents Peer in signal context.
-// Each Signal keep a context with the peer involved in triggered event.
-type PeerCtx interface {
-	Send(msg []byte) (int, error)
-	Socket() Socket
-}
-
 type events struct {
 	broker     *broker
 	subscriber *subscriber
