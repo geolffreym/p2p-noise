@@ -31,12 +31,12 @@ func TestStringSocket(t *testing.T) {
 func TestAdd(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, nil))
-	router.Add(newPeer(PeerB, nil))
-	router.Add(newPeer(PeerC, nil))
-	router.Add(newPeer(PeerD, nil))
-	router.Add(newPeer(PeerE, nil))
-	router.Add(newPeer(PeerF, nil))
+	router.Add(newPeer(PeerA, &mockConn{}))
+	router.Add(newPeer(PeerB, &mockConn{}))
+	router.Add(newPeer(PeerC, &mockConn{}))
+	router.Add(newPeer(PeerD, &mockConn{}))
+	router.Add(newPeer(PeerE, &mockConn{}))
+	router.Add(newPeer(PeerF, &mockConn{}))
 
 	expected := []struct {
 		socket string
@@ -77,8 +77,8 @@ func TestAdd(t *testing.T) {
 func TestQuery(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, nil))
-	router.Add(newPeer(PeerB, nil))
+	router.Add(newPeer(PeerA, &mockConn{}))
+	router.Add(newPeer(PeerB, &mockConn{}))
 
 	expected := []struct {
 		socket string
@@ -107,7 +107,7 @@ func TestQuery(t *testing.T) {
 func TestInvalidQuery(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, nil))
+	router.Add(newPeer(PeerA, &mockConn{}))
 
 	if peer := router.Query(Socket(PeerB)); peer != nil {
 		t.Errorf("expected nil for invalid socket %#v, got %v", PeerB, peer)
@@ -118,12 +118,12 @@ func TestInvalidQuery(t *testing.T) {
 func TestLen(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, nil)) // 1
-	router.Add(newPeer(PeerB, nil)) // 2
-	router.Add(newPeer(PeerC, nil)) // 3
-	router.Add(newPeer(PeerD, nil)) // 4
-	router.Add(newPeer(PeerE, nil)) // 5
-	router.Add(newPeer(PeerF, nil)) // 6
+	router.Add(newPeer(PeerA, &mockConn{})) // 1
+	router.Add(newPeer(PeerB, &mockConn{})) // 2
+	router.Add(newPeer(PeerC, &mockConn{})) // 3
+	router.Add(newPeer(PeerD, &mockConn{})) // 4
+	router.Add(newPeer(PeerE, &mockConn{})) // 5
+	router.Add(newPeer(PeerF, &mockConn{})) // 6
 
 	if router.Len() != 6 {
 		t.Errorf("expected 6 len for registered peers,  got %v", router.Len())
@@ -134,11 +134,11 @@ func TestLen(t *testing.T) {
 func TestDelete(t *testing.T) {
 	router := newRouter()
 
-	peerA := newPeer(PeerA, nil)
-	peerB := newPeer(PeerB, nil)
-	peerC := newPeer(PeerC, nil)
-	peerD := newPeer(PeerD, nil)
-	peerE := newPeer(PeerE, nil)
+	peerA := newPeer(PeerA, &mockConn{})
+	peerB := newPeer(PeerB, &mockConn{})
+	peerC := newPeer(PeerC, &mockConn{})
+	peerD := newPeer(PeerD, &mockConn{})
+	peerE := newPeer(PeerE, &mockConn{})
 
 	// Add new record
 	router.Add(peerA) // 1
@@ -163,7 +163,7 @@ func TestDelete(t *testing.T) {
 
 func TestFlush(t *testing.T) {
 	router := newRouter()
-	peerA := newPeer(PeerA, nil)
+	peerA := newPeer(PeerA, &mockConn{})
 	// Add new record
 	router.Add(peerA) // 1
 	router.Flush()
@@ -177,11 +177,11 @@ func TestFlush(t *testing.T) {
 func TestFlushSize(t *testing.T) {
 	router := newRouter()
 
-	peerA := newPeer(PeerA, nil)
-	peerB := newPeer(PeerB, nil)
-	peerC := newPeer(PeerC, nil)
-	peerD := newPeer(PeerD, nil)
-	peerE := newPeer(PeerE, nil)
+	peerA := newPeer(PeerA, &mockConn{})
+	peerB := newPeer(PeerB, &mockConn{})
+	peerC := newPeer(PeerC, &mockConn{})
+	peerD := newPeer(PeerD, &mockConn{})
+	peerE := newPeer(PeerE, &mockConn{})
 
 	// Add new record
 	router.Add(peerA) // 1
