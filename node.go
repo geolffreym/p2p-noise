@@ -15,13 +15,17 @@ func futureDeadLine(deadline time.Duration) time.Time {
 // PeerArbiter set time limits for I/O operations.
 // A deadline is an absolute time after which I/O operations fail instead of blocking.
 type PeerArbiter interface {
+	// SetReadDeadline sets the deadline for future Read calls and any currently-blocked Read call.
 	SetReadDeadline(t time.Time) error
+	// SetWriteDeadline sets the deadline for future Write calls and any currently-blocked Write call.
 	SetWriteDeadline(t time.Time) error
 }
 
 // PeerManager handle/set the "state" of peer.
 type PeerManager interface {
+	// Close closes the connection.
 	Close() error
+	// Listen wait for incoming messages from peer.
 	Listen(maxPayloadSize uint32) ([]byte, error)
 }
 
