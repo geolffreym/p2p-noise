@@ -1,7 +1,7 @@
 package noise
 
-// PeerCtx represents [noise.Peer] in signal context.
-// Each signal keep a context with the [noise.Peer] involved in triggered event.
+// PeerCtx represents [Peer] in signal context.
+// Each signal keep a context with the [Peer] involved in triggered event.
 type PeerCtx interface {
 	Send(msg []byte) (int, error)
 	Socket() Socket

@@ -16,7 +16,7 @@ func (s Socket) String() string {
 	return string(s)
 }
 
-// Table `keep` a socket:connection mapping.
+// Table `keep` a [Socket]:[Peer] mapping.
 type Table map[Socket]Peer
 
 // Add new peer to table.
@@ -29,8 +29,8 @@ func (t Table) Remove(peer Peer) {
 	delete(t, peer.Socket())
 }
 
-// router implements Router interface.
-// It is a hash table to associate Socket with Peers in a unstructured mesh topology.
+// router implements [Router] interface.
+// It is a hash table to associate [Socket] with [Peers] in a unstructured mesh topology.
 type router struct {
 	sync.RWMutex
 	table Table
@@ -62,11 +62,11 @@ func (r *router) Query(socket Socket) Peer {
 	return nil
 }
 
-// Add create new socket connection association.
+// Add create new [Socket] [Peer] association.
 func (r *router) Add(peer Peer) {
 	// Lock write/read table while add operation
 	// A blocked Lock call excludes new readers from acquiring the lock.
-	// ref: https://pkg.go.dev/sync#RWMutex.Lock
+	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
 	r.RWMutex.Lock()
 	r.table.Add(peer)
 	r.RWMutex.Unlock()

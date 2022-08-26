@@ -29,7 +29,7 @@ type PeerManager interface {
 	Listen(maxPayloadSize uint32) ([]byte, error)
 }
 
-// Peer it is a connection interface.
+// Peer it is a [net.Conn] interface.
 // Each peer keep needed methods to interact with it.
 type Peer interface {
 	PeerCtx
