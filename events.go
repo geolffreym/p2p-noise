@@ -24,29 +24,10 @@ type Signal interface {
 	Reply(msg []byte) (int, error)
 }
 
-// [Subscriber] intercept Signals from already subscribed topics in [Broker].
-type Subscriber interface {
-	// Emit signal using not-buffered channel.
-	Emit(msg Signal)
-	// Listen and wait for Signal synchronization from channel.
-	Listen(ctx context.Context, ch chan<- Signal)
-}
-
-// [Broker] exchange messages between [Events] and [Subscriber].
-// Each [Broker] receive published [Signal] from [Event] for later emit it to [Subscriber].
-type Broker interface {
-	// Register associate Subscriber to broker topics.
-	Register(e Event, s Subscriber)
-	// Unregister remove associated subscriber from topics.
-	Unregister(e Event, s Subscriber) bool
-	// Publish Emit/send concurrently messages to topic subscribers.
-	Publish(msg Signal) uint8
-}
-
 // events implements Events interface.
 type events struct {
-	broker     Broker
-	subscriber Subscriber
+	broker     *broker
+	subscriber *subscriber
 }
 
 func newEvents() *events {
