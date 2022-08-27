@@ -26,17 +26,17 @@ type Signal struct {
 	peer   *peer
 }
 
-// Payload forward internal signal event message payload.
+// Payload forward internal signal body payload.
 func (s Signal) Payload() []byte {
 	return s.body.Payload()
 }
 
-// Type forward internal signal event message type.
+// Type forward internal signal header event type.
 func (s Signal) Type() Event {
 	return s.header.Type()
 }
 
-// Reply send an answer to contextual peer.
+// Reply send an answer to peer in context.
 func (s Signal) Reply(msg []byte) (int, error) {
 	return s.peer.Send(msg)
 }

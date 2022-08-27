@@ -35,7 +35,7 @@ func (t table) Get(socket Socket) *peer {
 	return nil
 }
 
-// Remove peer from [Table].
+// Remove peer from table.
 func (t table) Remove(peer *peer) {
 	delete(t, peer.Socket())
 }
@@ -53,7 +53,7 @@ func newRouter() *router {
 	}
 }
 
-// Table return current routing Table.
+// Table return current routing table.
 func (r *router) Table() table { return r.table }
 
 // Query return connection interface based on socket parameter.
