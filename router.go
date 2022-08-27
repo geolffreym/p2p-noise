@@ -25,6 +25,16 @@ func (t table) Add(peer *peer) {
 	t[peer.Socket()] = peer
 }
 
+// Get peer from table.
+func (t table) Get(socket Socket) *peer {
+	// exist socket related peer in table?
+	if peer, ok := t[socket]; ok {
+		return peer
+	}
+
+	return nil
+}
+
 // Remove peer from [Table].
 func (t table) Remove(peer *peer) {
 	delete(t, peer.Socket())
@@ -54,13 +64,8 @@ func (r *router) Query(socket Socket) *peer {
 	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.RLock
 	r.RWMutex.RLock()
 	defer r.RWMutex.RUnlock()
-
 	// exist socket related peer?
-	if peer, ok := r.table[socket]; ok {
-		return peer
-	}
-
-	return nil
+	return r.table.Get(socket)
 }
 
 // Add create new Socket Peer association.
