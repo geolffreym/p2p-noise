@@ -36,18 +36,23 @@ func (t topics) Add(e Event, s *subscriber) {
 // It return true for removed subscriber from event else false.
 func (t topics) Remove(e Event, s *subscriber) bool {
 	// Is topic registered?
-	if to, existsTopic := t[e]; existsTopic {
-		// If subscriber exists in topic
-		if i, subscribed := to.sMap[s]; subscribed {
-			// Clear topic from slice and map
-			to.s = append(to.s[:i], to.s[i+1:]...) // re-slice to remove old subscriber
-			delete(to.sMap, s)                     // remove index from mapping
-			to.size--                              // reduce size of subscribers in topic
-			return true
-		}
+	to, existsTopic := t[e]
+	if !existsTopic {
+		return false
 	}
 
-	return false
+	// Check if subscriber exists in topic
+	i, isSubscribed := to.sMap[s]
+	if !isSubscribed {
+		return false
+	}
+
+	// Clear topic from slice and map
+	to.s = append(to.s[:i], to.s[i+1:]...) // re-slice to remove old subscriber
+	delete(to.sMap, s)                     // remove index from mapping
+	to.size--                              // reduce size of subscribers in topic
+	return true
+
 }
 
 // broker exchange messages between events and subscriber.
@@ -89,18 +94,22 @@ func (b *broker) Publish(msg Signal) uint8 {
 	defer b.Mutex.Unlock()
 
 	// Check if topic is registered before try to emit messages to subscribers.
-	if topicData, ok := b.topics[msg.Type()]; ok {
-		topicLen := topicData.Len()            // How many subscribers exists in topic?
-		subscribers := topicData.Subscribers() // Subscribers in topic!!
-
-		for _, sub := range subscribers {
-			go func(s *subscriber) {
-				s.Emit(msg)
-			}(sub)
-		}
-		// Number of subscribers notified
-		return topicLen
+	topicData, topicExists := b.topics[msg.Type()]
+	if !topicExists {
+		return 0
 	}
 
-	return 0
+	// How many subscribers exists in topic?
+	topicLen := topicData.Len()
+	// Subscribers in topic!!
+	subscribers := topicData.Subscribers() // Subscribers in topic!!
+
+	for _, sub := range subscribers {
+		go func(s *subscriber) {
+			s.Emit(msg)
+		}(sub)
+	}
+	// Number of subscribers notified
+	return topicLen
+
 }
