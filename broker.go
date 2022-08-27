@@ -36,8 +36,8 @@ func (t topics) Add(e Event, s *subscriber) {
 // It return true for removed subscriber from event else false.
 func (t topics) Remove(e Event, s *subscriber) bool {
 	// Is topic registered?
-	to, existsTopic := t[e]
-	if !existsTopic {
+	to, topicExists := t[e]
+	if !topicExists {
 		return false
 	}
 
