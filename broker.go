@@ -94,22 +94,21 @@ func (b *broker) Publish(msg Signal) uint8 {
 	defer b.Mutex.Unlock()
 
 	// Check if topic is registered before try to emit messages to subscribers.
-	topicData, topicExists := b.topics[msg.Type()]
-	if !topicExists {
-		return 0
+	if topicData, ok := b.topics[msg.Type()]; ok {
+		// How many subscribers exists in topic?
+		topicLen := topicData.Len()
+		// Subscribers in topic!!
+		subscribers := topicData.Subscribers() // Subscribers in topic!!
+		// For each subscriber in topic registered emit a new signal
+		for _, sub := range subscribers {
+			go func(s *subscriber) {
+				s.Emit(msg)
+			}(sub)
+		}
+		// Number of subscribers notified
+		return topicLen
 	}
 
-	// How many subscribers exists in topic?
-	topicLen := topicData.Len()
-	// Subscribers in topic!!
-	subscribers := topicData.Subscribers() // Subscribers in topic!!
-	// For each subscriber in topic registered emit a new signal
-	for _, sub := range subscribers {
-		go func(s *subscriber) {
-			s.Emit(msg)
-		}(sub)
-	}
-	// Number of subscribers notified
-	return topicLen
+	return 0
 
 }
