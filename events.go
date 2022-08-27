@@ -14,16 +14,6 @@ const (
 	PeerDisconnected
 )
 
-// [Signal] it is a message interface to transport network events.
-type Signal interface {
-	// Return event message type.
-	Type() Event
-	// Return event message payload.
-	Payload() []byte
-	// Reply send an answer to peer in context.
-	Reply(msg []byte) (int, error)
-}
-
 // events handle event exchange between [Node] and network.
 type events struct {
 	broker     *broker
@@ -54,7 +44,7 @@ func (e *events) PeerConnected(peer *peer) {
 	// Emit new notification
 	body := body{peer.Socket().Bytes()}
 	header := header{NewPeerDetected}
-	signal := signal{header, body, peer}
+	signal := Signal{header, body, peer}
 	e.broker.Publish(signal)
 }
 
@@ -63,7 +53,7 @@ func (e *events) PeerDisconnected(peer *peer) {
 	// Emit new notification
 	body := body{peer.Socket().Bytes()}
 	header := header{PeerDisconnected}
-	signal := signal{header, body, peer}
+	signal := Signal{header, body, peer}
 	e.broker.Publish(signal)
 }
 
@@ -72,6 +62,6 @@ func (e *events) NewMessage(peer *peer, msg []byte) {
 	// Emit new notification
 	body := body{msg}
 	header := header{MessageReceived}
-	signal := signal{header, body, peer}
+	signal := Signal{header, body, peer}
 	e.broker.Publish(signal)
 }

@@ -8,7 +8,7 @@ import (
 
 func TestSubscriberListen(t *testing.T) {
 	sub := newSubscriber()
-	signaling := signal{header{NewPeerDetected}, body{nil}, nil}
+	signaling := Signal{header{NewPeerDetected}, body{nil}, nil}
 
 	canceled := make(chan struct{})
 	msg := make(chan Signal)

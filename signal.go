@@ -18,25 +18,25 @@ type body struct {
 // Payload return custom data published.
 func (m body) Payload() []byte { return m.payload }
 
-// signal implements Signal interface.
-// Each signal keep a state holding original header, body and related peer.
-type signal struct {
+// [Signal] it is a message interface to transport network events.
+// Each Signal keep a state holding original header, body and related peer.
+type Signal struct {
 	header header
 	body   body
 	peer   *peer
 }
 
 // Payload forward internal signal event message payload.
-func (s signal) Payload() []byte {
+func (s Signal) Payload() []byte {
 	return s.body.Payload()
 }
 
 // Type forward internal signal event message type.
-func (s signal) Type() Event {
+func (s Signal) Type() Event {
 	return s.header.Type()
 }
 
 // Reply send an answer to contextual peer.
-func (s signal) Reply(msg []byte) (int, error) {
+func (s Signal) Reply(msg []byte) (int, error) {
 	return s.peer.Send(msg)
 }

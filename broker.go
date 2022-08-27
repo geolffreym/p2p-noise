@@ -83,7 +83,7 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
-func (b *broker) Publish(msg signal) uint8 {
+func (b *broker) Publish(msg Signal) uint8 {
 	// Lock while reading operation
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()
