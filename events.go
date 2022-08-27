@@ -2,7 +2,7 @@ package noise
 
 import "context"
 
-// Aliases to handle idiomatic `Event` type
+// [Event] aliases for int type.
 type Event int
 
 const (

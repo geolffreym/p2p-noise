@@ -237,7 +237,7 @@ func (n *Node) Closed() bool {
 	}
 }
 
-// Close all peers connections and stop listening
+// Close all peers connections and stop listening.
 func (n *Node) Close() {
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {

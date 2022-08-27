@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// String socket representation.
+// [Socket] aliases for string.
 type Socket string
 
 // Bytes return a byte slice representation for socket.
@@ -17,16 +17,16 @@ func (s Socket) String() string {
 	return string(s)
 }
 
-// Table assoc [Socket] with Peer.
-type Table map[Socket]*peer
+// table assoc Socket with peer.
+type table map[Socket]*peer
 
-// Add new peer to [Table].
-func (t Table) Add(peer *peer) {
+// Add new peer to table.
+func (t table) Add(peer *peer) {
 	t[peer.Socket()] = peer
 }
 
 // Remove peer from [Table].
-func (t Table) Remove(peer *peer) {
+func (t table) Remove(peer *peer) {
 	delete(t, peer.Socket())
 }
 
@@ -34,17 +34,17 @@ func (t Table) Remove(peer *peer) {
 // It is a hash table to associate Socket with Peers in a unstructured mesh topology.
 type router struct {
 	sync.RWMutex
-	table Table
+	table table
 }
 
 func newRouter() *router {
 	return &router{
-		table: make(Table),
+		table: make(table),
 	}
 }
 
 // Table return current routing Table.
-func (r *router) Table() Table { return r.table }
+func (r *router) Table() table { return r.table }
 
 // Query return connection interface based on socket parameter.
 func (r *router) Query(socket Socket) *peer {
