@@ -98,7 +98,7 @@ func (b *broker) Publish(msg Signal) uint8 {
 		// How many subscribers exists in topic?
 		topicLen := topicData.Len()
 		// Subscribers in topic!!
-		subscribers := topicData.Subscribers() // Subscribers in topic!!
+		subscribers := topicData.Subscribers()
 		// For each subscriber in topic registered emit a new signal
 		for _, sub := range subscribers {
 			go func(s *subscriber) {
