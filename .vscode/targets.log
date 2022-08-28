@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Aug 26 15:29:23 2022
+# Make data base, printed on Sun Aug 28 09:54:58 2022
 
 # Variables
 
@@ -282,10 +282,10 @@ compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
- 
 #  recipe to execute (from 'Makefile', line 103):
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
+ 
 
 coverage:
 #  Implicit rule search has not been done.
@@ -473,6 +473,6 @@ code-fmt:
 # strcache performance: lookups = 85 / hit rate = 38%
 # hash-table stats:
 # Load=52/8192=1%, Rehash=0, Collisions=0/85=0%
-# Finished Make data base on Fri Aug 26 15:29:23 2022
+# Finished Make data base on Sun Aug 28 09:54:58 2022
 
  

@@ -217,8 +217,9 @@ func (n *Node) Listen() error {
 			conn.Close() // Drop connection
 			continue
 		}
-
-		go n.watch(peer) // Wait for incoming messages
+		// Wait for incoming messages
+		// This routine will stop when Close() is called
+		go n.watch(peer)
 		// Dispatch event for new peer connected
 		n.events.PeerConnected(peer)
 	}
@@ -276,7 +277,9 @@ func (n *Node) Dial(socket Socket) error {
 		return errDialingNode(err, addr)
 	}
 
-	go n.watch(peer) // Wait for incoming messages
+	// Wait for incoming messages
+	// This routine will stop when Close() is called
+	go n.watch(peer)
 	// Dispatch event for new peer connected
 	n.events.PeerConnected(peer)
 	return nil
