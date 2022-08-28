@@ -105,9 +105,9 @@ func (b *broker) Publish(msg Signal) uint8 {
 	subscribers := data.Subscribers()
 	// For each subscriber in topic registered emit a new signal
 	for _, sub := range subscribers {
-		go func(s *subscriber) {
-			s.Emit(msg)
-		}(sub)
+		go func(s *subscriber, m Signal) {
+			s.Emit(m)
+		}(sub, msg)
 	}
 
 	// Number of subscribers notified

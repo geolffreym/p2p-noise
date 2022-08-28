@@ -23,20 +23,21 @@ func (m body) Payload() []byte { return m.payload }
 type Signal struct {
 	header header
 	body   body
-	peer   *peer
+	// Use a pointer if you are using a type that has methods with pointer receivers.
+	peer *peer
 }
 
 // Payload forward internal signal body payload.
-func (s Signal) Payload() []byte {
+func (s *Signal) Payload() []byte {
 	return s.body.Payload()
 }
 
 // Type forward internal signal header event type.
-func (s Signal) Type() Event {
+func (s *Signal) Type() Event {
 	return s.header.Type()
 }
 
 // Reply send an answer to peer in context.
-func (s Signal) Reply(msg []byte) (int, error) {
+func (s *Signal) Reply(msg []byte) (int, error) {
 	return s.peer.Send(msg)
 }
