@@ -19,7 +19,7 @@ type body struct {
 func (m body) Payload() []byte { return m.payload }
 
 // [Signal] it is a message interface to transport network events.
-// Each Signal keep a state holding original header, body and related peer.
+// Each Signal keep a immutable state holding original header, body and related peer.
 type Signal struct {
 	header header
 	body   body
