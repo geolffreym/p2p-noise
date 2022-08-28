@@ -8,7 +8,7 @@ import (
 )
 
 // peer extends [net.Conn] interface.
-// Each [Peer] keep needed methods to interact with it.
+// Each peer keep needed methods to interact with it.
 // Please see [Connection Interface] for more details.
 //
 // [Connection Interface]: https://pkg.go.dev/net#Conn
