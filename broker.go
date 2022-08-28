@@ -36,14 +36,14 @@ func (t topics) Add(e Event, s *subscriber) {
 // It return true for removed subscriber from event else false.
 func (t topics) Remove(e Event, s *subscriber) bool {
 	// Is topic registered?
-	to, topicExists := t[e]
-	if !topicExists {
+	to, exists := t[e]
+	if !exists {
 		return false
 	}
 
-	// Check if subscriber exists in topic
-	i, isSubscribed := to.sMap[s]
-	if !isSubscribed {
+	// Check if subscriber index exists in topic
+	i, exists := to.sMap[s]
+	if !exists {
 		return false
 	}
 
@@ -94,15 +94,15 @@ func (b *broker) Publish(msg Signal) uint8 {
 	defer b.Mutex.Unlock()
 
 	// Check if topic is registered before try to emit messages to subscribers.
-	topicData, topicExists := b.topics[msg.Type()]
-	if !topicExists {
+	data, exists := b.topics[msg.Type()]
+	if !exists {
 		return 0
 	}
 
 	// How many subscribers exists in topic?
-	topicLen := topicData.Len()
+	length := data.Len()
 	// Subscribers in topic!!
-	subscribers := topicData.Subscribers()
+	subscribers := data.Subscribers()
 	// For each subscriber in topic registered emit a new signal
 	for _, sub := range subscribers {
 		go func(s *subscriber) {
@@ -111,5 +111,5 @@ func (b *broker) Publish(msg Signal) uint8 {
 	}
 
 	// Number of subscribers notified
-	return topicLen
+	return length
 }
