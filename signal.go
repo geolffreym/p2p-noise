@@ -1,9 +1,12 @@
 package noise
 
-// header keep event type related to signal.
+import "unsafe"
+
+// header keep the context for triggered signal.
 type header struct {
 	// Type of event published
-	event Event
+	peer  *peer // Hold the involved peer
+	event Event // Hold the triggered event
 }
 
 // Type return Event type published.
@@ -19,17 +22,18 @@ type body struct {
 func (m body) Payload() []byte { return m.payload }
 
 // [Signal] it is a message interface to transport network events.
-// Each Signal keep a immutable state holding original header, body and related peer.
+// Each Signal keep a immutable state holding original header and body.
 type Signal struct {
 	header header
 	body   body
-	// Use a pointer if you are using a type that has methods with pointer receivers.
-	peer *peer
 }
 
 // Payload forward internal signal body payload.
-func (s *Signal) Payload() []byte {
-	return s.body.Payload()
+// Return an immutable string payload.
+func (s *Signal) Payload() string {
+	// no-copy conversion
+	// ref: https://github.com/golang/go/issues/25484
+	return *(*string)(unsafe.Pointer(&s.body))
 }
 
 // Type forward internal signal header event type.
@@ -39,5 +43,5 @@ func (s *Signal) Type() Event {
 
 // Reply send an answer to peer in context.
 func (s *Signal) Reply(msg []byte) (int, error) {
-	return s.peer.Send(msg)
+	return s.header.peer.Send(msg)
 }
