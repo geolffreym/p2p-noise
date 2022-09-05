@@ -33,6 +33,7 @@ func (p *peer) Socket() Socket { return p.socket }
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {
 	// write 4-bytes size header to share payload size
+	// TODO add header with id of source peer
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
 		return 0, err
