@@ -8,9 +8,8 @@ import (
 
 func TestSubscriberListen(t *testing.T) {
 	sub := newSubscriber()
-	body := body{nil}
 	header := header{newPeer(PeerA, &mockConn{}), NewPeerDetected}
-	signaling := Signal{header, body}
+	signaling := Signal{header, nil}
 
 	canceled := make(chan struct{})
 	msg := make(chan Signal)
