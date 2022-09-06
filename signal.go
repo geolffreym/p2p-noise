@@ -15,10 +15,10 @@ func (m header) Type() Event { return m.event }
 // body keep payload related to signal.
 type body []byte
 
-// Bytes return []byte payload representation.
+// Bytes return mutable bytes payload.
 func (m body) Bytes() []byte { return m }
 
-// String return an immutable string payload.
+// String return immutable string payload.
 func (m body) String() string {
 	// A pointer value can't be converted to an arbitrary pointer type.
 	// ref: https://go101.org/article/unsafe.html
