@@ -31,6 +31,8 @@ type Signal struct {
 // Payload forward internal signal body payload.
 // Return an immutable string payload.
 func (s *Signal) Payload() string {
+	// A pointer value can't be converted to an arbitrary pointer type.
+	// ref: https://go101.org/article/unsafe.html
 	// no-copy conversion
 	// ref: https://github.com/golang/go/issues/25484
 	return *(*string)(unsafe.Pointer(&s.body))
