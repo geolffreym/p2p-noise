@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -19,8 +20,8 @@ func (m *MockPeer) Socket() Socket {
 
 func TestType(t *testing.T) {
 	event := NewPeerDetected
-	payload := []byte(PAYLOAD)
-	message := Signal{header{nil, event}, body{payload}}
+	payload := body(PAYLOAD)
+	message := Signal{header{nil, event}, payload}
 
 	if message.Type() != event {
 		t.Errorf("expected message with type %v, got %v", event, message.Type())
@@ -29,13 +30,13 @@ func TestType(t *testing.T) {
 
 func TestPayload(t *testing.T) {
 	event := MessageReceived
-	payload := []byte(PAYLOAD)
 
-	body := body{payload}
+	body := body(PAYLOAD)
 	peer := newPeer(PeerA, &mockConn{})
 	header := header{peer, NewPeerDetected}
 	message := Signal{header, body}
 
+	fmt.Print(message.Payload())
 	if message.Payload() != PAYLOAD {
 		t.Errorf("expected message with payload %v, got %v", event, message.Type())
 	}
@@ -44,14 +45,13 @@ func TestPayload(t *testing.T) {
 
 func TestReply(t *testing.T) {
 	event := NewPeerDetected
-	payload := []byte(PAYLOAD)
 	msg := []byte("hello")
-
 	conn := &mockConn{}
+
 	address := Socket(LOCAL_ADDRESS)
 	peer := newPeer(address, conn)
 
-	body := body{payload}
+	body := body(PAYLOAD)
 	header := header{peer, event}
 	context := Signal{header, body}
 

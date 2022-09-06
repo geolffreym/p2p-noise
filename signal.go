@@ -13,13 +13,17 @@ type header struct {
 func (m header) Type() Event { return m.event }
 
 // body keep payload related to signal.
-type body struct {
-	// Custom data message published
-	payload []byte
-}
+type body []byte
 
 // Payload return custom data published.
-func (m body) Payload() []byte { return m.payload }
+func (m body) Bytes() []byte { return m }
+func (m body) String() string {
+	// A pointer value can't be converted to an arbitrary pointer type.
+	// ref: https://go101.org/article/unsafe.html
+	// no-copy conversion
+	// ref: https://github.com/golang/go/issues/25484
+	return *(*string)(unsafe.Pointer(&m))
+}
 
 // [Signal] it is a message interface to transport network events.
 // Each Signal keep a immutable state holding original header and body.
@@ -31,11 +35,7 @@ type Signal struct {
 // Payload forward internal signal body payload.
 // Return an immutable string payload.
 func (s *Signal) Payload() string {
-	// A pointer value can't be converted to an arbitrary pointer type.
-	// ref: https://go101.org/article/unsafe.html
-	// no-copy conversion
-	// ref: https://github.com/golang/go/issues/25484
-	return *(*string)(unsafe.Pointer(&s.body))
+	return s.body.String()
 }
 
 // Type forward internal signal header event type.

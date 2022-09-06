@@ -35,6 +35,7 @@ func (p *peer) Send(msg []byte) (int, error) {
 	// write 4-bytes size header to share payload size
 	// TODO add origin peer id
 	// TODO add type of message eg. handshake, literal..
+	// TODO add nonce ordered number to header
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
 		return 0, err
