@@ -4,31 +4,18 @@ import (
 	"sync"
 )
 
-// [Socket] aliases for string.
-type Socket string
-
-// Bytes return a byte slice representation for socket.
-func (s Socket) Bytes() []byte {
-	return []byte(s)
-}
-
-// Bytes return a string representation for socket.
-func (s Socket) String() string {
-	return string(s)
-}
-
 // table assoc Socket with peer.
-type table map[Socket]*peer
+type table map[ID]*peer
 
 // Add new peer to table.
 func (t table) Add(peer *peer) {
-	t[peer.Socket()] = peer
+	t[peer.ID()] = peer
 }
 
 // Get peer from table.
-func (t table) Get(socket Socket) *peer {
+func (t table) Get(id ID) *peer {
 	// exist socket related peer in table?
-	if peer, ok := t[socket]; ok {
+	if peer, ok := t[id]; ok {
 		return peer
 	}
 
@@ -37,7 +24,7 @@ func (t table) Get(socket Socket) *peer {
 
 // Remove peer from table.
 func (t table) Remove(peer *peer) {
-	delete(t, peer.Socket())
+	delete(t, peer.ID())
 }
 
 // router keep a hash table to associate [Socket] with peer.
@@ -57,7 +44,7 @@ func newRouter() *router {
 func (r *router) Table() table { return r.table }
 
 // Query return connection interface based on socket parameter.
-func (r *router) Query(socket Socket) *peer {
+func (r *router) Query(id ID) *peer {
 	// Mutex for reading topics.
 	// Do not write while topics are read.
 	// Write Lock can’t be acquired until all Read Locks are released.
@@ -65,7 +52,7 @@ func (r *router) Query(socket Socket) *peer {
 	r.RWMutex.RLock()
 	defer r.RWMutex.RUnlock()
 	// exist socket related peer?
-	return r.table.Get(socket)
+	return r.table.Get(id)
 }
 
 // Add create new Socket Peer association.

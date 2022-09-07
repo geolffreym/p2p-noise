@@ -8,7 +8,7 @@ import (
 
 func TestSubscriberListen(t *testing.T) {
 	sub := newSubscriber()
-	header := header{newPeer(PeerA, &mockConn{}), NewPeerDetected}
+	header := header{newPeer(&mockConn{}), NewPeerDetected}
 	signaling := Signal{header, nil}
 
 	canceled := make(chan struct{})

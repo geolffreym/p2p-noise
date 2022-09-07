@@ -1,7 +1,6 @@
 package noise
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -14,29 +13,15 @@ const (
 	PeerF = "127.0.0.1:8085"
 )
 
-func TestByteSocket(t *testing.T) {
-	socket := Socket(LOCAL_ADDRESS)
-	if !bytes.Equal(socket.Bytes(), []byte(LOCAL_ADDRESS)) {
-		t.Errorf("Expected returned bytes equal to %v", string(socket.Bytes()))
-	}
-}
-
-func TestStringSocket(t *testing.T) {
-	socket := Socket(LOCAL_ADDRESS)
-	if socket.String() != LOCAL_ADDRESS {
-		t.Errorf("Expected returned string equal to %v", socket.String())
-	}
-}
-
 func TestAdd(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, &mockConn{}))
-	router.Add(newPeer(PeerB, &mockConn{}))
-	router.Add(newPeer(PeerC, &mockConn{}))
-	router.Add(newPeer(PeerD, &mockConn{}))
-	router.Add(newPeer(PeerE, &mockConn{}))
-	router.Add(newPeer(PeerF, &mockConn{}))
+	router.Add(newPeer(&mockConn{addr: PeerA}))
+	router.Add(newPeer(&mockConn{addr: PeerB}))
+	router.Add(newPeer(&mockConn{addr: PeerC}))
+	router.Add(newPeer(&mockConn{addr: PeerD}))
+	router.Add(newPeer(&mockConn{addr: PeerE}))
+	router.Add(newPeer(&mockConn{addr: PeerF}))
 
 	expected := []struct {
 		socket string
@@ -65,7 +50,7 @@ func TestAdd(t *testing.T) {
 	for _, e := range expected {
 		t.Run(e.socket, func(t *testing.T) {
 			// Match recently added peer
-			if _, ok := router.Table()[Socket(e.socket)]; !ok {
+			if _, ok := router.Table()[ID(e.socket)]; !ok {
 				t.Errorf("expected routed socket %#v", e.socket)
 			}
 		})
@@ -77,8 +62,8 @@ func TestAdd(t *testing.T) {
 func TestQuery(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, &mockConn{}))
-	router.Add(newPeer(PeerB, &mockConn{}))
+	router.Add(newPeer(&mockConn{addr: PeerA}))
+	router.Add(newPeer(&mockConn{addr: PeerB}))
 
 	expected := []struct {
 		socket string
@@ -95,7 +80,7 @@ func TestQuery(t *testing.T) {
 	for _, e := range expected {
 		t.Run(e.socket, func(t *testing.T) {
 			// Return the socket related peer
-			if peer := router.Query(Socket(e.socket)); peer == nil {
+			if peer := router.Query(ID(e.socket)); peer == nil {
 				t.Errorf("expected peer for valid socket %#v, got %v", e.socket, peer)
 			}
 		})
@@ -107,9 +92,9 @@ func TestQuery(t *testing.T) {
 func TestInvalidQuery(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, &mockConn{}))
+	router.Add(newPeer(&mockConn{addr: PeerA}))
 
-	if peer := router.Query(Socket(PeerB)); peer != nil {
+	if peer := router.Query(ID(PeerB)); peer != nil {
 		t.Errorf("expected nil for invalid socket %#v, got %v", PeerB, peer)
 	}
 
@@ -118,12 +103,12 @@ func TestInvalidQuery(t *testing.T) {
 func TestLen(t *testing.T) {
 	router := newRouter()
 	// Add new record
-	router.Add(newPeer(PeerA, &mockConn{})) // 1
-	router.Add(newPeer(PeerB, &mockConn{})) // 2
-	router.Add(newPeer(PeerC, &mockConn{})) // 3
-	router.Add(newPeer(PeerD, &mockConn{})) // 4
-	router.Add(newPeer(PeerE, &mockConn{})) // 5
-	router.Add(newPeer(PeerF, &mockConn{})) // 6
+	router.Add(newPeer(&mockConn{addr: PeerA})) // 1
+	router.Add(newPeer(&mockConn{addr: PeerB})) // 2
+	router.Add(newPeer(&mockConn{addr: PeerC})) // 3
+	router.Add(newPeer(&mockConn{addr: PeerD})) // 4
+	router.Add(newPeer(&mockConn{addr: PeerE})) // 5
+	router.Add(newPeer(&mockConn{addr: PeerF})) // 6
 
 	if router.Len() != 6 {
 		t.Errorf("expected 6 len for registered peers,  got %v", router.Len())
@@ -134,11 +119,11 @@ func TestLen(t *testing.T) {
 func TestDelete(t *testing.T) {
 	router := newRouter()
 
-	peerA := newPeer(PeerA, &mockConn{})
-	peerB := newPeer(PeerB, &mockConn{})
-	peerC := newPeer(PeerC, &mockConn{})
-	peerD := newPeer(PeerD, &mockConn{})
-	peerE := newPeer(PeerE, &mockConn{})
+	peerA := newPeer(&mockConn{addr: PeerA})
+	peerB := newPeer(&mockConn{addr: PeerB})
+	peerC := newPeer(&mockConn{addr: PeerC})
+	peerD := newPeer(&mockConn{addr: PeerD})
+	peerE := newPeer(&mockConn{addr: PeerE})
 
 	// Add new record
 	router.Add(peerA) // 1
@@ -151,19 +136,19 @@ func TestDelete(t *testing.T) {
 	router.Remove(peerB)
 	router.Remove(peerE)
 
-	if router.Query(peerB.Socket()) != nil {
-		t.Errorf("expected %v not registered in router after delete", peerB.Socket())
+	if router.Query(peerB.ID()) != nil {
+		t.Errorf("expected %v not registered in router after delete", peerB.ID())
 	}
 
-	if router.Query(peerE.Socket()) != nil {
-		t.Errorf("expected %v not registered in router after delete", peerE.Socket())
+	if router.Query(peerE.ID()) != nil {
+		t.Errorf("expected %v not registered in router after delete", peerE.ID())
 	}
 
 }
 
 func TestFlush(t *testing.T) {
 	router := newRouter()
-	peerA := newPeer(PeerA, &mockConn{})
+	peerA := newPeer(&mockConn{addr: PeerA})
 	// Add new record
 	router.Add(peerA) // 1
 	router.Flush()
@@ -177,18 +162,14 @@ func TestFlush(t *testing.T) {
 func TestFlushSize(t *testing.T) {
 	router := newRouter()
 
-	peerA := newPeer(PeerA, &mockConn{})
-	peerB := newPeer(PeerB, &mockConn{})
-	peerC := newPeer(PeerC, &mockConn{})
-	peerD := newPeer(PeerD, &mockConn{})
-	peerE := newPeer(PeerE, &mockConn{})
+	peerA := newPeer(&mockConn{addr: PeerA})
+	peerB := newPeer(&mockConn{addr: PeerB})
+	peerC := newPeer(&mockConn{addr: PeerC})
 
 	// Add new record
 	router.Add(peerA) // 1
 	router.Add(peerB) // 2
 	router.Add(peerC) // 3
-	router.Add(peerD) // 4
-	router.Add(peerE) // 5
 
 	// delete B and F
 	len := router.Len()

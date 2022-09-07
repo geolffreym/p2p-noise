@@ -23,7 +23,7 @@ func main() {
 	ip := args[0]
 	port := args[1]
 
-	remote := noise.Socket(ip + ":" + port)
+	remote := ip + ":" + port
 	node := noise.New(configuration)
 
 	// Network events channel

@@ -5,7 +5,30 @@ import (
 	"io"
 	"log"
 	"net"
+	"unsafe"
 )
+
+// [ID] aliases for string.
+type ID string
+
+// Bytes return a 32-byte slice representation for id.
+func (i ID) Bytes() []byte {
+	return *(*[]byte)(unsafe.Pointer(&i))
+}
+
+// Bytes return a string representation for id.
+func (i ID) String() string {
+	return string(i)
+}
+
+// Optimizing space with ordered types. Descending order.
+// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
+type packHeader struct {
+	ID    ID     // 32 bytes. it is a struct, so its size is unstable
+	Len   uint32 // 4 bytes. Size of message
+	Nonce uint32 // 4 bytes. Current message nonce
+	Type  uint8  // 1 bytes. Each Type is a number to handle message type.
+}
 
 // peer extends [net.Conn] interface.
 // Each peer keep needed methods to interact with it.
@@ -14,40 +37,44 @@ import (
 // [Connection Interface]: https://pkg.go.dev/net#Conn
 type peer struct {
 	net.Conn // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
-	// TODO check: es realmente necesario mantener este socket aca?
-	socket Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
+	nonce    uint32
 }
 
-func newPeer(socket Socket, conn net.Conn) *peer {
+func newPeer(conn net.Conn) *peer {
 	// Go does not provide the typical, type-driven notion of sub-classing,
 	// but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
-	return &peer{
-		conn,
-		socket,
-	}
+	return &peer{conn, 0}
 }
 
 // Return peer socket.
 // eg. "127.0.0.1:2000"
-func (p *peer) Socket() Socket {
-	// TODO check: que pasa si el address retornado por el peer es diferente al que se establece en el constructor?
-	// TODO escribir una prueba en el router que verifique el indice del router sea el mismo socket retornado por el peer en este
-	return Socket(p.RemoteAddr().String())
+func (p *peer) ID() ID {
+	// TODO check: calculate ID for local peer here?
+	// Temporary seed for ID. here could be used MAC, public key, etc..
+	seed := []byte(p.RemoteAddr().String())
+	return ID(seed)
 	// return p.socket
 }
 
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {
-	// write 4-bytes size header to share payload size
 	// TODO add origin peer id
 	// TODO add type of message eg. handshake, literal..
 	// TODO add nonce ordered number to header
+
+	// write 4-bytes size header to share payload size
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
 		return 0, err
 	}
 
+	err = binary.Write(p, binary.BigEndian, p.nonce)
+	if err != nil {
+		return 0, err
+	}
+
 	// Write payload
+	p.nonce++
 	bytesSent, err := p.Write(msg)
 	return bytesSent + 4, err
 }
