@@ -1,7 +1,5 @@
 package noise
 
-import "unsafe"
-
 // header keep the context for triggered signal.
 type header struct {
 	// Type of event published
@@ -16,17 +14,12 @@ func (m header) Type() Event { return m.event }
 // Each Signal keep a immutable state holding original header and body.
 type Signal struct {
 	header header
-	body   []byte
+	body   string
 }
 
-// Payload forward internal signal body payload.
-// Return an immutable string payload.
+// Payload return an immutable payload.
 func (s *Signal) Payload() string {
-	// A pointer value can't be converted to an arbitrary pointer type.
-	// ref: https://go101.org/article/unsafe.html
-	// no-copy conversion
-	// ref: https://github.com/golang/go/issues/25484
-	return *(*string)(unsafe.Pointer(&s.body))
+	return s.body
 }
 
 // Type forward internal signal header event type.

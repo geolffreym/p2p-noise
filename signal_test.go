@@ -9,8 +9,7 @@ const PAYLOAD = "hello test"
 
 func TestType(t *testing.T) {
 	event := NewPeerDetected
-	payload := []byte(PAYLOAD)
-	message := Signal{header{nil, event}, payload}
+	message := Signal{header{nil, event}, PAYLOAD}
 
 	if message.Type() != event {
 		t.Errorf("expected message with type %v, got %v", event, message.Type())
@@ -20,10 +19,9 @@ func TestType(t *testing.T) {
 func TestPayload(t *testing.T) {
 	event := MessageReceived
 
-	body := []byte(PAYLOAD)
 	peer := newPeer(&mockConn{})
 	header := header{peer, NewPeerDetected}
-	message := Signal{header, body}
+	message := Signal{header, PAYLOAD}
 
 	fmt.Print(message.Payload())
 	if message.Payload() != PAYLOAD {
@@ -38,9 +36,8 @@ func TestReply(t *testing.T) {
 	conn := &mockConn{}
 
 	peer := newPeer(conn)
-	body := []byte(PAYLOAD)
 	header := header{peer, event}
-	context := Signal{header, body}
+	context := Signal{header, PAYLOAD}
 
 	sent, _ := context.Reply(msg)
 
