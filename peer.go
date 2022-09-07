@@ -2,6 +2,7 @@ package noise
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"io"
 	"log"
 	"net"
@@ -19,14 +20,14 @@ func (i ID) Bytes() []byte {
 }
 
 // Return a blake2 hash for id.
-func (i ID) Hash() []byte {
+func (i ID) Hash() string {
 	hash, err := blake2b.New(blake2b.Size256, nil)
 	if err != nil {
-		return nil
+		return ""
 	}
 
 	hash.Write(i.Bytes())
-	return hash.Sum(nil)
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 // Bytes return a string representation for id.
@@ -37,7 +38,7 @@ func (i ID) String() string {
 // Optimizing space with ordered types. Descending order.
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 type packHeader struct {
-	ID    ID     // 32 bytes. it is a struct, so its size is unstable
+	ID    ID     // N bytes. it is a struct, so its size is unstable
 	Len   uint32 // 4 bytes. Size of message
 	Nonce uint32 // 4 bytes. Current message nonce
 	Type  uint8  // 1 bytes. Each Type is a number to handle message type.
@@ -71,23 +72,15 @@ func (p *peer) ID() ID {
 
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {
-	// TODO add origin peer id
-	// TODO add type of message eg. handshake, literal..
+	// TODO send packHeader here
 	// TODO add nonce ordered number to header
-
 	// write 4-bytes size header to share payload size
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
 		return 0, err
 	}
 
-	err = binary.Write(p, binary.BigEndian, p.nonce)
-	if err != nil {
-		return 0, err
-	}
-
 	// Write payload
-	p.nonce++
 	bytesSent, err := p.Write(msg)
 	return bytesSent + 4, err
 }
