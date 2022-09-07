@@ -1,27 +1,30 @@
 package noise
 
 import (
+	"bytes"
 	"errors"
 	"net"
 	"testing"
 	"time"
 )
 
-type mockAddr struct{}
-
 const LOCAL_ADDRESS = "127.0.0.1:23"
+
+type mockAddr struct {
+	addr string
+}
 
 func (*mockAddr) Network() string {
 	return "tcp"
 }
 
-func (*mockAddr) String() string {
-	return LOCAL_ADDRESS
+func (m *mockAddr) String() string {
+	return m.addr
 }
 
 // net/net.go
 type mockConn struct {
-	channel    chan []byte // Simulation for Message network exchange
+	addr       string
 	shouldFail bool
 }
 
@@ -51,12 +54,12 @@ func (c *mockConn) Close() error {
 
 // LocalAddr returns the local network address, if known.
 func (c *mockConn) LocalAddr() net.Addr {
-	return &mockAddr{}
+	return &mockAddr{c.addr}
 }
 
 // RemoteAddr returns the remote network address, if known.
 func (c *mockConn) RemoteAddr() net.Addr {
-	return &mockAddr{}
+	return &mockAddr{c.addr}
 }
 
 // A zero value for t means I/O operations will not time out.
@@ -80,13 +83,35 @@ func (c *mockConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
 
-func TestSocket(t *testing.T) {
-	conn := &mockConn{}
-	address := Socket(LOCAL_ADDRESS)
-	peer := newPeer(address, conn)
-
-	if peer.Socket() != address {
-		t.Errorf("expected socket %#v, got %#v", address, peer.Socket())
+func TestByteID(t *testing.T) {
+	id := ID(LOCAL_ADDRESS)
+	if !bytes.Equal(id.Bytes(), []byte(LOCAL_ADDRESS)) {
+		t.Errorf("Expected returned bytes equal to %v", string(id.Bytes()))
 	}
+}
 
+func TestStringID(t *testing.T) {
+	id := ID(LOCAL_ADDRESS)
+	if id.String() != LOCAL_ADDRESS {
+		t.Errorf("Expected returned string equal to %v", id.String())
+	}
+}
+
+func TestHashID(t *testing.T) {
+	id := ID(LOCAL_ADDRESS)
+	expected := "9dc5222ac8b8f155ab6c216321b9bbed2448fe3331e1ae8c0f285a07ded6b0ac"
+
+	if id.Hash() != expected {
+		t.Errorf("Expected returned hash equal to %s", id.Hash())
+	}
+}
+
+func TestID(t *testing.T) {
+	address := LOCAL_ADDRESS
+	conn := &mockConn{addr: address}
+	peer := newPeer(conn)
+
+	if peer.ID() != ID(address) {
+		t.Errorf("expected socket %#v, got %#v", address, peer.ID())
+	}
 }

@@ -7,20 +7,9 @@ import (
 
 const PAYLOAD = "hello test"
 
-type MockPeer struct {
-}
-
-func (m *MockPeer) Send(msg []byte) (int, error) {
-	return len(msg), nil
-}
-
-func (m *MockPeer) Socket() Socket {
-	return Socket(LOCAL_ADDRESS)
-}
-
 func TestType(t *testing.T) {
 	event := NewPeerDetected
-	payload := body(PAYLOAD)
+	payload := []byte(PAYLOAD)
 	message := Signal{header{nil, event}, payload}
 
 	if message.Type() != event {
@@ -31,8 +20,8 @@ func TestType(t *testing.T) {
 func TestPayload(t *testing.T) {
 	event := MessageReceived
 
-	body := body(PAYLOAD)
-	peer := newPeer(PeerA, &mockConn{})
+	body := []byte(PAYLOAD)
+	peer := newPeer(&mockConn{})
 	header := header{peer, NewPeerDetected}
 	message := Signal{header, body}
 
@@ -48,10 +37,8 @@ func TestReply(t *testing.T) {
 	msg := []byte("hello")
 	conn := &mockConn{}
 
-	address := Socket(LOCAL_ADDRESS)
-	peer := newPeer(address, conn)
-
-	body := body(PAYLOAD)
+	peer := newPeer(conn)
+	body := []byte(PAYLOAD)
 	header := header{peer, event}
 	context := Signal{header, body}
 

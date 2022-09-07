@@ -174,7 +174,7 @@ func TestPublish(t *testing.T) {
 	subscriber := newSubscriber()
 	broker := newBroker()
 
-	header1 := header{newPeer(PeerA, &mockConn{}), NewPeerDetected}
+	header1 := header{newPeer(&mockConn{}), NewPeerDetected}
 	signaling := Signal{header1, nil}
 
 	broker.Register(NewPeerDetected, subscriber)
@@ -197,7 +197,7 @@ func TestPublish(t *testing.T) {
 	// New message for new topic event
 	broker.Register(NewPeerDetected, subscriber)
 
-	header2 := header{newPeer(PeerA, &mockConn{}), NewPeerDetected}
+	header2 := header{newPeer(&mockConn{}), NewPeerDetected}
 	signaling = Signal{header2, nil}
 
 	// Number of subscribers notified
@@ -213,7 +213,7 @@ func TestPublish(t *testing.T) {
 
 func TestInvalidPublish(t *testing.T) {
 	broker := newBroker()
-	header1 := header{newPeer(PeerA, &mockConn{}), NewPeerDetected}
+	header1 := header{newPeer(&mockConn{}), NewPeerDetected}
 	signaling := Signal{header1, nil}
 
 	// Number of subscribers notified

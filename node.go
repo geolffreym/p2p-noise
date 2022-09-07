@@ -62,18 +62,14 @@ func (n *Node) Signals(ctx context.Context) <-chan Signal {
 	return ch // read only channel for raw messages
 }
 
-// Addr return current self listening node address.
-func (n *Node) Addr() Socket {
-	return Socket(n.config.SelfListeningAddress())
-}
-
-// Send emit a new message to peer socket.
-// If socket doesn't exists or peer is not connected return error.
+// Send emit a new message using peer id.
+// If peer id doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
-func (n *Node) Send(socket Socket, message []byte) (int, error) {
-	peer := n.router.Query(socket)
+func (n *Node) Send(id ID, message []byte) (int, error) {
+	peer := n.router.Query(id)
+
 	if peer == nil {
-		return 0, errSendingMessageToInvalidPeer(socket.String())
+		return 0, errSendingMessageToInvalidPeer(id.String())
 	}
 
 	bytes, err := peer.Send(message)
@@ -164,12 +160,8 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 	// ref: https://pkg.go.dev/net#Conn
 	idle := futureDeadLine(n.config.PeerDeadline())
 	connection.SetDeadline(idle)
-	// Routing connections
-	remote := connection.RemoteAddr().String()
-	// eg. 192.168.1.1:8080
-	socket := Socket(remote)
 	// We need to know how interact with peer based on socket and connection
-	peer := newPeer(socket, connection)
+	peer := newPeer(connection)
 	// Store new peer in router table
 	n.router.Add(peer)
 	return peer, nil
@@ -257,9 +249,8 @@ func (n *Node) Close() {
 
 // Dial attempt to connect to remote node and add connected peer to routing table.
 // Return error if error occurred while dialing node.
-func (n *Node) Dial(socket Socket) error {
+func (n *Node) Dial(addr string) error {
 
-	addr := socket.String()           // eg. "0.0.0.0:8080"
 	protocol := n.config.Protocol()   // eg. tcp
 	timeout := n.config.DialTimeout() // max time waiting for dial.
 
