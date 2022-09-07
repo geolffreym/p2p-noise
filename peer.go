@@ -16,6 +16,7 @@ type ID string
 
 // Bytes return a byte slice representation for id.
 func (i ID) Bytes() []byte {
+	// no-copy conversion
 	return *(*[]byte)(unsafe.Pointer(&i))
 }
 
@@ -32,16 +33,16 @@ func (i ID) Hash() string {
 
 // Bytes return a string representation for id.
 func (i ID) String() string {
-	return string(i)
+	return (string)(i)
 }
 
 // Optimizing space with ordered types. Descending order.
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 type packHeader struct {
-	ID    ID     // N bytes. it is a struct, so its size is unstable
+	ID    ID     // 16 bytes. string ID
 	Len   uint32 // 4 bytes. Size of message
 	Nonce uint32 // 4 bytes. Current message nonce
-	Type  uint8  // 1 bytes. Each Type is a number to handle message type.
+	Type  uint8  // 1 bytes. it's a number to handle message type.
 }
 
 // peer extends [net.Conn] interface.
