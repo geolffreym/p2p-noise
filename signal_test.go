@@ -20,7 +20,7 @@ func (m *MockPeer) Socket() Socket {
 
 func TestType(t *testing.T) {
 	event := NewPeerDetected
-	payload := body(PAYLOAD)
+	payload := []byte(PAYLOAD)
 	message := Signal{header{nil, event}, payload}
 
 	if message.Type() != event {
@@ -31,7 +31,7 @@ func TestType(t *testing.T) {
 func TestPayload(t *testing.T) {
 	event := MessageReceived
 
-	body := body(PAYLOAD)
+	body := []byte(PAYLOAD)
 	peer := newPeer(PeerA, &mockConn{})
 	header := header{peer, NewPeerDetected}
 	message := Signal{header, body}
@@ -51,7 +51,7 @@ func TestReply(t *testing.T) {
 	address := Socket(LOCAL_ADDRESS)
 	peer := newPeer(address, conn)
 
-	body := body(PAYLOAD)
+	body := []byte(PAYLOAD)
 	header := header{peer, event}
 	context := Signal{header, body}
 
