@@ -13,8 +13,9 @@ import (
 //
 // [Connection Interface]: https://pkg.go.dev/net#Conn
 type peer struct {
-	net.Conn        // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
-	socket   Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
+	net.Conn // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
+	// TODO check: es realmente necesario mantener este socket aca?
+	socket Socket // IP and Port address for peer. https://en.wikipedia.org/wiki/Network_socket
 }
 
 func newPeer(socket Socket, conn net.Conn) *peer {
@@ -28,7 +29,12 @@ func newPeer(socket Socket, conn net.Conn) *peer {
 
 // Return peer socket.
 // eg. "127.0.0.1:2000"
-func (p *peer) Socket() Socket { return p.socket }
+func (p *peer) Socket() Socket {
+	// TODO check: que pasa si el address retornado por el peer es diferente al que se establece en el constructor?
+	// TODO escribir una prueba en el router que verifique el indice del router sea el mismo socket retornado por el peer en este
+	return Socket(p.RemoteAddr().String())
+	// return p.socket
+}
 
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 func (p *peer) Send(msg []byte) (int, error) {

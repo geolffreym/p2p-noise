@@ -62,11 +62,7 @@ func (n *Node) Signals(ctx context.Context) <-chan Signal {
 	return ch // read only channel for raw messages
 }
 
-// Addr return current self listening node address.
-func (n *Node) Addr() Socket {
-	return Socket(n.config.SelfListeningAddress())
-}
-
+// Send emit a new message to peer socket.
 // Send emit a new message to peer socket.
 // If socket doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
