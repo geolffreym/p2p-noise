@@ -6,14 +6,27 @@ import (
 	"log"
 	"net"
 	"unsafe"
+
+	"golang.org/x/crypto/blake2b"
 )
 
 // [ID] aliases for string.
 type ID string
 
-// Bytes return a 32-byte slice representation for id.
+// Bytes return a byte slice representation for id.
 func (i ID) Bytes() []byte {
 	return *(*[]byte)(unsafe.Pointer(&i))
+}
+
+// Return a blake2 hash for id.
+func (i ID) Hash() []byte {
+	hash, err := blake2b.New(blake2b.Size256, nil)
+	if err != nil {
+		return nil
+	}
+
+	hash.Write(i.Bytes())
+	return hash.Sum(nil)
 }
 
 // Bytes return a string representation for id.

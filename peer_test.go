@@ -97,6 +97,13 @@ func TestStringID(t *testing.T) {
 	}
 }
 
+func TestHashID(t *testing.T) {
+	id := ID(LOCAL_ADDRESS)
+	if !bytes.Equal(id.Hash(), []byte(LOCAL_ADDRESS)) {
+		t.Errorf("Expected returned hash equal to %v", id.Hash())
+	}
+}
+
 func TestID(t *testing.T) {
 	address := LOCAL_ADDRESS
 	conn := &mockConn{addr: address}
