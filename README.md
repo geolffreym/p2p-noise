@@ -8,8 +8,8 @@
 P2P Noise library aims to serve as a tool to create secure P2P networks based on the Noise Framework.
 
 * Quick creation of custom P2P networks.
-* Small and easy to use.
 * Simplistic and lightweight.
+* Small and secure.
 
 ## Features
 
