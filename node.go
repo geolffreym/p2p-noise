@@ -66,8 +66,8 @@ func (n *Node) Signals(ctx context.Context) <-chan Signal {
 // If peer id doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
 func (n *Node) Send(id ID, message []byte) (int, error) {
+	// Check if id exists in connected peers
 	peer := n.router.Query(id)
-
 	if peer == nil {
 		return 0, errSendingMessageToInvalidPeer(id.String())
 	}
@@ -167,6 +167,10 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 	return peer, nil
 }
 
+func (n *Node) handshake() {
+
+}
+
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
 func (n *Node) Listen() error {
@@ -204,6 +208,10 @@ func (n *Node) Listen() error {
 		}
 
 		// Routing for accepted connection
+		// TODO 1 - accepted?
+		// TODO 2 - Run handshake?
+		// TODO 3 - OK? then add peer to router newPeer(id, securedConn)
+		// TODO 4 - then trigger event and start watching for peer
 		peer, err := n.routing(conn)
 		if err != nil {
 			conn.Close() // Drop connection
@@ -254,6 +262,7 @@ func (n *Node) Dial(addr string) error {
 	protocol := n.config.Protocol()   // eg. tcp
 	timeout := n.config.DialTimeout() // max time waiting for dial.
 
+	// Start dialing to address
 	conn, err := net.DialTimeout(protocol, addr, timeout)
 	log.Printf("dialing to %s", addr)
 

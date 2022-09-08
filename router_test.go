@@ -80,7 +80,8 @@ func TestQuery(t *testing.T) {
 	for _, e := range expected {
 		t.Run(e.socket, func(t *testing.T) {
 			// Return the socket related peer
-			if peer := router.Query(ID(e.socket)); peer == nil {
+			id := ID(e.socket)
+			if peer := router.Query(id); peer == nil {
 				t.Errorf("expected peer for valid socket %#v, got %v", e.socket, peer)
 			}
 		})
@@ -94,7 +95,7 @@ func TestInvalidQuery(t *testing.T) {
 	// Add new record
 	router.Add(newPeer(&mockConn{addr: PeerA}))
 
-	if peer := router.Query(ID(PeerB)); peer != nil {
+	if peer := router.Query(PeerB); peer != nil {
 		t.Errorf("expected nil for invalid socket %#v, got %v", PeerB, peer)
 	}
 

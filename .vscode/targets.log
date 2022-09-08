@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Sep  5 13:45:59 2022
+# Make data base, printed on Thu Sep  8 12:27:37 2022
 
 # Variables
 
@@ -55,13 +55,13 @@ PWD = /home/gmena/GoLangProjects/p2p-chat
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # environment
-XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
+XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/home/gmena/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/e4503b30fc78200f846c62cf8091b76ff5547662
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/784b0177c56c607789f9638da7b6bf3230d47a8c
 # environment
 LANG = C
 # environment
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 7413
+VSCODE_PID = 2176614
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -109,7 +109,7 @@ XDG_SESSION_TYPE = x11
 # makefile (from 'Makefile', line 8)
 PACKAGE = p2p-noise
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/3016,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/3016
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/1762645,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/1762645
 # automatic
 *F = $(notdir $*)
 # environment
@@ -159,7 +159,7 @@ HOMEBREW_SHELLENV_PREFIX = /home/linuxbrew/.linuxbrew
 # makefile (from 'Makefile', line 15)
 BINARY_OSX = ${BINARY}-darwin
 # environment
-INVOCATION_ID = 729a27fbc4b2496ca13c8cce3608978e
+INVOCATION_ID = c56259e4adea4896a9f010c6f1b4b71e
 # makefile (from 'Makefile', line 16)
 BINARY_LINUX = ${BINARY}-linux
 # environment
@@ -187,9 +187,9 @@ GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # makefile
 .DEFAULT_GOAL := test
 # environment
-SYSTEMD_EXEC_PID = 3035
+SYSTEMD_EXEC_PID = 1762664
 # environment
-DISPLAY = :0
+DISPLAY = :1
 # makefile (from 'Makefile', line 7)
 USER = geolffreym
 # environment
@@ -201,7 +201,7 @@ LINUX_32 = ${BINARY_LINUX}-${ARCH_32}
 # makefile (from 'Makefile', line 24)
 WIN_32 = ${BINARY_WIN}-${ARCH_32}
 # environment
-MANAGERPID = 2212
+MANAGERPID = 1762017
 # environment
 HOMEBREW_CELLAR = /home/linuxbrew/.linuxbrew/Cellar
 # makefile (from 'Makefile', line 14)
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 7413
+GIO_LAUNCHED_DESKTOP_FILE_PID = 2176614
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -221,7 +221,7 @@ XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-JOURNAL_STREAM = 8:33311
+JOURNAL_STREAM = 8:52060700
 # environment
 GOMODCACHE = /home/gmena/go/pkg/mod
 # environment
@@ -235,7 +235,7 @@ QT_IM_MODULE = ibus
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.70.2-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.71.0-main.sock
 # environment
 IM_CONFIG_PHASE = 1
 # makefile (from 'Makefile', line 113)
@@ -467,12 +467,12 @@ code-fmt:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 52 / storage = 522 B / avg = 10 B
-# current buf: size = 8162 B / used = 522 B / count = 52 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 52 / storage = 525 B / avg = 10 B
+# current buf: size = 8162 B / used = 525 B / count = 52 / avg = 10 B
 
 # strcache performance: lookups = 85 / hit rate = 38%
 # hash-table stats:
 # Load=52/8192=1%, Rehash=0, Collisions=0/85=0%
-# Finished Make data base on Mon Sep  5 13:45:59 2022
+# Finished Make data base on Thu Sep  8 12:27:37 2022
 
  

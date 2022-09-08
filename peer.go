@@ -11,7 +11,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-// [ID] aliases for string.
+// [ID] it's identity provider for peer.
 type ID string
 
 // Bytes return a byte slice representation for id.
@@ -23,7 +23,7 @@ func (i ID) Bytes() []byte {
 	return *(*[]byte)(unsafe.Pointer(&i))
 }
 
-// Return a blake2 hash for id.
+// Hash return a string representation for blake2 hash.
 func (i ID) Hash() string {
 	hash, err := blake2b.New(blake2b.Size256, nil)
 	if err != nil {
@@ -35,16 +35,17 @@ func (i ID) Hash() string {
 	return hex.EncodeToString(digest)
 }
 
-// Bytes return a string representation for id.
+// String return a string representation for 32-bytes hash.
 func (i ID) String() string {
 	return (string)(i)
+
 }
 
 // msgHeader set needed properties to handle incoming message for peer.
 // Optimizing space with ordered types. Descending order.
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 type msgHeader struct {
-	ID    ID     // -16+ bytes. string ID
+	Hash  string // 16 bytes. string alias ID
 	Len   uint32 // 4 bytes. Size of message
 	Nonce uint32 // 4 bytes. Current message nonce
 	Type  uint8  // 1 bytes. it's a number to handle message type.
@@ -56,7 +57,7 @@ type msgHeader struct {
 //
 // [Connection Interface]: https://pkg.go.dev/net#Conn
 type peer struct {
-	net.Conn // embedded net.Conn to peer. ref: https://go.dev/doc/effective_go#embedding
+	net.Conn // TODO secure connection here?
 	nonce    uint32
 }
 
@@ -66,12 +67,10 @@ func newPeer(conn net.Conn) *peer {
 	return &peer{conn, 0}
 }
 
-// Return peer socket.
-// eg. "127.0.0.1:2000"
+// Return peer blake2 hash.
 func (p *peer) ID() ID {
-	// TODO check: calculate ID for local peer here?
 	// Temporary seed for ID. here could be used MAC, public key, etc..
-	seed := []byte(p.RemoteAddr().String())
+	seed := p.RemoteAddr().String()
 	return ID(seed)
 }
 
@@ -79,6 +78,7 @@ func (p *peer) ID() ID {
 func (p *peer) Send(msg []byte) (int, error) {
 	// TODO send msgHeader here
 	// TODO add nonce ordered number to header
+	// TODO Encrypt here with local key
 	// write 4-bytes size header to share payload size
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
@@ -93,7 +93,7 @@ func (p *peer) Send(msg []byte) (int, error) {
 // Listen wait for incoming messages from Peer.
 // Each message keep a header with message size to allocate buffer dynamically.
 func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
-
+	// TODO decrypt here with remote key
 	var size uint32 // read bytes size from header
 	err := binary.Read(p, binary.BigEndian, &size)
 
