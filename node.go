@@ -8,6 +8,7 @@ package noise
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"time"
@@ -69,7 +70,8 @@ func (n *Node) Send(id ID, message []byte) (int, error) {
 	// Check if id exists in connected peers
 	peer := n.router.Query(id)
 	if peer == nil {
-		return 0, errSendingMessageToInvalidPeer(id.String())
+		err := fmt.Errorf("remote peer disconnected: %s", id.String())
+		return 0, errSendingMessage(err)
 	}
 
 	bytes, err := peer.Send(message)
@@ -85,7 +87,7 @@ func (n *Node) Send(id ID, message []byte) (int, error) {
 }
 
 // watch keep running waiting for incoming messages.
-// After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
+// After every new message the connection is verified, if local connection is closed or remote peer is disconnected the routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
 func (n *Node) watch(peer *peer) {
 
@@ -114,6 +116,7 @@ KEEPALIVE:
 		}
 
 		if buf == nil {
+			log.Printf("buffer nil with err: %v", err)
 			// `buf` is nil if no more bytes received but peer is still connected
 			// Keep alive always that zero bytes are not received
 			break KEEPALIVE
@@ -167,10 +170,6 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 	return peer, nil
 }
 
-func (n *Node) handshake() {
-
-}
-
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
 func (n *Node) Listen() error {
@@ -188,7 +187,7 @@ func (n *Node) Listen() error {
 	defer func() {
 		err := listener.Close()
 		if err != nil {
-			log.Print(errClosingConnection(err).Error())
+			log.Printf("error closing listener: %v", err)
 		}
 	}()
 
@@ -203,8 +202,8 @@ func (n *Node) Listen() error {
 		}
 
 		if err != nil {
-			log.Print(errBindingConnection(err).Error())
-			return err
+			log.Printf("error accepting connection: %v", err)
+			return errBindingConnection(err)
 		}
 
 		// Routing for accepted connection
@@ -243,7 +242,7 @@ func (n *Node) Close() {
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {
 			if err := peer.Close(); err != nil {
-				log.Print(errClosingConnection(err).Error())
+				log.Printf("error when shutting down connection: %v", err)
 			}
 		}(p)
 	}
@@ -267,14 +266,14 @@ func (n *Node) Dial(addr string) error {
 	log.Printf("dialing to %s", addr)
 
 	if err != nil {
-		return errDialingNode(err, addr)
+		return errDialingNode(err)
 	}
 
 	// Routing for dialed connection
 	peer, err := n.routing(conn)
 	if err != nil {
 		conn.Close() // Drop connection
-		return errDialingNode(err, addr)
+		return errDialingNode(err)
 	}
 
 	// Wait for incoming messages

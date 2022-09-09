@@ -51,13 +51,10 @@ type msgHeader struct {
 	Type  uint8  // 1 bytes. it's a number to handle message type.
 }
 
-// peer extends [net.Conn] interface.
-// Each peer keep needed methods to interact with it.
-// Please see [Connection Interface] for more details.
-//
-// [Connection Interface]: https://pkg.go.dev/net#Conn
+// peer its the trusty remote peer.
+// Keep needed methods to interact with the secured session.
 type peer struct {
-	net.Conn // TODO secure connection here?
+	net.Conn // TODO session here?
 	nonce    uint32
 }
 
@@ -96,6 +93,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	// TODO decrypt here with remote key
 	var size uint32 // read bytes size from header
 	err := binary.Read(p, binary.BigEndian, &size)
+	log.Printf("receiving %d bytes from incoming connection", size)
 
 	// Error trying to read `size`
 	if err != nil {
@@ -108,10 +106,12 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	}
 
 	// Dynamic allocation based on msg size
+	// TODO use buffer pools here!!
 	buf := make([]byte, size)
 	// Sync buffered IO reading
 	if _, err = p.Read(buf); err == nil {
 		// Sync incoming message
+		// TODO process incoming message decrypt for secured connection
 		return buf, nil
 	}
 
