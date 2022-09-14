@@ -1,6 +1,7 @@
 {
     "makefile.extensionOutputFolder": "./.vscode",
     "cSpell.words": [
+        "Diffie",
         "geolffreym",
         "keypair",
         "Networker",

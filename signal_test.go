@@ -41,7 +41,7 @@ func TestReply(t *testing.T) {
 
 	sent, _ := context.Reply(msg)
 
-	if sent != len(msg) {
+	if sent != uint(len(msg)) {
 		t.Error("Expected Reply message sent to `Sent` by peer")
 	}
 

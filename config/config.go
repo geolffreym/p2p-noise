@@ -33,8 +33,8 @@ func New() *Config {
 		// ref: https://pkg.go.dev/net#DialTimeout
 		dialTimeout: 5 * time.Second,
 		// Max time waiting for I/O or peer interaction. After this time the connection will timeout and considered inactive.
-		// Default 1800 seconds = 30 minutes.
-		peerDeadline: 1800,
+		// Default 3600 seconds = 60 minutes.
+		peerDeadline: 3600,
 	}
 }
 

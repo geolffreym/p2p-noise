@@ -6,7 +6,7 @@ import (
 )
 
 // [Event] aliases for int type.
-type Event int
+type Event uint8
 
 const (
 	// Event to notify when a new peer get connected

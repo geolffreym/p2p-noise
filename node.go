@@ -28,7 +28,7 @@ type Config interface {
 	MaxPeersConnected() uint8
 	// Default 10 << 20 = 10MB
 	MaxPayloadSize() uint32
-	// Default 1800 seconds = 30 minutes
+	// Default 3600 seconds = 60 minutes
 	PeerDeadline() time.Duration
 	// Default 5 seconds
 	DialTimeout() time.Duration
@@ -66,7 +66,7 @@ func (n *Node) Signals(ctx context.Context) <-chan Signal {
 // Send emit a new message using peer id.
 // If peer id doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
-func (n *Node) Send(id ID, message []byte) (int, error) {
+func (n *Node) Send(id ID, message []byte) (uint, error) {
 	// Check if id exists in connected peers
 	peer := n.router.Query(id)
 	if peer == nil {

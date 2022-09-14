@@ -12,6 +12,7 @@ import (
 )
 
 // [ID] it's identity provider for peer.
+// TODO Convert to [32]byte
 type ID string
 
 // Bytes return a byte slice representation for id.
@@ -72,7 +73,7 @@ func (p *peer) ID() ID {
 }
 
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
-func (p *peer) Send(msg []byte) (int, error) {
+func (p *peer) Send(msg []byte) (uint, error) {
 	// TODO send msgHeader here
 	// TODO add nonce ordered number to header
 	// TODO Encrypt here with local key
@@ -84,7 +85,7 @@ func (p *peer) Send(msg []byte) (int, error) {
 
 	// Write payload
 	bytesSent, err := p.Write(msg)
-	return bytesSent + 4, err
+	return uint(bytesSent + 4), err
 }
 
 // Listen wait for incoming messages from Peer.

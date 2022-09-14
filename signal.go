@@ -28,6 +28,6 @@ func (s *Signal) Type() Event {
 }
 
 // Reply send an answer to peer in context.
-func (s *Signal) Reply(msg []byte) (int, error) {
+func (s *Signal) Reply(msg []byte) (uint, error) {
 	return s.header.peer.Send(msg)
 }
