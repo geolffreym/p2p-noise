@@ -96,6 +96,8 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 	}
 }
 
+type operators func([]byte) (e, d *noise.CipherState, err error)
+
 // handshake execute the steps needed for the noise handshake XX pattern.
 // Please see [XX Pattern] for more details. [XX Explorer] pattern.
 //
@@ -128,8 +130,8 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	}, nil
 }
 
-// Session return secured session after handshake
-// This session is invalid if handshake isn't finished
+// Session return secured session after handshake.
+// This session is invalid if handshake isn't finished.
 func (h *handshake) Session() *session {
 	if !h.Finish() {
 		return nil
@@ -138,8 +140,8 @@ func (h *handshake) Session() *session {
 	return h.s
 }
 
-// Finish return the handshake state
-// Return true if handshake is finished otherwise false
+// Finish return the handshake state.
+// Return true if handshake is finished otherwise false.
 func (h *handshake) Finish() bool {
 	return h.state.MessageIndex() >= len(HandshakePattern.Messages)
 }
@@ -216,7 +218,7 @@ func (h *handshake) Answer() error {
 	log.Print("Sending e, ee, s, es to remote")
 	enc, dec, err = h.Send(buffer)
 	if err != nil {
-		err = fmt.Errorf("error sending `e` state: %v", err)
+		err = fmt.Errorf("error sending `e, ee, s, es` state: %v", err)
 		return errDuringHandshake(err)
 	}
 
@@ -224,7 +226,7 @@ func (h *handshake) Answer() error {
 	log.Print("Waiting for s, se from remote")
 	enc, dec, err = h.Receive(buffer)
 	if err != nil {
-		err = fmt.Errorf("error receiving `e, ee, s, es` state: %v", err)
+		err = fmt.Errorf("error receiving `s, se` state: %v", err)
 		return errDuringHandshake(err)
 	}
 
