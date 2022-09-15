@@ -98,11 +98,10 @@ func TestStringID(t *testing.T) {
 }
 
 func TestHashID(t *testing.T) {
-	id := ID(LOCAL_ADDRESS)
-	expected := "9dc5222ac8b8f155ab6c216321b9bbed2448fe3331e1ae8c0f285a07ded6b0ac"
+	expected := []byte("9dc5222ac8b8f155ab6c216321b9bbed2448fe3331e1ae8c0f285a07ded6b0ac")
 
-	if id.Hash() != expected {
-		t.Errorf("Expected returned hash equal to %s", id.Hash())
+	if !bytes.Equal(Blake2([]byte(LOCAL_ADDRESS)), expected) {
+		t.Errorf("Expected returned hash equal to %s", Blake2([]byte(LOCAL_ADDRESS)))
 	}
 }
 

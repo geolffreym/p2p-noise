@@ -135,11 +135,7 @@ KEEPALIVE:
 
 }
 
-// routing initialize route in routing table from connection interface.
-// If TCP protocol is used connection is enforced to keep alive.
-// Return err if max peers connected exceed MaxPeerConnected otherwise return new peer added to table.
-func (n *Node) routing(conn net.Conn) (*peer, error) {
-
+func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
@@ -150,10 +146,42 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 
 	// Drop connections if max peers exceeded
 	if n.router.Len() >= n.config.MaxPeersConnected() {
+		connection.Close() // Drop connection :(
 		log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
-		return nil, errExceededMaxPeers(n.config.MaxPeersConnected())
+		return errExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
+	h, err := newHandshake(connection, initialize)
+	if err != nil {
+		return err
+	}
+
+	err = h.Start(initialize)
+	if err != nil {
+		return err
+	}
+
+	// All good with handshake. Get secure session.
+	session := h.Session()
+	// Routing for dialed connection
+	peer := n.routing(session)
+	if err != nil {
+		conn.Close() // Drop connection
+		return err
+	}
+
+	// Wait for incoming messages
+	// This routine will stop when Close() is called
+	go n.watch(peer)
+	// Dispatch event for new peer connected
+	n.events.PeerConnected(peer)
+	return nil
+}
+
+// routing initialize route in routing table from connection interface.
+// If TCP protocol is used connection is enforced to keep alive.
+// Return err if max peers connected exceed MaxPeerConnected otherwise return new peer added to table.
+func (n *Node) routing(conn *session) *peer {
 	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
 	// fail instead of blocking. The deadline applies to all future
@@ -162,21 +190,20 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 	// connection can be refreshed by setting a deadline in the future.
 	// ref: https://pkg.go.dev/net#Conn
 	idle := futureDeadLine(n.config.PeerDeadline())
-	connection.SetDeadline(idle)
+	conn.SetDeadline(idle)
 	// We need to know how interact with peer based on socket and connection
-	peer := newPeer(connection)
+	peer := newPeer(conn)
 	// Store new peer in router table
 	n.router.Add(peer)
-	return peer, nil
+	return peer
 }
 
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
 func (n *Node) Listen() error {
 
-	addr := n.config.SelfListeningAddress()
-	protocol := n.config.Protocol()
-
+	addr := n.config.SelfListeningAddress() // eg. 0.0.0.0
+	protocol := n.config.Protocol()         // eg. tcp
 	listener, err := net.Listen(protocol, addr)
 	if err != nil {
 		return err
@@ -206,21 +233,9 @@ func (n *Node) Listen() error {
 			return errBindingConnection(err)
 		}
 
-		// Routing for accepted connection
-		// TODO 1 - accepted?
-		// TODO 2 - Run handshake?
-		// TODO 3 - OK? then add peer to router newPeer(id, securedConn)
-		// TODO 4 - then trigger event and start watching for peer
-		peer, err := n.routing(conn)
-		if err != nil {
-			conn.Close() // Drop connection
-			continue
-		}
-		// Wait for incoming messages
-		// This routine will stop when Close() is called
-		go n.watch(peer)
-		// Dispatch event for new peer connected
-		n.events.PeerConnected(peer)
+		// Run handshake for incoming connection
+		go n.handshake(conn, false)
+		return nil
 	}
 
 }
@@ -257,7 +272,6 @@ func (n *Node) Close() {
 // Dial attempt to connect to remote node and add connected peer to routing table.
 // Return error if error occurred while dialing node.
 func (n *Node) Dial(addr string) error {
-
 	protocol := n.config.Protocol()   // eg. tcp
 	timeout := n.config.DialTimeout() // max time waiting for dial.
 
@@ -269,17 +283,7 @@ func (n *Node) Dial(addr string) error {
 		return errDialingNode(err)
 	}
 
-	// Routing for dialed connection
-	peer, err := n.routing(conn)
-	if err != nil {
-		conn.Close() // Drop connection
-		return errDialingNode(err)
-	}
-
-	// Wait for incoming messages
-	// This routine will stop when Close() is called
-	go n.watch(peer)
-	// Dispatch event for new peer connected
-	n.events.PeerConnected(peer)
+	// Run handshake for incoming connection
+	go n.handshake(conn, true)
 	return nil
 }

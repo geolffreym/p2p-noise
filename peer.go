@@ -2,7 +2,6 @@ package noise
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"io"
 	"log"
 	"net"
@@ -11,8 +10,19 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
+// Blake2 return a string representation for blake2 hash.
+func Blake2(i []byte) []byte {
+	hash, err := blake2b.New(blake2b.Size256, nil)
+	if err != nil {
+		return nil
+	}
+
+	hash.Write(i)
+	digest := hash.Sum(nil)
+	return digest
+}
+
 // [ID] it's identity provider for peer.
-// TODO Convert to [32]byte
 type ID string
 
 // Bytes return a byte slice representation for id.
@@ -22,18 +32,6 @@ func (i ID) Bytes() []byte {
 	// no-copy conversion
 	// ref: https://github.com/golang/go/issues/25484
 	return *(*[]byte)(unsafe.Pointer(&i))
-}
-
-// Hash return a string representation for blake2 hash.
-func (i ID) Hash() string {
-	hash, err := blake2b.New(blake2b.Size256, nil)
-	if err != nil {
-		return ""
-	}
-
-	hash.Write(i.Bytes())
-	digest := hash.Sum(nil)
-	return hex.EncodeToString(digest)
 }
 
 // String return a string representation for 32-bytes hash.
@@ -55,8 +53,8 @@ type msgHeader struct {
 // peer its the trusty remote peer.
 // Keep needed methods to interact with the secured session.
 type peer struct {
-	net.Conn // TODO session here?
-	nonce    uint32
+	net.Conn
+	nonce uint32
 }
 
 func newPeer(conn net.Conn) *peer {
@@ -68,6 +66,7 @@ func newPeer(conn net.Conn) *peer {
 // Return peer blake2 hash.
 func (p *peer) ID() ID {
 	// Temporary seed for ID. here could be used MAC, public key, etc..
+	// TODO return here re = remote static key hash
 	seed := p.RemoteAddr().String()
 	return ID(seed)
 }
@@ -76,7 +75,6 @@ func (p *peer) ID() ID {
 func (p *peer) Send(msg []byte) (uint, error) {
 	// TODO send msgHeader here
 	// TODO add nonce ordered number to header
-	// TODO Encrypt here with local key
 	// write 4-bytes size header to share payload size
 	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
 	if err != nil {
@@ -91,7 +89,6 @@ func (p *peer) Send(msg []byte) (uint, error) {
 // Listen wait for incoming messages from Peer.
 // Each message keep a header with message size to allocate buffer dynamically.
 func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
-	// TODO decrypt here with remote key
 	var size uint32 // read bytes size from header
 	err := binary.Read(p, binary.BigEndian, &size)
 	log.Printf("receiving %d bytes from incoming connection", size)
@@ -107,12 +104,10 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	}
 
 	// Dynamic allocation based on msg size
-	// TODO use buffer pools here!!
 	buf := make([]byte, size)
 	// Sync buffered IO reading
 	if _, err = p.Read(buf); err == nil {
 		// Sync incoming message
-		// TODO process incoming message decrypt for secured connection
 		return buf, nil
 	}
 

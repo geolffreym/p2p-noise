@@ -1,16 +1,15 @@
 package noise
 
 import (
-	"bytes"
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"hash"
 	"log"
 	"net"
-	"sync"
 
 	"github.com/flynn/noise"
+	"github.com/oxtoacart/bpool"
 	"golang.org/x/crypto/blake2b"
 )
 
@@ -34,13 +33,6 @@ func (h blake2Fn) Hash() hash.Hash {
 	}
 
 	return hash
-}
-
-// Global reusable network pool buffer
-var NetworkPool = sync.Pool{
-	New: func() any {
-		return new(bytes.Buffer)
-	},
 }
 
 // Cipher algorithm.
@@ -96,8 +88,6 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 	}
 }
 
-type operators func([]byte) (e, d *noise.CipherState, err error)
-
 // handshake execute the steps needed for the noise handshake XX pattern.
 // Please see [XX Pattern] for more details. [XX Explorer] pattern.
 //
@@ -124,9 +114,8 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	}
 
 	return &handshake{
-		conn,
-		state,
-		new(session),
+		conn, state,
+		newSession(conn),
 	}, nil
 }
 
@@ -158,14 +147,28 @@ func (h *handshake) Valid(enc, dec *noise.CipherState) error {
 	return nil
 }
 
+func (h *handshake) Start(initiator bool) error {
+	if initiator {
+		// Run as initiator role
+		return h.Initiate()
+	}
+	// Run as remote "peer" role
+	return h.Answer()
+}
+
 // Initiate start a new handshake with peer as a "dialer".
 func (h *handshake) Initiate() error {
 
 	// Reserved pool buffer chunk
-	buffer := NetworkPool.Get().([]byte)
-	defer NetworkPool.Put(buffer)
+	// DHLEN = 32
+	// For "s": Sets temp to the next DHLEN + 16 bytes of the message if HasKey() == True
+	size := 2*noise.DH25519.DHLen() + 16
+	pool := bpool.NewBytePool(size, size)
+	buffer := pool.Get()
+	defer pool.Put(buffer)
 
 	// Send initial #1 message
+	// bytes size = DHLen for e = ephemeral key
 	log.Print("Sending e to remote")
 	enc, dec, err := h.Send(buffer)
 	if err != nil {
@@ -203,8 +206,10 @@ func (h *handshake) Initiate() error {
 // Answer start an answer for remote peer handshake request.
 func (h *handshake) Answer() error {
 	// Reserved pool buffer chunk
-	buffer := NetworkPool.Get().([]byte)
-	defer NetworkPool.Put(buffer)
+	size := 2*noise.DH25519.DHLen() + 16
+	pool := bpool.NewBytePool(size, size)
+	buffer := pool.Get()
+	defer pool.Put(buffer)
 
 	// Receive message #1 stage
 	log.Print("Waiting for e from remote")
@@ -242,13 +247,13 @@ func (h *handshake) Answer() error {
 
 // Send create a new token based on message pattern synchronization and send it to remote peer.
 func (h *handshake) Send(buffer []byte) (e, d *noise.CipherState, err error) {
+	var msg []byte
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
 	// CipherStates will be returned, one is used for encryption of messages to the
 	// remote peer, the other is used for decryption of messages from the remote
 	// peer. It is an error to call this method out of sync with the handshake
 	// pattern.
-	var msg []byte
 	msg, e, d, err = h.state.WriteMessage(buffer, nil)
 	if err != nil {
 		return

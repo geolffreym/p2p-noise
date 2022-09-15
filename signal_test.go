@@ -1,7 +1,6 @@
 package noise
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -23,7 +22,6 @@ func TestPayload(t *testing.T) {
 	header := header{peer, NewPeerDetected}
 	message := Signal{header, PAYLOAD}
 
-	fmt.Print(message.Payload())
 	if message.Payload() != PAYLOAD {
 		t.Errorf("expected message with payload %v, got %v", event, message.Type())
 	}
