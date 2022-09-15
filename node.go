@@ -137,6 +137,7 @@ KEEPALIVE:
 
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
+	log.Print("Starting handshake")
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
