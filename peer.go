@@ -51,6 +51,7 @@ type peer struct {
 	n uint32
 }
 
+// TODO write here docs
 func newPeer(s *session) *peer {
 	// Blake2 hashed remote public key.
 	id := newBlake2ID(s.State().PeerStatic())

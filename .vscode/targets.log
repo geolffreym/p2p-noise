@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Sep 16 10:00:22 2022
+# Make data base, printed on Sun Sep 18 13:45:49 2022
 
 # Variables
 
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 31 files, no impossibilities.
+# . (device 66311, inode 16384686): 33 files, no impossibilities.
 
-# 31 files, no impossibilities in 1 directories.
+# 33 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -467,12 +467,12 @@ code-fmt:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 54 / storage = 552 B / avg = 10 B
-# current buf: size = 8162 B / used = 552 B / count = 54 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 56 / storage = 577 B / avg = 10 B
+# current buf: size = 8162 B / used = 577 B / count = 56 / avg = 10 B
 
-# strcache performance: lookups = 87 / hit rate = 37%
+# strcache performance: lookups = 89 / hit rate = 37%
 # hash-table stats:
-# Load=54/8192=1%, Rehash=0, Collisions=0/87=0%
-# Finished Make data base on Fri Sep 16 10:00:23 2022
+# Load=56/8192=1%, Rehash=0, Collisions=0/89=0%
+# Finished Make data base on Sun Sep 18 13:45:49 2022
 
  

@@ -16,6 +16,7 @@ type session struct {
 	hs         HandshakeState
 }
 
+// TODO write here docs
 func newSession(conn net.Conn) *session {
 	return &session{conn, nil, nil, nil}
 }

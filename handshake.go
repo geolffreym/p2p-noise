@@ -40,8 +40,8 @@ type HandshakeState interface {
 }
 
 // Buffer pools
-// If bPools > 1 a new buffered pool is created.
-// If bPools == 1 a new no-buffered pool is created
+// If bPools >= 1 a new buffered pool is created.
+// If bPools == 0 a new no-buffered pool is created
 const bPools = 1
 
 // BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3.
@@ -52,7 +52,7 @@ const bPools = 1
 // does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
 // AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.
 var cipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
-var HandshakePattern = noise.HandshakeXX
+var handshakePattern = noise.HandshakeXX
 
 // GenerateKeypair generates a new keypair using random as a source of entropy.
 // Please see [Docs] for more details.
@@ -94,7 +94,7 @@ func newHandshakeState(conf noise.Config) (*noise.HandshakeState, error) {
 func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 	return noise.Config{
 		CipherSuite:   cipherSuite,
-		Pattern:       HandshakePattern,
+		Pattern:       handshakePattern,
 		Initiator:     initiator,
 		StaticKeypair: kp,
 	}
@@ -112,6 +112,7 @@ type handshake struct {
 	i  bool
 }
 
+// TODO write here docs
 func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	kp, err := generateKeyPair()
 	if err != nil {
@@ -131,10 +132,14 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	// 64(DH keys) + 16(static key encrypted) + 2(size) = pool size
 	size := 2*noise.DH25519.DHLen() + 2*chacha20poly1305.Overhead
 	pool := bpool.NewBytePool(bPools, size) // N pool of 84 bytes
+	// Start a new session
+	session := newSession(conn)
 
 	return &handshake{
-		newSession(conn),
-		state, pool, initiator,
+		session,
+		state,
+		pool,
+		initiator,
 	}, nil
 }
 
@@ -151,7 +156,7 @@ func (h *handshake) Session() *session {
 // Finish return the handshake state.
 // Return true if handshake is finished otherwise false.
 func (h *handshake) Finish() bool {
-	return h.hs.MessageIndex() >= len(HandshakePattern.Messages)
+	return h.hs.MessageIndex() >= len(handshakePattern.Messages)
 }
 
 // Valid check if handshake sync is valid.
