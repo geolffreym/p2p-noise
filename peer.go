@@ -110,10 +110,9 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 
 	buffer := p.p.Get()[:size]
 	defer p.p.Put(buffer)
-	// Receive secure message from peer.
 	// Sync buffered IO reading
 	if _, err = p.s.Read(buffer); err == nil {
-		// Sync incoming message
+		// Receive secure message from peer.
 		return p.s.Decrypt(buffer)
 	}
 
