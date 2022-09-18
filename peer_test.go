@@ -26,6 +26,7 @@ func (m *mockAddr) String() string {
 type mockConn struct {
 	addr       string
 	shouldFail bool
+	msg        []byte
 }
 
 // Read reads data from the connection.
@@ -40,7 +41,7 @@ func (c *mockConn) Read(p []byte) (n int, err error) {
 // time limit; see SetDeadline and SetWriteDeadline.
 // time limit; see SetDeadline and SetWriteDeadline.
 func (c *mockConn) Write(b []byte) (n int, err error) {
-	return 1, nil
+	return len(c.msg), nil
 }
 
 // Close closes the connection.
@@ -83,35 +84,60 @@ func (c *mockConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
 
+type mockHandshakeState struct {
+	addr string
+}
+
+func (m *mockHandshakeState) PeerStatic() []byte {
+	return []byte(m.addr)
+}
+
+func (*mockHandshakeState) MessageIndex() int {
+	return 0
+}
+
+func (*mockHandshakeState) WriteMessage(out, payload []byte) ([]byte, CipherState, CipherState, error) {
+	return nil, nil, nil, nil
+}
+
+func (*mockHandshakeState) ReadMessage(out, message []byte) ([]byte, CipherState, CipherState, error) {
+	return nil, nil, nil, nil
+}
+
+func mockSession(conn net.Conn) *session {
+	return &session{
+		conn, nil, nil,
+		&mockHandshakeState{conn.RemoteAddr().String()},
+	}
+}
+
+func mockID(address string) ID {
+	var id ID
+	addr := []byte(address)
+	copy(id[:], addr)
+	return id
+}
+
+func mockBytes(content string) []byte {
+	var expected [32]byte
+	copy(expected[:], content)
+	return expected[:]
+}
+
 func TestByteID(t *testing.T) {
-	id := ID(LOCAL_ADDRESS)
-	if !bytes.Equal(id.Bytes(), []byte(LOCAL_ADDRESS)) {
-		t.Errorf("Expected returned bytes equal to %v", string(id.Bytes()))
+	expected := mockBytes(LOCAL_ADDRESS)
+	id := mockID(LOCAL_ADDRESS)
+
+	if !bytes.Equal(id.Bytes(), expected[:]) {
+		t.Errorf("expected returned bytes equal to %v, got %v", string(expected[:]), string(id.Bytes()))
 	}
 }
 
 func TestStringID(t *testing.T) {
-	id := ID(LOCAL_ADDRESS)
-	if id.String() != LOCAL_ADDRESS {
-		t.Errorf("Expected returned string equal to %v", id.String())
-	}
-}
+	id := mockID(LOCAL_ADDRESS)
+	expected := mockBytes(LOCAL_ADDRESS)
 
-func TestHashID(t *testing.T) {
-	id := ID(LOCAL_ADDRESS)
-	expected := "9dc5222ac8b8f155ab6c216321b9bbed2448fe3331e1ae8c0f285a07ded6b0ac"
-
-	if id.Hash() != expected {
-		t.Errorf("Expected returned hash equal to %s", id.Hash())
-	}
-}
-
-func TestID(t *testing.T) {
-	address := LOCAL_ADDRESS
-	conn := &mockConn{addr: address}
-	peer := newPeer(conn)
-
-	if peer.ID() != ID(address) {
-		t.Errorf("expected socket %#v, got %#v", address, peer.ID())
+	if id.String() != string(expected) {
+		t.Errorf("expected returned string equal to %v, got %v", string(LOCAL_ADDRESS), id.String())
 	}
 }

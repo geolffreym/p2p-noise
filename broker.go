@@ -6,7 +6,7 @@ import (
 
 type topic struct {
 	s    []*subscriber
-	sMap map[*subscriber]int
+	sMap map[*subscriber]uint8
 	size uint8
 }
 
@@ -24,11 +24,11 @@ func (t topics) Add(e Event, s *subscriber) {
 		t[e] = new(topic)
 		t[e].size = 0
 		t[e].s = []*subscriber{}
-		t[e].sMap = make(map[*subscriber]int)
+		t[e].sMap = make(map[*subscriber]uint8)
 	}
 
 	t[e].s = append(t[e].s, s)
-	t[e].sMap[s] = len(t[e].s) - 1
+	t[e].sMap[s] = uint8(len(t[e].s) - 1)
 	t[e].size++
 }
 

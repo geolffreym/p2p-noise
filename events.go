@@ -1,9 +1,12 @@
 package noise
 
-import "context"
+import (
+	"context"
+	"unsafe"
+)
 
 // [Event] aliases for int type.
-type Event int
+type Event uint8
 
 const (
 	// Event to notify when a new peer get connected
@@ -42,9 +45,8 @@ func (e *events) Listen(ctx context.Context, ch chan<- Signal) {
 // PeerConnected dispatch event when new peer is detected.
 func (e *events) PeerConnected(peer *peer) {
 	// Emit new notification
-	body := peer.ID().Bytes()
+	body := peer.ID().String()
 	header := header{peer, NewPeerDetected}
-
 	signal := Signal{header, body}
 	e.broker.Publish(signal)
 }
@@ -52,9 +54,8 @@ func (e *events) PeerConnected(peer *peer) {
 // PeerDisconnected dispatch event when peer get disconnected.
 func (e *events) PeerDisconnected(peer *peer) {
 	// Emit new notification
-	body := peer.ID().Bytes()
+	body := peer.ID().String()
 	header := header{peer, PeerDisconnected}
-
 	signal := Signal{header, body}
 	e.broker.Publish(signal)
 }
@@ -62,7 +63,8 @@ func (e *events) PeerDisconnected(peer *peer) {
 // NewMessage dispatch event when a new message is received.
 func (e *events) NewMessage(peer *peer, msg []byte) {
 	// Emit new notification
+	message := *(*string)(unsafe.Pointer(&msg))
 	header := header{peer, MessageReceived}
-	signal := Signal{header, msg}
+	signal := Signal{header, message}
 	e.broker.Publish(signal)
 }

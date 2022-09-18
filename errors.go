@@ -16,8 +16,9 @@ func (e NetError) Error() string {
 	return fmt.Sprintf("net: %s -> %v", e.Context, e.Err)
 }
 
-// [OperationalError] represents an error that occurred when an operation in node is invalid.
+// [OperationalError] represents an error that occurred when an operation in node failed.
 // eg. Send a new message to invalid or not connected peer.
+// eg. Error during Handshake.
 type OperationalError struct {
 	Context string
 	Err     error
@@ -40,24 +41,14 @@ func (e OverflowError) Error() string {
 	return fmt.Sprintf("overflow: %s -> %v", e.Context, e.Err)
 }
 
-// errSelfListening error represent an issue for node address listening.
-func errSelfListening(err error, addr string) error {
-	return &NetError{fmt.Sprintf("error trying to listen on %s", addr), err}
-}
-
 // errDialingNode error represent an issue trying to dial a node address.
-func errDialingNode(err error, addr string) error {
-	return &NetError{fmt.Sprintf("failed dialing to %s", addr), err}
+func errDialingNode(err error) error {
+	return &NetError{"error during dialing", err}
 }
 
 // errBindingConnection error represent an issue accepting connections.
 func errBindingConnection(err error) error {
 	return &NetError{"connection closed or cannot be established", err}
-}
-
-// errClosingConnection error represent an issue trying to close connections.
-func errClosingConnection(err error) error {
-	return &NetError{"error when shutting down connection", err}
 }
 
 // errExceededMaxPeers error represent an issue if number of active connections exceed max peer connected.
@@ -76,10 +67,12 @@ func errExceededMaxPayloadSize(max uint32) error {
 	}
 }
 
-// errSendingMessageToInvalidPeer error represent an issue trying to send a message to invalid peer.
-func errSendingMessageToInvalidPeer(addr string) error {
-	return &OperationalError{
-		fmt.Sprintf("error trying to send a message to %s", addr),
-		errors.New("peer disconnected"),
-	}
+// errSendingMessage error represent an issue trying to send a message.
+func errSendingMessage(err error) error {
+	return &OperationalError{"error sending message", err}
+}
+
+// errDuringHandshake error represent an issue during handshake with peer.
+func errDuringHandshake(err error) error {
+	return &OperationalError{"error during handshake", err}
 }

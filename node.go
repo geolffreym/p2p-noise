@@ -8,9 +8,12 @@ package noise
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"time"
+
+	"github.com/oxtoacart/bpool"
 )
 
 // futureDeadline calculate a new time for deadline since now.
@@ -27,7 +30,7 @@ type Config interface {
 	MaxPeersConnected() uint8
 	// Default 10 << 20 = 10MB
 	MaxPayloadSize() uint32
-	// Default 1800 seconds = 30 minutes
+	// Default 3600 seconds = 60 minutes
 	PeerDeadline() time.Duration
 	// Default 5 seconds
 	DialTimeout() time.Duration
@@ -40,16 +43,25 @@ type Node struct {
 	router *router
 	// Pubsub notifications.
 	events *events
+	// Global buffer pool
+	pool BytePool
 	// Configuration settings
 	config Config
 }
 
-// New create a new node with default
+// New create a new node with defaults
 func New(config Config) *Node {
+	// Max allowed "pools" is related to max active peers.
+	maxPools := int(config.MaxPeersConnected())
+	// Max width of buffer
+	maxBufferSize := int(config.MaxPayloadSize())
+	pool := bpool.NewBytePool(maxPools, maxBufferSize)
+
 	return &Node{
 		make(chan bool),
 		newRouter(),
 		newEvents(),
+		pool,
 		config,
 	}
 }
@@ -65,27 +77,24 @@ func (n *Node) Signals(ctx context.Context) <-chan Signal {
 // Send emit a new message using peer id.
 // If peer id doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
-func (n *Node) Send(id ID, message []byte) (int, error) {
+func (n *Node) Send(id ID, message []byte) (uint32, error) {
+	// Check if id exists in connected peers
 	peer := n.router.Query(id)
-
 	if peer == nil {
-		return 0, errSendingMessageToInvalidPeer(id.String())
+		err := fmt.Errorf("remote peer disconnected: %s", id.String())
+		return 0, errSendingMessage(err)
 	}
 
 	bytes, err := peer.Send(message)
 	// An idle timeout can be implemented by repeatedly extending
 	// the deadline after successful Read or Write calls.
-	// SetWriteDeadline sets the deadline for future Write calls
-	// and any currently-blocked Write call.
-	// Even if write times out, it may return n > 0, indicating that
-	// some of the data was successfully written.
 	idle := futureDeadLine(n.config.PeerDeadline())
-	peer.SetWriteDeadline(idle)
+	peer.SetDeadline(idle)
 	return bytes, err
 }
 
 // watch keep running waiting for incoming messages.
-// After every new message the connection is verified, if local connection is closed or remote peer is disconnected the watch routine is stopped.
+// After every new message the connection is verified, if local connection is closed or remote peer is disconnected the routine is stopped.
 // Incoming message monitor is suggested to be processed in go routines.
 func (n *Node) watch(peer *peer) {
 
@@ -114,6 +123,7 @@ KEEPALIVE:
 		}
 
 		if buf == nil {
+			log.Printf("buffer nil with err: %v", err)
 			// `buf` is nil if no more bytes received but peer is still connected
 			// Keep alive always that zero bytes are not received
 			break KEEPALIVE
@@ -123,21 +133,21 @@ KEEPALIVE:
 		n.events.NewMessage(peer, buf)
 		// An idle timeout can be implemented by repeatedly extending
 		// the deadline after successful Read or Write calls.
-		// SetReadDeadline sets the deadline for future Read calls
-		// and any currently-blocked Read call.
 		idle := futureDeadLine(n.config.PeerDeadline())
-		peer.SetReadDeadline(idle)
+		peer.SetDeadline(idle)
 
 	}
 
 }
 
-// routing initialize route in routing table from connection interface.
+// handshake starts a new handshake for incoming or dialed connection.
+// After handshake completes a new session is created and a new peer is created to be added to router.
+// Marshaling data to/from on the network path as a "chain of responsibility".
 // If TCP protocol is used connection is enforced to keep alive.
-// Return err if max peers connected exceed MaxPeerConnected otherwise return new peer added to table.
-func (n *Node) routing(conn net.Conn) (*peer, error) {
-
+// Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
+func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
+	log.Printf("Starting handshake with: %v", conn.RemoteAddr().String())
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
@@ -147,10 +157,42 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 
 	// Drop connections if max peers exceeded
 	if n.router.Len() >= n.config.MaxPeersConnected() {
+		connection.Close() // Drop connection :(
 		log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
-		return nil, errExceededMaxPeers(n.config.MaxPeersConnected())
+		return errExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
+	// Stage 1 -> run handshake
+	h, err := newHandshake(connection, initialize)
+	if err != nil {
+		log.Printf("error while creating handshake: %s", err)
+		return err
+	}
+
+	err = h.Start() // start the handshake
+	if err != nil {
+		log.Printf("error while starting handshake: %s", err)
+		return err
+	}
+
+	// Stage 2 -> get a secure session
+	// All good with handshake? Then get a secure session.
+	// Add global buffer pool to session.
+	session := h.Session()
+	// Stage 3 -> create a peer and add it to router
+	// Routing for secure session
+	peer := n.routing(session)
+	// Keep watching for incoming messages
+	// This routine will stop when Close() is called
+	go n.watch(peer)
+	// Dispatch event for new peer connected
+	n.events.PeerConnected(peer)
+	return nil
+}
+
+// routing initialize route in routing table from session.
+// Return the recent added peer.
+func (n *Node) routing(conn *session) *peer {
 	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
 	// fail instead of blocking. The deadline applies to all future
@@ -159,21 +201,21 @@ func (n *Node) routing(conn net.Conn) (*peer, error) {
 	// connection can be refreshed by setting a deadline in the future.
 	// ref: https://pkg.go.dev/net#Conn
 	idle := futureDeadLine(n.config.PeerDeadline())
-	connection.SetDeadline(idle)
+	conn.SetDeadline(idle)
 	// We need to know how interact with peer based on socket and connection
-	peer := newPeer(connection)
+	peer := newPeer(conn)
+	peer.BindPool(n.pool)
 	// Store new peer in router table
 	n.router.Add(peer)
-	return peer, nil
+	return peer
 }
 
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
 func (n *Node) Listen() error {
 
-	addr := n.config.SelfListeningAddress()
-	protocol := n.config.Protocol()
-
+	addr := n.config.SelfListeningAddress() // eg. 0.0.0.0
+	protocol := n.config.Protocol()         // eg. tcp
 	listener, err := net.Listen(protocol, addr)
 	if err != nil {
 		return err
@@ -184,7 +226,7 @@ func (n *Node) Listen() error {
 	defer func() {
 		err := listener.Close()
 		if err != nil {
-			log.Print(errClosingConnection(err).Error())
+			log.Printf("error closing listener: %v", err)
 		}
 	}()
 
@@ -199,21 +241,13 @@ func (n *Node) Listen() error {
 		}
 
 		if err != nil {
-			log.Print(errBindingConnection(err).Error())
-			return err
+			log.Printf("error accepting connection: %v", err)
+			return errBindingConnection(err)
 		}
 
-		// Routing for accepted connection
-		peer, err := n.routing(conn)
-		if err != nil {
-			conn.Close() // Drop connection
-			continue
-		}
-		// Wait for incoming messages
-		// This routine will stop when Close() is called
-		go n.watch(peer)
-		// Dispatch event for new peer connected
-		n.events.PeerConnected(peer)
+		// Run handshake for incoming connection
+		go n.handshake(conn, false)
+		return nil
 	}
 
 }
@@ -235,7 +269,7 @@ func (n *Node) Close() {
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {
 			if err := peer.Close(); err != nil {
-				log.Print(errClosingConnection(err).Error())
+				log.Printf("error when shutting down connection: %v", err)
 			}
 		}(p)
 	}
@@ -250,28 +284,18 @@ func (n *Node) Close() {
 // Dial attempt to connect to remote node and add connected peer to routing table.
 // Return error if error occurred while dialing node.
 func (n *Node) Dial(addr string) error {
-
 	protocol := n.config.Protocol()   // eg. tcp
 	timeout := n.config.DialTimeout() // max time waiting for dial.
 
+	// Start dialing to address
 	conn, err := net.DialTimeout(protocol, addr, timeout)
 	log.Printf("dialing to %s", addr)
 
 	if err != nil {
-		return errDialingNode(err, addr)
+		return errDialingNode(err)
 	}
 
-	// Routing for dialed connection
-	peer, err := n.routing(conn)
-	if err != nil {
-		conn.Close() // Drop connection
-		return errDialingNode(err, addr)
-	}
-
-	// Wait for incoming messages
-	// This routine will stop when Close() is called
-	go n.watch(peer)
-	// Dispatch event for new peer connected
-	n.events.PeerConnected(peer)
+	// Run handshake for incoming connection
+	go n.handshake(conn, true)
 	return nil
 }
