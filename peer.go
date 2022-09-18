@@ -29,11 +29,7 @@ func (i ID) Bytes() []byte {
 
 // String return a string representation for 32-bytes hash.
 func (i ID) String() string {
-	// A pointer value can't be converted to an arbitrary pointer type.
-	// ref: https://go101.org/article/unsafe.html
-	// no-copy conversion
-	// ref: https://github.com/golang/go/issues/25484
-	return string(i[:])
+	return (string)(i[:])
 }
 
 // peer its the trusty remote peer.
