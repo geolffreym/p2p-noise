@@ -108,6 +108,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 		return nil, errExceededMaxPayloadSize(maxPayloadSize)
 	}
 
+	// Get a pool buffer chunk
 	buffer := p.p.Get()[:size]
 	defer p.p.Put(buffer)
 	// Sync buffered IO reading
