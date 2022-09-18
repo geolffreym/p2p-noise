@@ -2,45 +2,56 @@ package noise
 
 import (
 	"crypto/rand"
+	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash"
 	"log"
 	"net"
 
 	"github.com/flynn/noise"
 	"github.com/oxtoacart/bpool"
-	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/chacha20poly1305"
 )
+
+// Aliases
+type CipherState = *noise.CipherState
+type BytePool = *bpool.BytePool
+
+type HandshakeState interface {
+	// WriteMessage appends a handshake message to out. The message will include the
+	// optional payload if provided. If the handshake is completed by the call, two
+	// CipherStates will be returned, one is used for encryption of messages to the
+	// remote peer, the other is used for decryption of messages from the remote
+	// peer. It is an error to call this method out of sync with the handshake
+	// pattern.
+	WriteMessage(out, payload []byte) ([]byte, CipherState, CipherState, error)
+	// ReadMessage processes a received handshake message and appends the payload,
+	// if any to out. If the handshake is completed by the call, two CipherStates
+	// will be returned, one is used for encryption of messages to the remote peer,
+	// the other is used for decryption of messages from the remote peer. It is an
+	// error to call this method out of sync with the handshake pattern.
+	ReadMessage(out, message []byte) ([]byte, CipherState, CipherState, error)
+	// PeerStatic returns the static key provided by the remote peer during
+	// a handshake. It is an error to call this method if a handshake message
+	// containing a static key has not been read.
+	PeerStatic() []byte
+	// MessageIndex returns the current handshake message id
+	MessageIndex() int
+}
+
+// Buffer pools
+// If bPools > 1 a new buffered pool is created.
+// If bPools == 1 a new no-buffered pool is created
+const bPools = 1
 
 // BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3.
 // [Blake2]: https://www.blake2.net/
-type blake2Fn struct{}
-
-func (h blake2Fn) HashName() string { return "BLAKE2b" }
-func (h blake2Fn) Hash() hash.Hash {
-	// New returns a new hash.Hash computing the BLAKE2b checksum with a custom length.
-	// A non-nil key turns the hash into a MAC. The key must be between zero and 64 bytes long.
-	// The hash size can be a value between 1 and 64 but it is highly recommended to use
-	// values equal or greater than:
-	// - 32 if BLAKE2b is used as a hash function (The key is zero bytes long).
-	// - 16 if BLAKE2b is used as a MAC function (The key is at least 16 bytes long).
-	// When the key is nil, the returned hash.Hash implements BinaryMarshaler
-	// and BinaryUnmarshaler for state (de)serialization as documented by hash.Hash.
-	hash, err := blake2b.New(blake2b.Size256, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	return hash
-}
 
 // Cipher algorithm.
 // ChaCha20-Poly1305 usually offers better performance than the more prevalent AES-GCM algorithm on systems where the CPU(s)
 // does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
 // AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.
-var HashBLAKE2 noise.HashFunc = blake2Fn{}
-var cipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, HashBLAKE2)
+var cipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
 var HandshakePattern = noise.HandshakeXX
 
 // GenerateKeypair generates a new keypair using random as a source of entropy.
@@ -70,6 +81,7 @@ func newHandshakeState(conf noise.Config) (*noise.HandshakeState, error) {
 	// handshake state
 	hs, err := noise.NewHandshakeState(conf)
 	if err != nil {
+		log.Print(err)
 		err = fmt.Errorf("error creating handshake state: %v", err)
 		return nil, errDuringHandshake(err)
 	}
@@ -94,9 +106,10 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 // [XX Pattern]: http://www.noiseprotocol.org/noise.html#handshake-patterns
 // [XX Explorer]: https://noiseexplorer.com/patterns/XX/
 type handshake struct {
-	conn  net.Conn // ref: https://go.dev/doc/effective_go#embedding
-	state *noise.HandshakeState
-	s     *session
+	s  *session // ref: https://go.dev/doc/effective_go#embedding
+	hs HandshakeState
+	p  BytePool
+	i  bool
 }
 
 func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
@@ -105,6 +118,7 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 		return nil, err
 	}
 
+	log.Printf("Generated public key %x", kp.Public)
 	// set handshake state as initiator?
 	conf := newHandshakeConfig(initiator, kp)
 	// A HandshakeState tracks the state of a Noise handshake
@@ -113,9 +127,14 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 		return nil, err
 	}
 
+	// Setup the max of size possible for tokens exchanged between peers.
+	// 64(DH keys) + 16(static key encrypted) + 2(size) = pool size
+	size := 2*noise.DH25519.DHLen() + 2*chacha20poly1305.Overhead
+	pool := bpool.NewBytePool(bPools, size) // N pool of 84 bytes
+
 	return &handshake{
-		conn, state,
 		newSession(conn),
+		state, pool, initiator,
 	}, nil
 }
 
@@ -132,12 +151,12 @@ func (h *handshake) Session() *session {
 // Finish return the handshake state.
 // Return true if handshake is finished otherwise false.
 func (h *handshake) Finish() bool {
-	return h.state.MessageIndex() >= len(HandshakePattern.Messages)
+	return h.hs.MessageIndex() >= len(HandshakePattern.Messages)
 }
 
 // Valid check if handshake sync is valid.
 // If the process finished but the keys are not exchange as expected return error.
-func (h *handshake) Valid(enc, dec *noise.CipherState) error {
+func (h *handshake) Valid(enc, dec CipherState) error {
 	// This cyphers will be `not nil` until exchange patterns finish
 	if h.Finish() && (enc == nil || dec == nil) {
 		err := errors.New("invalid enc/dec cipher after handshake")
@@ -147,8 +166,8 @@ func (h *handshake) Valid(enc, dec *noise.CipherState) error {
 	return nil
 }
 
-func (h *handshake) Start(initiator bool) error {
-	if initiator {
+func (h *handshake) Start() error {
+	if h.i {
 		// Run as initiator role
 		return h.Initiate()
 	}
@@ -158,19 +177,10 @@ func (h *handshake) Start(initiator bool) error {
 
 // Initiate start a new handshake with peer as a "dialer".
 func (h *handshake) Initiate() error {
-
-	// Reserved pool buffer chunk
-	// DHLEN = 32
-	// For "s": Sets temp to the next DHLEN + 16 bytes of the message if HasKey() == True
-	size := 2*noise.DH25519.DHLen() + 16
-	pool := bpool.NewBytePool(size, size)
-	buffer := pool.Get()
-	defer pool.Put(buffer)
-
 	// Send initial #1 message
 	// bytes size = DHLen for e = ephemeral key
 	log.Print("Sending e to remote")
-	enc, dec, err := h.Send(buffer)
+	enc, dec, err := h.Send()
 	if err != nil {
 		err = fmt.Errorf("error sending `e` state: %v", err)
 		return errDuringHandshake(err)
@@ -178,7 +188,7 @@ func (h *handshake) Initiate() error {
 
 	// Receive message #2 stage
 	log.Print("Waiting for e, ee, s, es from remote")
-	enc, dec, err = h.Receive(buffer)
+	enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e, ee, s, es` state: %v", err)
 		return errDuringHandshake(err)
@@ -186,7 +196,7 @@ func (h *handshake) Initiate() error {
 
 	// Send last handshake message #3 stage
 	log.Print("Sending s, se to remote")
-	enc, dec, err = h.Send(buffer)
+	enc, dec, err = h.Send()
 	if err != nil {
 		err = fmt.Errorf("error sending `s, se` state: %v", err)
 		return errDuringHandshake(err)
@@ -197,6 +207,8 @@ func (h *handshake) Initiate() error {
 		return err
 	}
 
+	// Bound handshake state to session
+	h.s.SetState(h.hs)
 	// Add keys for encrypt/decrypt operations in session.
 	h.s.SetCyphers(enc, dec)
 	return nil
@@ -205,15 +217,9 @@ func (h *handshake) Initiate() error {
 
 // Answer start an answer for remote peer handshake request.
 func (h *handshake) Answer() error {
-	// Reserved pool buffer chunk
-	size := 2*noise.DH25519.DHLen() + 16
-	pool := bpool.NewBytePool(size, size)
-	buffer := pool.Get()
-	defer pool.Put(buffer)
-
 	// Receive message #1 stage
 	log.Print("Waiting for e from remote")
-	enc, dec, err := h.Receive(buffer)
+	enc, dec, err := h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e` state: %v", err)
 		return errDuringHandshake(err)
@@ -221,7 +227,7 @@ func (h *handshake) Answer() error {
 
 	// Send answer message #2 stage
 	log.Print("Sending e, ee, s, es to remote")
-	enc, dec, err = h.Send(buffer)
+	enc, dec, err = h.Send()
 	if err != nil {
 		err = fmt.Errorf("error sending `e, ee, s, es` state: %v", err)
 		return errDuringHandshake(err)
@@ -229,7 +235,7 @@ func (h *handshake) Answer() error {
 
 	// Receive message #2 stage
 	log.Print("Waiting for s, se from remote")
-	enc, dec, err = h.Receive(buffer)
+	enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `s, se` state: %v", err)
 		return errDuringHandshake(err)
@@ -240,27 +246,33 @@ func (h *handshake) Answer() error {
 		return err
 	}
 
+	// Bound handshake state to session
+	h.s.SetState(h.hs)
 	// Add keys for encrypt/decrypt operations in session.
 	h.s.SetCyphers(enc, dec)
 	return nil
 }
 
 // Send create a new token based on message pattern synchronization and send it to remote peer.
-func (h *handshake) Send(buffer []byte) (e, d *noise.CipherState, err error) {
+func (h *handshake) Send() (e, d CipherState, err error) {
 	var msg []byte
+	// Get a chunk of bytes from pool
+	buffer := h.p.Get()
+	defer h.p.Put(msg)
+
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
 	// CipherStates will be returned, one is used for encryption of messages to the
 	// remote peer, the other is used for decryption of messages from the remote
 	// peer. It is an error to call this method out of sync with the handshake
 	// pattern.
-	msg, e, d, err = h.state.WriteMessage(buffer, nil)
+	msg, e, d, err = h.hs.WriteMessage(buffer[:0], nil)
 	if err != nil {
 		return
 	}
 
-	// Send message to remote peer
-	if _, err = h.conn.Write(msg); err != nil {
+	binary.Write(h.s, binary.BigEndian, uint16(len(msg)))
+	if _, err = h.s.Write(msg); err != nil {
 		return
 	}
 
@@ -268,9 +280,20 @@ func (h *handshake) Send(buffer []byte) (e, d *noise.CipherState, err error) {
 }
 
 // Receive get a token from remote peer and synchronize it with local peer handshake state.
-func (h *handshake) Receive(buffer []byte) (e, d *noise.CipherState, err error) {
+func (h *handshake) Receive() (e, d CipherState, err error) {
+	var size uint16 // read bytes size from header
+	err = binary.Read(h.s, binary.BigEndian, &size)
+	if err != nil {
+		return
+	}
+
+	// With size sent get a chunk from pool
+	// Maybe here we don't need a new pool, just getting a chunk of current could help?
+	buffer := h.p.Get()[:size]
+	defer h.p.Put(buffer)
+
 	// Wait for incoming message from remote
-	if _, err = h.conn.Read(buffer); err != nil {
+	if _, err = h.s.Read(buffer); err != nil {
 		return
 	}
 
@@ -279,7 +302,7 @@ func (h *handshake) Receive(buffer []byte) (e, d *noise.CipherState, err error) 
 	// will be returned, one is used for encryption of messages to the remote peer,
 	// the other is used for decryption of messages from the remote peer. It is an
 	// error to call this method out of sync with the handshake pattern.
-	_, e, d, err = h.state.ReadMessage(buffer, nil)
+	_, e, d, err = h.hs.ReadMessage(nil, buffer)
 	if err != nil {
 		return
 	}

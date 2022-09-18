@@ -17,30 +17,13 @@ func TestType(t *testing.T) {
 
 func TestPayload(t *testing.T) {
 	event := MessageReceived
-
-	peer := newPeer(&mockConn{})
+	session := newSession(&mockConn{})
+	peer := newPeer(session)
 	header := header{peer, NewPeerDetected}
 	message := Signal{header, PAYLOAD}
 
 	if message.Payload() != PAYLOAD {
 		t.Errorf("expected message with payload %v, got %v", event, message.Type())
-	}
-
-}
-
-func TestReply(t *testing.T) {
-	event := NewPeerDetected
-	msg := []byte("hello")
-	conn := &mockConn{}
-
-	peer := newPeer(conn)
-	header := header{peer, event}
-	context := Signal{header, PAYLOAD}
-
-	sent, _ := context.Reply(msg)
-
-	if sent != uint(len(msg)) {
-		t.Error("Expected Reply message sent to `Sent` by peer")
 	}
 
 }

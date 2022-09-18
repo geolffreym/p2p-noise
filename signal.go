@@ -7,6 +7,9 @@ type header struct {
 	event Event // Hold the triggered event
 }
 
+// Peer return bundled peer
+func (h *header) Peer() *peer { return h.peer }
+
 // Type return Event type published.
 func (m header) Type() Event { return m.event }
 
@@ -28,6 +31,6 @@ func (s *Signal) Type() Event {
 }
 
 // Reply send an answer to peer in context.
-func (s *Signal) Reply(msg []byte) (uint, error) {
-	return s.header.peer.Send(msg)
+func (s *Signal) Reply(msg []byte) (uint32, error) {
+	return s.header.Peer().Send(msg)
 }

@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Sep 14 11:15:24 2022
+# Make data base, printed on Fri Sep 16 10:00:22 2022
 
 # Variables
 
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 3367159
+VSCODE_PID = 6603
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -109,7 +109,7 @@ XDG_SESSION_TYPE = x11
 # makefile (from 'Makefile', line 8)
 PACKAGE = p2p-noise
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/1762645,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/1762645
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2758,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2758
 # automatic
 *F = $(notdir $*)
 # environment
@@ -159,7 +159,7 @@ HOMEBREW_SHELLENV_PREFIX = /home/linuxbrew/.linuxbrew
 # makefile (from 'Makefile', line 15)
 BINARY_OSX = ${BINARY}-darwin
 # environment
-INVOCATION_ID = c56259e4adea4896a9f010c6f1b4b71e
+INVOCATION_ID = 1902ca89b58c43c98cd1867080b5fdcb
 # makefile (from 'Makefile', line 16)
 BINARY_LINUX = ${BINARY}-linux
 # environment
@@ -187,9 +187,9 @@ GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # makefile
 .DEFAULT_GOAL := test
 # environment
-SYSTEMD_EXEC_PID = 1762664
+SYSTEMD_EXEC_PID = 2903
 # environment
-DISPLAY = :1
+DISPLAY = :0
 # makefile (from 'Makefile', line 7)
 USER = geolffreym
 # environment
@@ -201,7 +201,7 @@ LINUX_32 = ${BINARY_LINUX}-${ARCH_32}
 # makefile (from 'Makefile', line 24)
 WIN_32 = ${BINARY_WIN}-${ARCH_32}
 # environment
-MANAGERPID = 1762017
+MANAGERPID = 1907
 # environment
 HOMEBREW_CELLAR = /home/linuxbrew/.linuxbrew/Cellar
 # makefile (from 'Makefile', line 14)
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 3367159
+GIO_LAUNCHED_DESKTOP_FILE_PID = 6603
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -221,7 +221,7 @@ XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-JOURNAL_STREAM = 8:52060700
+JOURNAL_STREAM = 8:36930
 # environment
 GOMODCACHE = /home/gmena/go/pkg/mod
 # environment
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 29 files, no impossibilities.
+# . (device 66311, inode 16384686): 31 files, no impossibilities.
 
-# 29 files, no impossibilities in 1 directories.
+# 31 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -278,6 +278,7 @@ update-pkg-cache:
 #  Modification time never checked.
 #  File has not been updated.
 
+ 
 compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -292,7 +293,6 @@ coverage:
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 62):
 	@go test -v ./... -race -covermode=atomic -coverprofile coverage ./...
- 
 	@echo "[OK] coverage finished"
 	
 
@@ -467,12 +467,12 @@ code-fmt:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 52 / storage = 526 B / avg = 10 B
-# current buf: size = 8162 B / used = 526 B / count = 52 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 54 / storage = 552 B / avg = 10 B
+# current buf: size = 8162 B / used = 552 B / count = 54 / avg = 10 B
 
-# strcache performance: lookups = 85 / hit rate = 38%
+# strcache performance: lookups = 87 / hit rate = 37%
 # hash-table stats:
-# Load=52/8192=1%, Rehash=0, Collisions=0/85=0%
-# Finished Make data base on Wed Sep 14 11:15:25 2022
+# Load=54/8192=1%, Rehash=0, Collisions=0/87=0%
+# Finished Make data base on Fri Sep 16 10:00:23 2022
 
  

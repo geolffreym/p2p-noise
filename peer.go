@@ -5,95 +5,104 @@ import (
 	"io"
 	"log"
 	"net"
-	"unsafe"
-
-	"golang.org/x/crypto/blake2b"
+	"time"
 )
 
-// Blake2 return a string representation for blake2 hash.
-func Blake2(i []byte) []byte {
-	hash, err := blake2b.New(blake2b.Size256, nil)
-	if err != nil {
-		return nil
-	}
-
-	hash.Write(i)
-	digest := hash.Sum(nil)
-	return digest
-}
+// TODO add msgHeader to each message
+// msgHeader set needed properties to handle incoming message for peer.
+// Optimizing space with ordered types. Descending order.
+// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
+// type msgHeader struct {
+// 	Hash  string // 16 bytes. string alias ID
+// 	Len   uint32 // 4 bytes. Size of message
+// 	Nonce uint32 // 4 bytes. Current message nonce
+// 	Type  uint8  // 1 bytes. it's a number to handle message type.
+// }
 
 // [ID] it's identity provider for peer.
-type ID string
+type ID [32]byte
 
 // Bytes return a byte slice representation for id.
 func (i ID) Bytes() []byte {
-	// A pointer value can't be converted to an arbitrary pointer type.
-	// ref: https://go101.org/article/unsafe.html
-	// no-copy conversion
-	// ref: https://github.com/golang/go/issues/25484
-	return *(*[]byte)(unsafe.Pointer(&i))
+	return i[:]
 }
 
 // String return a string representation for 32-bytes hash.
 func (i ID) String() string {
-	return (string)(i)
-
-}
-
-// msgHeader set needed properties to handle incoming message for peer.
-// Optimizing space with ordered types. Descending order.
-// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
-type msgHeader struct {
-	Hash  string // 16 bytes. string alias ID
-	Len   uint32 // 4 bytes. Size of message
-	Nonce uint32 // 4 bytes. Current message nonce
-	Type  uint8  // 1 bytes. it's a number to handle message type.
+	// A pointer value can't be converted to an arbitrary pointer type.
+	// ref: https://go101.org/article/unsafe.html
+	// no-copy conversion
+	// ref: https://github.com/golang/go/issues/25484
+	return string(i[:])
 }
 
 // peer its the trusty remote peer.
 // Keep needed methods to interact with the secured session.
 type peer struct {
-	net.Conn
-	nonce uint32
+	s *session
+	p BytePool
+	n uint32
 }
 
-func newPeer(conn net.Conn) *peer {
+func newPeer(s *session) *peer {
 	// Go does not provide the typical, type-driven notion of sub-classing,
 	// but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
-	return &peer{conn, 0}
+	return &peer{s, nil, 0}
+}
+
+// BindPool set a global memory pool for peer.
+// Using pools remove latency from buffer allocation.
+func (p *peer) BindPool(pool BytePool) {
+	p.p = pool
 }
 
 // Return peer blake2 hash.
 func (p *peer) ID() ID {
-	// Temporary seed for ID. here could be used MAC, public key, etc..
-	// TODO return here re = remote static key hash
-	seed := p.RemoteAddr().String()
-	return ID(seed)
+	var id ID
+	// Public remote key
+	pb := p.s.State().PeerStatic()
+	// Hash public key
+	hash := Blake2(pb)
+	// Populate id
+	copy(id[:], hash)
+	return id
+}
+
+// Close its a forward method for internal `Close` method in session.
+func (p *peer) Close() error {
+	return p.s.Close()
+}
+
+// Close its a forward method for internal `SetDeadline` method in session.
+func (p *peer) SetDeadline(t time.Time) error {
+	return p.SetDeadline(t)
 }
 
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
-func (p *peer) Send(msg []byte) (uint, error) {
-	// TODO send msgHeader here
-	// TODO add nonce ordered number to header
-	// write 4-bytes size header to share payload size
-	err := binary.Write(p, binary.BigEndian, uint32(len(msg)))
+// Each message is encrypted using session keys.
+func (p *peer) Send(msg []byte) (uint32, error) {
+	digest, err := p.s.Encrypt(msg)
 	if err != nil {
 		return 0, err
 	}
 
-	// Write payload
-	bytesSent, err := p.Write(msg)
-	return uint(bytesSent + 4), err
+	// 4 bytes of size header
+	size := uint32(len(digest))
+	binary.Write(p.s, binary.BigEndian, size)
+	// Send message to session encryption.
+	bytes, err := p.s.Write(digest)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(bytes + 4), nil
 }
 
 // Listen wait for incoming messages from Peer.
-// Each message keep a header with message size to allocate buffer dynamically.
+// Use the needed pool buffer based on incoming header.
 func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	var size uint32 // read bytes size from header
-	err := binary.Read(p, binary.BigEndian, &size)
-	log.Printf("receiving %d bytes from incoming connection", size)
-
-	// Error trying to read `size`
+	err := binary.Read(p.s, binary.BigEndian, &size)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +112,13 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 		return nil, errExceededMaxPayloadSize(maxPayloadSize)
 	}
 
-	// Dynamic allocation based on msg size
-	buf := make([]byte, size)
+	buffer := p.p.Get()[:size]
+	defer p.p.Put(buffer)
+	// Receive secure message from peer.
 	// Sync buffered IO reading
-	if _, err = p.Read(buf); err == nil {
+	if _, err = p.s.Read(buffer); err == nil {
 		// Sync incoming message
-		return buf, nil
+		return p.s.Decrypt(buffer)
 	}
 
 	// net: don't return io.EOF from zero byte reads
@@ -120,7 +130,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	}
 
 	// Close disconnected peer
-	if err := p.Close(); err != nil {
+	if err := p.s.Close(); err != nil {
 		return nil, err
 	}
 

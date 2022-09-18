@@ -2,6 +2,7 @@
     "makefile.extensionOutputFolder": "./.vscode",
     "cSpell.words": [
         "bpool",
+        "ciphertext",
         "DHLEN",
         "Diffie",
         "geolffreym",

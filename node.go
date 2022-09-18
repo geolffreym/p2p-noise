@@ -12,6 +12,8 @@ import (
 	"log"
 	"net"
 	"time"
+
+	"github.com/oxtoacart/bpool"
 )
 
 // futureDeadline calculate a new time for deadline since now.
@@ -41,16 +43,25 @@ type Node struct {
 	router *router
 	// Pubsub notifications.
 	events *events
+	// Global buffer pool
+	pool BytePool
 	// Configuration settings
 	config Config
 }
 
-// New create a new node with default
+// New create a new node with defaults
 func New(config Config) *Node {
+	// Max allowed "pools" is related to max active peers.
+	maxPools := int(config.MaxPeersConnected())
+	// Max width of buffer
+	maxBufferSize := int(config.MaxPayloadSize())
+	pool := bpool.NewBytePool(maxPools, maxBufferSize)
+
 	return &Node{
 		make(chan bool),
 		newRouter(),
 		newEvents(),
+		pool,
 		config,
 	}
 }
@@ -66,7 +77,7 @@ func (n *Node) Signals(ctx context.Context) <-chan Signal {
 // Send emit a new message using peer id.
 // If peer id doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
-func (n *Node) Send(id ID, message []byte) (uint, error) {
+func (n *Node) Send(id ID, message []byte) (uint32, error) {
 	// Check if id exists in connected peers
 	peer := n.router.Query(id)
 	if peer == nil {
@@ -77,12 +88,8 @@ func (n *Node) Send(id ID, message []byte) (uint, error) {
 	bytes, err := peer.Send(message)
 	// An idle timeout can be implemented by repeatedly extending
 	// the deadline after successful Read or Write calls.
-	// SetWriteDeadline sets the deadline for future Write calls
-	// and any currently-blocked Write call.
-	// Even if write times out, it may return n > 0, indicating that
-	// some of the data was successfully written.
 	idle := futureDeadLine(n.config.PeerDeadline())
-	peer.SetWriteDeadline(idle)
+	peer.SetDeadline(idle)
 	return bytes, err
 }
 
@@ -126,18 +133,21 @@ KEEPALIVE:
 		n.events.NewMessage(peer, buf)
 		// An idle timeout can be implemented by repeatedly extending
 		// the deadline after successful Read or Write calls.
-		// SetReadDeadline sets the deadline for future Read calls
-		// and any currently-blocked Read call.
 		idle := futureDeadLine(n.config.PeerDeadline())
-		peer.SetReadDeadline(idle)
+		peer.SetDeadline(idle)
 
 	}
 
 }
 
+// handshake starts a new handshake for incoming or dialed connection.
+// After handshake completes a new session is created and a new peer is created to be added to router.
+// Marshaling data to/from on the network path as a "chain of responsibility".
+// If TCP protocol is used connection is enforced to keep alive.
+// Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
-	log.Print("Starting handshake")
+	log.Printf("Starting handshake with: %v", conn.RemoteAddr().String())
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
@@ -152,26 +162,27 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 		return errExceededMaxPeers(n.config.MaxPeersConnected())
 	}
 
+	// Stage 1 -> run handshake
 	h, err := newHandshake(connection, initialize)
 	if err != nil {
+		log.Printf("error while creating handshake: %s", err)
 		return err
 	}
 
-	err = h.Start(initialize)
+	err = h.Start() // start the handshake
 	if err != nil {
+		log.Printf("error while starting handshake: %s", err)
 		return err
 	}
 
-	// All good with handshake. Get secure session.
+	// Stage 2 -> get a secure session
+	// All good with handshake? Then get a secure session.
+	// Add global buffer pool to session.
 	session := h.Session()
-	// Routing for dialed connection
+	// Stage 3 -> create a peer and add it to router
+	// Routing for secure session
 	peer := n.routing(session)
-	if err != nil {
-		conn.Close() // Drop connection
-		return err
-	}
-
-	// Wait for incoming messages
+	// Keep watching for incoming messages
 	// This routine will stop when Close() is called
 	go n.watch(peer)
 	// Dispatch event for new peer connected
@@ -179,9 +190,8 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	return nil
 }
 
-// routing initialize route in routing table from connection interface.
-// If TCP protocol is used connection is enforced to keep alive.
-// Return err if max peers connected exceed MaxPeerConnected otherwise return new peer added to table.
+// routing initialize route in routing table from session.
+// Return the recent added peer.
 func (n *Node) routing(conn *session) *peer {
 	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
@@ -194,6 +204,7 @@ func (n *Node) routing(conn *session) *peer {
 	conn.SetDeadline(idle)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(conn)
+	peer.BindPool(n.pool)
 	// Store new peer in router table
 	n.router.Add(peer)
 	return peer
