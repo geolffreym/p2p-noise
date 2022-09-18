@@ -8,7 +8,7 @@ import (
 
 func TestSubscriberListen(t *testing.T) {
 	sub := newSubscriber()
-	session := newSession(&mockConn{})
+	session := mockSession(&mockConn{})
 	header := header{newPeer(session), NewPeerDetected}
 	signaling := Signal{header, ""}
 

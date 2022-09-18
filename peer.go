@@ -32,18 +32,29 @@ func (i ID) String() string {
 	return (string)(i[:])
 }
 
+// Create a new id blake2 hash based.
+func newBlake2ID(plaintext []byte) ID {
+	var id ID
+	// Hash
+	hash := Blake2(plaintext)
+	// Populate id
+	copy(id[:], hash)
+	return id
+}
+
 // peer its the trusty remote peer.
 // Keep needed methods to interact with the secured session.
 type peer struct {
 	s *session
 	p BytePool
+	i ID
 	n uint32
 }
 
 func newPeer(s *session) *peer {
-	// Go does not provide the typical, type-driven notion of sub-classing,
-	// but it does have the ability to “borrow” pieces of an implementation by embedding types within a struct or interface.
-	return &peer{s, nil, 0}
+	// Blake2 hashed remote public key.
+	id := newBlake2ID(s.State().PeerStatic())
+	return &peer{s, nil, id, 0}
 }
 
 // BindPool set a global memory pool for peer.
@@ -52,16 +63,10 @@ func (p *peer) BindPool(pool BytePool) {
 	p.p = pool
 }
 
-// Return peer blake2 hash.
+// Return peer id.
+// Peer id its a blake2 hashed remote public key.
 func (p *peer) ID() ID {
-	var id ID
-	// Public remote key
-	pb := p.s.State().PeerStatic()
-	// Hash public key
-	hash := Blake2(pb)
-	// Populate id
-	copy(id[:], hash)
-	return id
+	return p.i
 }
 
 // Close its a forward method for internal `Close` method in session.

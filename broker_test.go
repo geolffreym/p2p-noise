@@ -174,7 +174,7 @@ func TestPublish(t *testing.T) {
 	subscriber := newSubscriber()
 	broker := newBroker()
 
-	session := newSession(&mockConn{})
+	session := mockSession(&mockConn{})
 	header1 := header{newPeer(session), NewPeerDetected}
 	signaling := Signal{header1, ""}
 
@@ -213,7 +213,7 @@ func TestPublish(t *testing.T) {
 
 func TestInvalidPublish(t *testing.T) {
 	broker := newBroker()
-	session := newSession(&mockConn{})
+	session := mockSession(&mockConn{})
 	header1 := header{newPeer(session), NewPeerDetected}
 	signaling := Signal{header1, ""}
 
