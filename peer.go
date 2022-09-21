@@ -45,29 +45,31 @@ func newBlake2ID(plaintext []byte) ID {
 // peer its the trusty remote peer.
 // Keep needed methods to interact with the secured session.
 type peer struct {
-	s *session
-	p BytePool
-	i ID
-	n uint32
+	s     *session
+	id    ID
+	pool  BytePool
+	nonce uint32 // nonce
+	// handshakeAt: time.Now().String(),
+	// 	peers:     []..,
 }
 
 // TODO write here docs
 func newPeer(s *session) *peer {
 	// Blake2 hashed remote public key.
 	id := newBlake2ID(s.State().PeerStatic())
-	return &peer{s, nil, id, 0}
+	return &peer{s, id, nil, 0}
 }
 
 // BindPool set a global memory pool for peer.
 // Using pools remove latency from buffer allocation.
 func (p *peer) BindPool(pool BytePool) {
-	p.p = pool
+	p.pool = pool
 }
 
 // Return peer id.
 // Peer id its a blake2 hashed remote public key.
 func (p *peer) ID() ID {
-	return p.i
+	return p.id
 }
 
 // Close its a forward method for internal `Close` method in session.
@@ -115,8 +117,8 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	}
 
 	// Get a pool buffer chunk
-	buffer := p.p.Get()[:size]
-	defer p.p.Put(buffer)
+	buffer := p.pool.Get()[:size]
+	defer p.pool.Put(buffer)
 	// Sync buffered IO reading
 	if _, err = p.s.Read(buffer); err == nil {
 		// Receive secure message from peer.

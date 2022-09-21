@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Sep 18 13:45:49 2022
+# Make data base, printed on Mon Sep 19 11:20:46 2022
 
 # Variables
 
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 6603
+VSCODE_PID = 586220
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 6603
+GIO_LAUNCHED_DESKTOP_FILE_PID = 586220
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -278,13 +278,13 @@ update-pkg-cache:
 #  Modification time never checked.
 #  File has not been updated.
 
- 
 compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 103):
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
+ 
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
 coverage:
@@ -473,6 +473,6 @@ code-fmt:
 # strcache performance: lookups = 89 / hit rate = 37%
 # hash-table stats:
 # Load=56/8192=1%, Rehash=0, Collisions=0/89=0%
-# Finished Make data base on Sun Sep 18 13:45:49 2022
+# Finished Make data base on Mon Sep 19 11:20:46 2022
 
  

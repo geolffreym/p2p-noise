@@ -63,6 +63,8 @@ func generateKeyPair() (noise.DHKey, error) {
 	var err error
 	var kp noise.DHKey
 
+	// TODO should i persist seed?
+	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
 	kp, err = noise.DH25519.GenerateKeypair(rand.Reader)
 	if err != nil {
 		err := fmt.Errorf("error trying to generate `s` keypair: %w", err)
@@ -130,7 +132,7 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 
 	// Setup the max of size possible for tokens exchanged between peers.
 	// 64(DH keys) + 16(static key encrypted) + 2(size) = pool size
-	size := 2*noise.DH25519.DHLen() + 2*chacha20poly1305.Overhead
+	size := 2*noise.DH25519.DHLen() + chacha20poly1305.Overhead + 2
 	pool := bpool.NewBytePool(bPools, size) // N pool of 84 bytes
 	// Start a new session
 	session := newSession(conn)
