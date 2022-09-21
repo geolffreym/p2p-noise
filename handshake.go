@@ -51,8 +51,8 @@ const bPools = 1
 // ChaCha20-Poly1305 usually offers better performance than the more prevalent AES-GCM algorithm on systems where the CPU(s)
 // does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
 // AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.
-var cipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
-var handshakePattern = noise.HandshakeXX
+var CipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
+var HandshakePattern = noise.HandshakeXX
 
 // GenerateKeypair generates a new keypair using random as a source of entropy.
 // Please see [Docs] for more details.
@@ -95,8 +95,8 @@ func newHandshakeState(conf noise.Config) (*noise.HandshakeState, error) {
 // A Config provides the details necessary to process a Noise handshake. It is never modified by this package, and can be reused.
 func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 	return noise.Config{
-		CipherSuite:   cipherSuite,
-		Pattern:       handshakePattern,
+		CipherSuite:   CipherSuite,
+		Pattern:       HandshakePattern,
 		Initiator:     initiator,
 		StaticKeypair: kp,
 	}
@@ -158,7 +158,7 @@ func (h *handshake) Session() *session {
 // Finish return the handshake state.
 // Return true if handshake is finished otherwise false.
 func (h *handshake) Finish() bool {
-	return h.hs.MessageIndex() >= len(handshakePattern.Messages)
+	return h.hs.MessageIndex() >= len(HandshakePattern.Messages)
 }
 
 // Valid check if handshake sync is valid.
