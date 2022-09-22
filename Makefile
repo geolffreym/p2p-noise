@@ -8,7 +8,7 @@ USER=geolffreym
 PACKAGE=p2p-noise
 VERSION=0.1.0
 
-INPUT=./examples/pingpong
+INPUT=./cmd/pingpong
 
 BINARY=main
 BINARY_WIN=${BINARY}-win
