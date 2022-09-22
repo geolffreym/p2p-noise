@@ -7,7 +7,7 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-func handshake() {
+func main() {
 
 	// Create configuration from params and write in configuration reference
 	configuration := config.New()
