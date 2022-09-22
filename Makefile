@@ -113,4 +113,8 @@ update-pkg-cache:
     GOPROXY=https://proxy.golang.org GO111MODULE=on \
     go get github.com/${USER}/${PACKAGE}@v${VERSION}
 
+vendorize:
+	@go mod vendor
+	@echo "[OK]"
+
 all: build test check-test-coverage code-check compile
