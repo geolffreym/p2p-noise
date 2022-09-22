@@ -26,7 +26,6 @@ func main() {
 		for signal := range signals {
 			// Here could be handled events
 			if signal.Type() == noise.NewPeerDetected {
-				// TODO handle here handshake logic
 				cancel() // stop listening for events
 			}
 		}
