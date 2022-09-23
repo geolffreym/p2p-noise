@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
+	noise "github.com/geolffreym/p2p-noise"
 	"github.com/geolffreym/p2p-noise/config"
-	noise "github.com/geolffreym/p2p-noise/node"
 )
 
 func main() {
