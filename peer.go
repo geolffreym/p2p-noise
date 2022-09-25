@@ -6,7 +6,28 @@ import (
 	"log"
 	"net"
 	"time"
+
+	"golang.org/x/crypto/blake2b"
 )
+
+// blake2 return a 32-bytes representation for blake2 hash.
+func blake2(i []byte) []byte {
+	// New returns a new hash.Hash computing the BLAKE2b checksum with a custom length.
+	// A non-nil key turns the hash into a MAC. The key must be between zero and 64 bytes long.
+	// The hash size can be a value between 1 and 64 but it is highly recommended to use
+	// values equal or greater than:
+	// - 32 if BLAKE2b is used as a hash function (The key is zero bytes long).
+	// - 16 if BLAKE2b is used as a MAC function (The key is at least 16 bytes long).
+	// When the key is nil, the returned hash.Hash implements BinaryMarshaler
+	// and BinaryUnmarshaler for state (de)serialization as documented by hash.Hash.
+	hash, err := blake2b.New(blake2b.Size256, nil)
+	if err != nil {
+		return nil
+	}
+
+	hash.Write(i)
+	return hash.Sum(nil)
+}
 
 // TODO add msgHeader to each message
 // msgHeader set needed properties to handle incoming message for peer.
@@ -36,7 +57,7 @@ func (i ID) String() string {
 func newBlake2ID(plaintext []byte) ID {
 	var id ID
 	// Hash
-	hash := Blake2(plaintext)
+	hash := blake2(plaintext)
 	// Populate id
 	copy(id[:], hash)
 	return id

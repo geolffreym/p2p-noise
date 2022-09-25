@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Sep 22 17:28:05 2022
+# Make data base, printed on Sun Sep 25 10:11:38 2022
 
 # Variables
 
@@ -83,7 +83,7 @@ APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # makefile (from 'Makefile', line 9)
 VERSION = 0.1.0
 # makefile (from 'Makefile', line 11)
-INPUT = examples/ping_pong.go
+INPUT = ./cmd/pingpong
 # environment
 MFLAGS = -pqrR
 # environment
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 34 files, no impossibilities.
+# . (device 66311, inode 16384686): 35 files, no impossibilities.
 
-# 34 files, no impossibilities in 1 directories.
+# 35 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -278,13 +278,13 @@ update-pkg-cache:
 #  Modification time never checked.
 #  File has not been updated.
 
+ 
 compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 103):
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
- 
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
 coverage:
@@ -321,7 +321,7 @@ benchmark:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-26 13:12:00.77684594
+#  Last modified 2022-09-22 17:45:35.219804779
 #  File has been updated.
 #  Successfully updated.
 
@@ -459,20 +459,28 @@ code-fmt:
 #  Modification time never checked.
 #  File has not been updated.
 
+vendorize:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 117):
+	@go mod vendor
+	@echo "[OK]"
+
 # files hash-table stats:
-# Load=22/1024=2%, Rehash=0, Collisions=0/45=0%
+# Load=23/1024=2%, Rehash=0, Collisions=0/46=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 57 / storage = 585 B / avg = 10 B
-# current buf: size = 8162 B / used = 585 B / count = 57 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 59 / storage = 598 B / avg = 10 B
+# current buf: size = 8162 B / used = 598 B / count = 59 / avg = 10 B
 
-# strcache performance: lookups = 90 / hit rate = 36%
+# strcache performance: lookups = 93 / hit rate = 36%
 # hash-table stats:
-# Load=57/8192=1%, Rehash=0, Collisions=0/90=0%
-# Finished Make data base on Thu Sep 22 17:28:05 2022
+# Load=59/8192=1%, Rehash=0, Collisions=0/93=0%
+# Finished Make data base on Sun Sep 25 10:11:38 2022
 
  
