@@ -1,7 +1,6 @@
 package noise
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -38,10 +37,9 @@ func newBlake2ID(plaintext []byte) ID {
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 type packet struct {
 	// Ascending order for struct size
-	Len  uint32   // 4 bytes. Size of message
-	Time uint64   // 8 bytes. Size of unix
-	ID   [32]byte // 32 bytes. ID
-	Sig  []byte   // N byte Signature
+	Len uint32   // 4 bytes. Size of message
+	ID  [32]byte // 32 bytes. ID
+	Sig []byte   // N byte Signature
 }
 
 // peer its the trusty remote peer.
@@ -94,14 +92,11 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 		return 0, err
 	}
 
-	buf := new(bytes.Buffer)               // buffer for message
-	size := uint32(len(digest))            // the msg size
-	time := uint64(time.Now().UnixMilli()) // time in milliseconds
-	sig := p.s.Sign(digest)                // message signature
-
-	// Create a new network packet to send
-	packet := packet{size, time, p.id, sig}
-	err = binary.Write(buf, binary.BigEndian, packet)
+	size := uint32(len(digest)) // the msg size
+	sig := p.s.Sign(digest)     // message signature
+	// Create a new packet to send it over the network
+	packet := packet{size, p.id, sig}
+	err = binary.Write(p.s, binary.BigEndian, packet)
 	if err != nil {
 		return 0, err
 	}
