@@ -18,6 +18,13 @@ import (
 
 // futureDeadline calculate a new time for deadline since now.
 func futureDeadLine(deadline time.Duration) time.Time {
+	if deadline == 0 {
+		// deadline 0 = no deadline
+		return time.Time{}
+	}
+
+	// how long should i wait for activity?
+	// since now add a new future deadline
 	return time.Now().Add(deadline * time.Second)
 }
 

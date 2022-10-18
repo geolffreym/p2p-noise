@@ -278,6 +278,7 @@ func (h *handshake) Send() (e, d CipherState, err error) {
 		return
 	}
 
+	// 2 bytes of header size
 	binary.Write(h.s, binary.BigEndian, uint16(len(msg)))
 	if _, err = h.s.Write(msg); err != nil {
 		return

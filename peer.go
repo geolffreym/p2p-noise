@@ -29,17 +29,6 @@ func blake2(i []byte) []byte {
 	return hash.Sum(nil)
 }
 
-// TODO add msgHeader to each message
-// msgHeader set needed properties to handle incoming message for peer.
-// Optimizing space with ordered types. Descending order.
-// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
-// type msgHeader struct {
-// 	Hash  string // 16 bytes. string alias ID
-// 	Len   uint32 // 4 bytes. Size of message
-// 	Nonce uint32 // 4 bytes. Current message nonce
-// 	Type  uint8  // 1 bytes. it's a number to handle message type.
-// }
-
 // [ID] it's identity provider for peer.
 type ID [32]byte
 
@@ -61,6 +50,16 @@ func newBlake2ID(plaintext []byte) ID {
 	// Populate id
 	copy(id[:], hash)
 	return id
+}
+
+// msgHeader set needed properties to handle incoming message for peer.
+// Optimizing space with ordered types. Descending order.
+// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
+type msgHeader struct {
+	ID    [32]byte // 32 bytes. ID
+	Sig   [32]byte // 32 byte. Signature
+	Len   uint32   // 4 bytes. Size of message
+	Nonce uint32   // 4 bytes. Current message nonce
 }
 
 // peer its the trusty remote peer.
@@ -111,6 +110,7 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 		return 0, err
 	}
 
+	// TODO add msgHeader to each message
 	// 4 bytes of size header
 	size := uint32(len(digest))
 	binary.Write(p.s, binary.BigEndian, size)

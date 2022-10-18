@@ -1,5 +1,19 @@
 package noise
 
+import (
+	"testing"
+	"time"
+)
+
+func TestWithZeroFutureDeadline(t *testing.T) {
+	idle := futureDeadLine(0)
+
+	if !idle.Equal(time.Time{}) {
+		t.Errorf("Expected returned 'no deadline', got %v", idle)
+	}
+
+}
+
 // func TestHandshake(t *testing.T) {
 // 	nodeASocket := "127.0.0.1:9090"
 // 	nodeBSocket := "127.0.0.1:9091"
