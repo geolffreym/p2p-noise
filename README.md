@@ -13,7 +13,7 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 
 ## Features
 
-> [Blake2 Handshake Encryption](https://www.blake2.net/):
+> [Blake2 Hashing](https://www.blake2.net/):
 BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3, yet is at least as secure as the latest standard SHA-3. BLAKE2 has been adopted by many projects due to its high speed, security, and simplicity.
 
 > [Noise Secure Handshake](http://www.noiseprotocol.org/):
