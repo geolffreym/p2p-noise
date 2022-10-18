@@ -41,6 +41,21 @@ func (e OverflowError) Error() string {
 	return fmt.Sprintf("overflow: %s -> %v", e.Context, e.Err)
 }
 
+// [SecError] represents errors related to network security.
+type SecError struct {
+	Context string
+	Err     error
+}
+
+// Error give string representation of error based on error type.
+func (e SecError) Error() string {
+	return fmt.Sprintf("sec: %s -> %v", e.Context, e.Err)
+}
+
+func errVerifyingSignature(err error) error {
+	return &SecError{"error verifying signature", err}
+}
+
 // errDialingNode error represent an issue trying to dial a node address.
 func errDialingNode(err error) error {
 	return &NetError{"error during dialing", err}

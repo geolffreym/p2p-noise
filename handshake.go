@@ -13,9 +13,14 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
-// Aliases
+// A CipherState provides symmetric encryption and decryption after a successful handshake.
 type CipherState = *noise.CipherState
+
+// BytePool implements a leaky pool of []byte in the form of a bounded channel.
 type BytePool = *bpool.BytePool
+
+// A DHKey is a keypair used for Diffie-Hellman key agreement.
+type DHKey = noise.DHKey
 
 type HandshakeState interface {
 	// WriteMessage appends a handshake message to out. The message will include the
@@ -58,10 +63,10 @@ var HandshakePattern = noise.HandshakeXX
 // Please see [Docs] for more details.
 //
 // [Docs]: http://www.noiseprotocol.org/noise.html#dh-functions
-func generateKeyPair() (noise.DHKey, error) {
+func generateKeyPair() (DHKey, error) {
 	// Diffie-Hellman key pair
 	var err error
-	var kp noise.DHKey
+	var kp DHKey
 
 	// TODO should i persist seed?
 	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
@@ -135,14 +140,8 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	size := 2*noise.DH25519.DHLen() + chacha20poly1305.Overhead + 2
 	pool := bpool.NewBytePool(bPools, size) // N pool of 84 bytes
 	// Start a new session
-	session := newSession(conn)
-
-	return &handshake{
-		session,
-		state,
-		pool,
-		initiator,
-	}, nil
+	session := newSession(conn, kp)
+	return &handshake{session, state, pool, initiator}, nil
 }
 
 // Session return secured session after handshake.

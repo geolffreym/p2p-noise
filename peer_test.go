@@ -105,8 +105,9 @@ func (*mockHandshakeState) ReadMessage(out, message []byte) ([]byte, CipherState
 }
 
 func mockSession(conn net.Conn) *session {
+	kp, _ := generateKeyPair()
 	return &session{
-		conn, nil, nil,
+		conn, kp, nil, nil,
 		&mockHandshakeState{conn.RemoteAddr().String()},
 	}
 }

@@ -2,12 +2,22 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
-	"os"
 
 	noise "github.com/geolffreym/p2p-noise"
 	"github.com/geolffreym/p2p-noise/config"
 )
+
+var initiator bool
+var ip, port string
+
+func init() {
+	// Node factory
+	flag.BoolVar(&initiator, "initiator", false, "I start the game")
+	flag.StringVar(&ip, "ip", "127.0.0.1", "IP address to connect")
+	flag.StringVar(&port, "port", "8010", "Port to connect")
+}
 
 func main() {
 
@@ -18,11 +28,8 @@ func main() {
 		config.SetPeerDeadline(1800),
 	)
 
-	// Node factory
-	args := os.Args[1:]
-	ip := args[0]
-	port := args[1]
-
+	// parse cli params
+	flag.Parse()
 	remote := ip + ":" + port
 	node := noise.New(configuration)
 
@@ -58,12 +65,15 @@ func main() {
 		}
 	}()
 
-	// ... some code here
-	err := node.Dial(remote)
-	if err != nil {
-		log.Fatal(err)
+	// If i start the game then i should start dialing
+	// If i am the second player i should just wait :)
+	if initiator {
+		// ... some code here
+		err := node.Dial(remote)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-	// node.Close()
 
 	// ... more code here
 	node.Listen()

@@ -33,6 +33,7 @@ func New() *Config {
 		// ref: https://pkg.go.dev/net#DialTimeout
 		dialTimeout: 5 * time.Second,
 		// Max time waiting for I/O or peer interaction. After this time the connection will timeout and considered inactive.
+		// After every received/send message a new deadline is refreshed using this value.
 		// Default 0 seconds = no deadline.
 		peerDeadline: 0,
 	}

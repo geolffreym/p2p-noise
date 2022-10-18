@@ -1,33 +1,14 @@
 package noise
 
 import (
+	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"log"
 	"net"
 	"time"
-
-	"golang.org/x/crypto/blake2b"
 )
-
-// blake2 return a 32-bytes representation for blake2 hash.
-func blake2(i []byte) []byte {
-	// New returns a new hash.Hash computing the BLAKE2b checksum with a custom length.
-	// A non-nil key turns the hash into a MAC. The key must be between zero and 64 bytes long.
-	// The hash size can be a value between 1 and 64 but it is highly recommended to use
-	// values equal or greater than:
-	// - 32 if BLAKE2b is used as a hash function (The key is zero bytes long).
-	// - 16 if BLAKE2b is used as a MAC function (The key is at least 16 bytes long).
-	// When the key is nil, the returned hash.Hash implements BinaryMarshaler
-	// and BinaryUnmarshaler for state (de)serialization as documented by hash.Hash.
-	hash, err := blake2b.New(blake2b.Size256, nil)
-	if err != nil {
-		return nil
-	}
-
-	hash.Write(i)
-	return hash.Sum(nil)
-}
 
 // [ID] it's identity provider for peer.
 type ID [32]byte
@@ -52,14 +33,16 @@ func newBlake2ID(plaintext []byte) ID {
 	return id
 }
 
-// msgHeader set needed properties to handle incoming message for peer.
+// packet set needed properties to handle incoming message for peer.
 // Optimizing space with ordered types. Descending order.
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
-type msgHeader struct {
-	ID    [32]byte // 32 bytes. ID
-	Sig   [32]byte // 32 byte. Signature
-	Len   uint32   // 4 bytes. Size of message
-	Nonce uint32   // 4 bytes. Current message nonce
+type packet struct {
+	// Ascending order for struct size
+	Len  uint32   // 4 bytes. Size of message
+	Time uint64   // 8 bytes. Size of unix
+	ID   [32]byte // 32 bytes. ID
+	Sig  []byte   // N byte Signature
+	Body []byte   // N bytes. payload
 }
 
 // peer its the trusty remote peer.
@@ -73,7 +56,7 @@ type peer struct {
 	// 	peers:     []..,
 }
 
-// TODO write here docs
+// Create a new peer based on secure session
 func newPeer(s *session) *peer {
 	// Blake2 hashed remote public key.
 	id := newBlake2ID(s.State().PeerStatic())
@@ -105,43 +88,60 @@ func (p *peer) SetDeadline(t time.Time) error {
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 // Each message is encrypted using session keys.
 func (p *peer) Send(msg []byte) (uint32, error) {
+
+	// Encrypt packet
 	digest, err := p.s.Encrypt(msg)
 	if err != nil {
 		return 0, err
 	}
 
-	// TODO add msgHeader to each message
-	// 4 bytes of size header
-	size := uint32(len(digest))
-	binary.Write(p.s, binary.BigEndian, size)
-	// Send message to session encryption.
-	bytes, err := p.s.Write(digest)
+	buf := new(bytes.Buffer)               // buffer for message
+	size := uint32(len(digest))            // the msg size
+	time := uint64(time.Now().UnixMilli()) // time in milliseconds
+	sig := p.s.Sign(digest)                // message signature
+
+	// Create a new network packet to send
+	packet := packet{size, time, p.id, sig, msg}
+	err = binary.Write(buf, binary.BigEndian, packet)
 	if err != nil {
 		return 0, err
 	}
 
-	return uint32(bytes + 4), nil
+	// Send message to session encryption.
+	bytes, err := p.s.Write(buf.Bytes())
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(bytes), nil
 }
 
 // Listen wait for incoming messages from Peer.
 // Use the needed pool buffer based on incoming header.
 func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
-	var size uint32 // read bytes size from header
-	err := binary.Read(p.s, binary.BigEndian, &size)
+	var inp packet // incoming packet
+	err := binary.Read(p.s, binary.BigEndian, &inp)
 	if err != nil {
 		return nil, err
 	}
 
-	if size > maxPayloadSize {
+	// If the size of the message in packet exceed may expected
+	if inp.Len > maxPayloadSize {
 		log.Printf("max payload size exceeded: MaxPayloadSize = %d", maxPayloadSize)
 		return nil, errExceededMaxPayloadSize(maxPayloadSize)
 	}
 
 	// Get a pool buffer chunk
-	buffer := p.pool.Get()[:size]
+	buffer := p.pool.Get()[:inp.Len]
 	defer p.pool.Put(buffer)
+
 	// Sync buffered IO reading
 	if _, err = p.s.Read(buffer); err == nil {
+		// validate message signature
+		if !p.s.Verify(inp.Body, inp.Sig) {
+			err := fmt.Errorf("invalid signature for incoming message: %s", inp.Sig)
+			return nil, errVerifyingSignature(err)
+		}
 		// Receive secure message from peer.
 		return p.s.Decrypt(buffer)
 	}

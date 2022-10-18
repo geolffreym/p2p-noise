@@ -61,3 +61,13 @@ func TestSendingMessageToInvalidPeer(t *testing.T) {
 		t.Errorf(STATEMENT, expected, output)
 	}
 }
+
+func TestErrVerifyingSignature(t *testing.T) {
+	err := errors.New("invalid signature: ABC")
+	output := errVerifyingSignature(err)
+	expected := "sec: error verifying signature -> invalid signature: ABC"
+
+	if output.Error() != expected {
+		t.Errorf(STATEMENT, expected, output)
+	}
+}
