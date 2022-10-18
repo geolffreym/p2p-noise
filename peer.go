@@ -42,7 +42,6 @@ type packet struct {
 	Time uint64   // 8 bytes. Size of unix
 	ID   [32]byte // 32 bytes. ID
 	Sig  []byte   // N byte Signature
-	Body []byte   // N bytes. payload
 }
 
 // peer its the trusty remote peer.
@@ -101,14 +100,14 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 	sig := p.s.Sign(digest)                // message signature
 
 	// Create a new network packet to send
-	packet := packet{size, time, p.id, sig, msg}
+	packet := packet{size, time, p.id, sig}
 	err = binary.Write(buf, binary.BigEndian, packet)
 	if err != nil {
 		return 0, err
 	}
 
 	// Send message to session encryption.
-	bytes, err := p.s.Write(buf.Bytes())
+	bytes, err := p.s.Write(digest)
 	if err != nil {
 		return 0, err
 	}
@@ -138,7 +137,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 	// Sync buffered IO reading
 	if _, err = p.s.Read(buffer); err == nil {
 		// validate message signature
-		if !p.s.Verify(inp.Body, inp.Sig) {
+		if !p.s.Verify(buffer, inp.Sig) {
 			err := fmt.Errorf("invalid signature for incoming message: %s", inp.Sig)
 			return nil, errVerifyingSignature(err)
 		}

@@ -39,7 +39,7 @@ type session struct {
 	hs         HandshakeState
 }
 
-// TODO write here docs
+// Create a new secure session
 func newSession(conn net.Conn, kp DHKey) *session {
 	return &session{conn, kp, nil, nil, nil}
 }
