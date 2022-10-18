@@ -37,9 +37,8 @@ func newBlake2ID(plaintext []byte) ID {
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 type packet struct {
 	// Ascending order for struct size
-	Len uint32   // 4 bytes. Size of message
-	ID  [32]byte // 32 bytes. ID
-	Sig []byte   // N byte Signature
+	Len uint32 // 4 bytes. Size of message
+	Sig []byte // N byte Signature
 }
 
 // peer its the trusty remote peer.
@@ -95,7 +94,7 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 	size := uint32(len(digest)) // the msg size
 	sig := p.s.Sign(digest)     // message signature
 	// Create a new packet to send it over the network
-	packet := packet{size, p.id, sig}
+	packet := packet{size, sig}
 	err = binary.Write(p.s, binary.BigEndian, packet)
 	if err != nil {
 		return 0, err
