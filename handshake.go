@@ -57,6 +57,12 @@ const bPools = 1
 // does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
 // AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.
 var CipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
+
+// Default Handshake "XX" noise pattern.
+// Our approach its use a balanced "time/security" pattern.
+// Please see [NoisePatternExplorer] for more details.
+//
+// [NoisePatternExplorer]: https://noiseexplorer.com/patterns/XX/
 var HandshakePattern = noise.HandshakeXX
 
 // GenerateKeypair generates a new keypair using random as a source of entropy.
