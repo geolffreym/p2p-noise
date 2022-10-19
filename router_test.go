@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -43,7 +44,7 @@ func TestAdd(t *testing.T) {
 
 	// Table driven test
 	for _, e := range expected {
-		t.Run(e.String(), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
 			// Match recently added peer
 			if _, ok := router.Table()[e]; !ok {
 				t.Errorf("expected routed socket %#v", e.String())
@@ -63,7 +64,7 @@ func TestQuery(t *testing.T) {
 
 	// Table driven test
 	for _, e := range expected {
-		t.Run(e.String(), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
 			// Return the socket related peer
 			if peer := router.Query(e); peer == nil {
 				t.Errorf("expected peer for valid socket %#v, got %v", e.String(), peer)

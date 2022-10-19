@@ -119,7 +119,7 @@ type handshake struct {
 	i  bool
 }
 
-// TODO write here docs
+// Create a new handshake handler
 func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	kp, err := generateKeyPair()
 	if err != nil {
@@ -137,7 +137,7 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 
 	// Setup the max of size possible for tokens exchanged between peers.
 	// 64(DH keys) + 16(static key encrypted) + 2(size) = pool size
-	size := 2*noise.DH25519.DHLen() + chacha20poly1305.Overhead + 2
+	size := 2*noise.DH25519.DHLen() + 2*chacha20poly1305.Overhead + 2
 	pool := bpool.NewBytePool(bPools, size) // N pool of 84 bytes
 	// Start a new session
 	session := newSession(conn, kp)

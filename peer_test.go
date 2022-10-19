@@ -2,6 +2,7 @@ package noise
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"net"
 	"testing"
@@ -145,8 +146,9 @@ func TestStringID(t *testing.T) {
 
 func TestHashID(t *testing.T) {
 	expected := "9dc5222ac8b8f155ab6c216321b9bbed2448fe3331e1ae8c0f285a07ded6b0ac"
+	got := hex.EncodeToString(blake2([]byte(LOCAL_ADDRESS)))
 
-	if string(blake2([]byte(LOCAL_ADDRESS))) == expected {
-		t.Errorf("Expected returned hash equal to %s", blake2([]byte(LOCAL_ADDRESS)))
+	if expected != got {
+		t.Errorf("expected returned %s equal to %s", got, expected)
 	}
 }
