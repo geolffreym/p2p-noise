@@ -47,7 +47,7 @@ type peer struct {
 	s     *session
 	id    ID
 	pool  BytePool
-	nonce uint32 // nonce
+	nonce uint32
 	// handshakeAt: time.Now().String(),
 	// 	peers:     []..,
 }
@@ -84,7 +84,6 @@ func (p *peer) SetDeadline(t time.Time) error {
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 // Each message is encrypted using session keys.
 func (p *peer) Send(msg []byte) (uint32, error) {
-
 	// Encrypt packet
 	digest, err := p.s.Encrypt(msg)
 	if err != nil {
@@ -93,6 +92,7 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 
 	size := uint32(len(digest)) // the msg size
 	sig := p.s.Sign(digest)     // message signature
+
 	// Create a new packet to send it over the network
 	packet := packet{size, sig}
 	err = binary.Write(p.s, binary.BigEndian, packet)
@@ -100,7 +100,7 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 		return 0, err
 	}
 
-	// Send message to session encryption.
+	// Send encrypted message
 	bytes, err := p.s.Write(digest)
 	if err != nil {
 		return 0, err
@@ -141,7 +141,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 
 	// net: don't return io.EOF from zero byte reads
 	// if err == io.EOF then peer connection is closed
-	err, isNetError := err.(*net.OpError)
+	_, isNetError := err.(*net.OpError)
 	if err != io.EOF && !isNetError {
 		// end of message, but peer is still connected
 		return nil, nil

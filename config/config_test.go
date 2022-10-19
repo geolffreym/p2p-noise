@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 )
 
 func TestWrite(t *testing.T) {
@@ -96,5 +97,16 @@ func TestProtocol(t *testing.T) {
 
 	if settings.Protocol() != protocol {
 		t.Errorf("expected Protocol %#v, got settings %v", protocol, settings.Protocol())
+	}
+}
+
+func TestDialTimeout(t *testing.T) {
+	settings := New()
+	expected := time.Second * 10
+	callable := SetDialTimeout(expected)
+	callable(settings)
+
+	if settings.DialTimeout() != expected {
+		t.Errorf("expected DialTimeout %#v, got settings %v", expected, settings.DialTimeout())
 	}
 }

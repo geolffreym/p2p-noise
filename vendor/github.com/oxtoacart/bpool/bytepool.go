@@ -1,7 +1,7 @@
 package bpool
 
-// BytePool implements a leaky pool of []byte in the form of a bounded
-// channel.
+// BytePool implements a leaky pool of []byte in the form of a bounded channel.
+// Based on https://pkg.go.dev/github.com/oxtoacart/bpool
 type BytePool struct {
 	c chan []byte
 	w int
