@@ -125,7 +125,7 @@ type handshake struct {
 	i  bool
 }
 
-// Create a new handshake handler
+// Create a new handshake handler using provided connection and role.
 func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	kp, err := generateKeyPair()
 	if err != nil {
