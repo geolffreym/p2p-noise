@@ -14,7 +14,7 @@ var ip, port string
 
 func init() {
 	// Node factory
-	flag.BoolVar(&initiator, "initiator", false, "I start the game")
+	flag.BoolVar(&initiator, "i", false, "I start the game")
 	flag.StringVar(&ip, "ip", "127.0.0.1", "IP address to connect")
 	flag.StringVar(&port, "port", "8010", "Port to connect")
 }
@@ -69,6 +69,7 @@ func main() {
 	// If i am the second player i should just wait :)
 	if initiator {
 		// ... some code here
+		log.Printf("dialing to %s", remote)
 		err := node.Dial(remote)
 		if err != nil {
 			log.Fatal(err)

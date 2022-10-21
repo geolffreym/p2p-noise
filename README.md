@@ -88,7 +88,7 @@ Some available capabilities for dev support:
 * **Flush cache**: `make clean`
 * **Build**: `make build`
 
-Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise) for more capabilities.  
+Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise/Makefile) for more capabilities.  
 
 ## More info
 
