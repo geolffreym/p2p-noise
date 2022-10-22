@@ -184,8 +184,8 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 
 	// Stage 2 -> get a secure session
 	// All good with handshake? Then get a secure session.
-	// Add global buffer pool to session.
 	session := h.Session()
+
 	// Stage 3 -> create a peer and add it to router
 	// Routing for secure session
 	peer := n.routing(session)
@@ -211,6 +211,8 @@ func (n *Node) routing(conn *session) *peer {
 	conn.SetDeadline(idle)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(conn)
+        // Bind global buffer pool to peer.
+        // Pool buffering reduce allocation latency we can use the same pool for peers. 
 	peer.BindPool(n.pool)
 	// Store new peer in router table
 	n.router.Add(peer)
