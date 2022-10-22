@@ -212,7 +212,7 @@ func (n *Node) routing(conn *session) *peer {
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(conn)
         // Bind global buffer pool to peer.
-        // Pool buffering reduce allocation latency we can use the same pool for peers. 
+        // Pool buffering reduce memory allocation latency. 
 	peer.BindPool(n.pool)
 	// Store new peer in router table
 	n.router.Add(peer)
