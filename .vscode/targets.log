@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Wed Oct 19 13:52:14 2022
+# Make data base, printed on Thu Nov  3 11:35:19 2022
 
 # Variables
 
@@ -61,7 +61,7 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/home/gmena/.local/share/flat
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/74b1f979648cc44d385a2286793c226e611f59e7
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/d045a5eda657f4d7b676dedbfa7aab8207f8a075
 # environment
 LANG = C
 # environment
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 850798
+VSCODE_PID = 1474903
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 850798
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1474903
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -235,7 +235,7 @@ QT_IM_MODULE = ibus
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.71.2-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.72.2-main.sock
 # environment
 IM_CONFIG_PHASE = 1
 # makefile (from 'Makefile', line 113)
@@ -481,6 +481,6 @@ vendorize:
 # strcache performance: lookups = 90 / hit rate = 37%
 # hash-table stats:
 # Load=56/8192=1%, Rehash=0, Collisions=0/90=0%
-# Finished Make data base on Wed Oct 19 13:52:14 2022
+# Finished Make data base on Thu Nov  3 11:35:20 2022
 
  

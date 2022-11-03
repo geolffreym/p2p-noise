@@ -13,8 +13,13 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 
 ## Features
 
-> [Blake2 Hashing](https://www.blake2.net/):
-BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3, yet is at least as secure as the latest standard SHA-3. BLAKE2 has been adopted by many projects due to its high speed, security, and simplicity.
+> [End to End Encryption](https://en.wikipedia.org/wiki/End-to-end_encryption)
+In E2EE, the data is encrypted on the sender's system or device, and only the intended recipient can decrypt it. As it travels to its destination, the message cannot be read or tampered with by an internet service provider (ISP), application service provider, hacker or any other entity or service.
+
+* [Curve25519 Diffie-Hellman](https://en.wikipedia.org/wiki/Diffie-Hellman)
+* [ChaCha20-Poly1305 Cipher](https://en.wikipedia.org/wiki/ChaCha20-Poly1305)
+* [ED255519 Signature](https://ed25519.cr.yp.to/)
+* [Blake2 Hashing](https://www.blake2.net/)
 
 > [Noise Secure Handshake](http://www.noiseprotocol.org/):
 Noise is a framework for building crypto protocols. Noise protocols support mutual and optional authentication, identity hiding, forward secrecy, zero round-trip encryption, and other advanced features.
@@ -34,42 +39,42 @@ go get github.com/geolffreym/p2p-noise
 package main
 
 import (
-	"context"
+ "context"
 
-	noise "github.com/geolffreym/p2p-noise"
-	"github.com/geolffreym/p2p-noise/config"
+ noise "github.com/geolffreym/p2p-noise"
+ "github.com/geolffreym/p2p-noise/config"
 )
 
 func handshake() {
 
-	// Create configuration from params and write in configuration reference
-	configuration := config.New()
-	configuration.Write(
-		config.SetMaxPeersConnected(10),
-		config.SetPeerDeadline(1800),
-	)
+ // Create configuration from params and write in configuration reference
+ configuration := config.New()
+ configuration.Write(
+  config.SetMaxPeersConnected(10),
+  config.SetPeerDeadline(1800),
+ )
 
-	// Node factory
-	node := noise.New(configuration)
-	// Network events channel
-	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.Signal = node.Signals(ctx)
+ // Node factory
+ node := noise.New(configuration)
+ // Network events channel
+ ctx, cancel := context.WithCancel(context.Background())
+ var signals <-chan noise.Signal = node.Signals(ctx)
 
-	go func() {
-		for signal := range signals {
-			// Here could be handled events
-			if signal.Type() == noise.NewPeerDetected {
-				cancel() // stop listening for events
-			}
-		}
-	}()
+ go func() {
+  for signal := range signals {
+   // Here could be handled events
+   if signal.Type() == noise.NewPeerDetected {
+    cancel() // stop listening for events
+   }
+  }
+ }()
 
-	// ... some code here
-	// node.Dial("192.168.1.1:4008")
-	// node.Close()
+ // ... some code here
+ // node.Dial("192.168.1.1:4008")
+ // node.Close()
 
-	// ... more code here
-	node.Listen()
+ // ... more code here
+ node.Listen()
 
 }
 ```

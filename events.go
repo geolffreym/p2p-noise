@@ -63,6 +63,7 @@ func (e *events) PeerDisconnected(peer *peer) {
 // NewMessage dispatch event when a new message is received.
 func (e *events) NewMessage(peer *peer, msg []byte) {
 	// Emit new notification
+	// perf: no-copy convert to string
 	message := *(*string)(unsafe.Pointer(&msg))
 	header := header{peer, MessageReceived}
 	signal := Signal{header, message}
