@@ -144,7 +144,7 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	// Setup the max of size possible for tokens exchanged between peers.
 	// 64(DH keys) + 32(static key encrypted) + 2(size) = pool size
 	size := 2*noise.DH25519.DHLen() + 2*chacha20poly1305.Overhead + 2
-	pool := bpool.NewBytePool(bPools, size) // N pool of 84 bytes
+	pool := bpool.NewBytePool(bPools, size) // N bytes pool
 	// Start a new session
 	session := newSession(conn, kp)
 	return &handshake{session, state, pool, initiator}, nil
