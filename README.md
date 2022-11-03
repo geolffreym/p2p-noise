@@ -15,11 +15,7 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 
 > [End to End Encryption](https://en.wikipedia.org/wiki/End-to-end_encryption)
 In E2EE, the data is encrypted on the sender's system or device, and only the intended recipient can decrypt it. As it travels to its destination, the message cannot be read or tampered with by an internet service provider (ISP), application service provider, hacker or any other entity or service.
-
-* [Curve25519 Diffie-Hellman](https://en.wikipedia.org/wiki/Diffie-Hellman)
-* [ChaCha20-Poly1305 Cipher](https://en.wikipedia.org/wiki/ChaCha20-Poly1305)
-* [ED255519 Signature](https://ed25519.cr.yp.to/)
-* [Blake2 Hashing](https://www.blake2.net/)
+[Curve25519 Diffie-Hellman](https://en.wikipedia.org/wiki/Diffie-Hellman),  [ChaCha20-Poly1305 Cipher](https://en.wikipedia.org/wiki/ChaCha20-Poly1305), [ED255519 Signature](https://ed25519.cr.yp.to/), [Blake2 Hashing](https://www.blake2.net/).
 
 > [Noise Secure Handshake](http://www.noiseprotocol.org/):
 Noise is a framework for building crypto protocols. Noise protocols support mutual and optional authentication, identity hiding, forward secrecy, zero round-trip encryption, and other advanced features.
