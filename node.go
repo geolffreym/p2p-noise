@@ -154,7 +154,7 @@ KEEPALIVE:
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
-	log.Printf("Starting handshake with: %v", conn.RemoteAddr().String())
+	log.Printf("starting handshake with: %v", conn.RemoteAddr().String())
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
@@ -211,8 +211,8 @@ func (n *Node) routing(conn *session) *peer {
 	conn.SetDeadline(idle)
 	// We need to know how interact with peer based on socket and connection
 	peer := newPeer(conn)
-        // Bind global buffer pool to peer.
-        // Pool buffering reduce memory allocation latency. 
+	// Bind global buffer pool to peer.
+	// Pool buffering reduce memory allocation latency.
 	peer.BindPool(n.pool)
 	// Store new peer in router table
 	n.router.Add(peer)
@@ -255,8 +255,8 @@ func (n *Node) Listen() error {
 		}
 
 		// Run handshake for incoming connection
+		// We need to run in a separate goroutine to improve time performance between nodes requesting connections.
 		go n.handshake(conn, false)
-		return nil
 	}
 
 }
@@ -304,7 +304,10 @@ func (n *Node) Dial(addr string) error {
 		return errDialingNode(err)
 	}
 
-	// Run handshake for incoming connection
-	go n.handshake(conn, true)
+	// Run handshake for dialed connection
+	if err = n.handshake(conn, true); err != nil {
+		return err
+	}
+
 	return nil
 }

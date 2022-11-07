@@ -49,7 +49,6 @@ type peer struct {
 	pool  BytePool
 	nonce uint32
 	// handshakeAt: time.Now().String(),
-	// 	peers:     []..,
 }
 
 // Create a new peer based on secure session

@@ -46,6 +46,8 @@ func main() {
 				// When a new peer is connected. Start ping pong game.
 				log.Printf("New Peer connected: %s \n", signal.Payload())
 				signal.Reply([]byte("ping")) // start game
+				// TODO exchange peers?
+				// TODO discovery module in action here?
 
 			case noise.MessageReceived:
 				// When we receive a message, check the content message and reply "ping" or "pong"
