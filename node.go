@@ -251,9 +251,6 @@ func (n *Node) Listen() error {
 
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
-	n.Mutex.Lock()
-	defer n.Mutex.Unlock()
-
 	// stop connected peers
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {
@@ -266,7 +263,6 @@ func (n *Node) Close() {
 	// flush connected peers
 	n.router.Flush()
 	n.listener.Close()
-
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.
