@@ -254,10 +254,6 @@ func (n *Node) Close() {
 	n.Mutex.Lock()
 	defer n.Mutex.Unlock()
 
-	// If channel get closed then all routines waiting for connections
-	// or waiting for incoming messages get closed too.
-	n.listener.Close()
-
 	// stop connected peers
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {
@@ -269,6 +265,7 @@ func (n *Node) Close() {
 
 	// flush connected peers
 	n.router.Flush()
+	n.listener.Close()
 
 }
 

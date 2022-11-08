@@ -250,7 +250,6 @@ func (h *handshake) Start() error {
 
 // Initiate start a new handshake with peer as a "dialer".
 func (h *handshake) Initiate() error {
-	var payload []byte
 	// Send initial #1 message
 	// bytes size = DHLen for e = ephemeral key
 	log.Print("Sending e to remote")
@@ -262,7 +261,7 @@ func (h *handshake) Initiate() error {
 
 	// Receive message #2 stage
 	log.Print("Waiting for e, ee, s, es from remote")
-	payload, enc, dec, err = h.Receive()
+	enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e, ee, s, es` state: %v", err)
 		return errDuringHandshake(err)
@@ -283,8 +282,6 @@ func (h *handshake) Initiate() error {
 
 	// Add keys for encrypt/decrypt operations in session.
 	h.s.SetCyphers(enc, dec)
-	// Set remote signature validation public key
-	h.s.SetRemotePublicKey(payload)
 	return nil
 
 }
@@ -293,7 +290,7 @@ func (h *handshake) Initiate() error {
 func (h *handshake) Answer() error {
 	// Receive message #1 stage
 	log.Print("Waiting for e from remote")
-	payload, enc, dec, err := h.Receive()
+	enc, dec, err := h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e` state: %v", err)
 		return errDuringHandshake(err)
@@ -309,7 +306,7 @@ func (h *handshake) Answer() error {
 
 	// Receive message #2 stage
 	log.Print("Waiting for s, se from remote")
-	payload, enc, dec, err = h.Receive()
+	enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `s, se` state: %v", err)
 		return errDuringHandshake(err)
@@ -322,8 +319,6 @@ func (h *handshake) Answer() error {
 
 	// Add keys for encrypt/decrypt operations in session.
 	h.s.SetCyphers(enc, dec)
-	// Set remote signature validation public key
-	h.s.SetRemotePublicKey(payload)
 	return nil
 }
 
@@ -354,8 +349,11 @@ func (h *handshake) Send() (e, d CipherState, err error) {
 }
 
 // Receive get a token from remote peer and synchronize it with local peer handshake state.
-func (h *handshake) Receive() (p []byte, e, d CipherState, err error) {
-	var size uint16 // read bytes size from header
+func (h *handshake) Receive() (e, d CipherState, err error) {
+	var payload []byte // sent payload
+	var size uint16    // read bytes size from header
+
+	// Read incoming message size
 	err = binary.Read(h.s, binary.BigEndian, &size)
 	if err != nil {
 		return
@@ -376,5 +374,9 @@ func (h *handshake) Receive() (p []byte, e, d CipherState, err error) {
 	// will be returned, one is used for encryption of messages to the remote peer,
 	// the other is used for decryption of messages from the remote peer. It is an
 	// error to call this method out of sync with the handshake pattern.
-	return h.hs.ReadMessage(nil, buffer)
+	payload, e, d, err = h.hs.ReadMessage(nil, buffer)
+	// Set remote signature validation public key
+	h.s.SetRemotePublicKey(payload)
+	return e, d, err
+
 }

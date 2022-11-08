@@ -24,14 +24,13 @@ func TestHandshake(t *testing.T) {
 	configurationA := config.New()
 	configurationB := config.New()
 
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, close := context.WithCancel(context.Background())
 	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
 	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
 	nodeA := New(configurationA)
 	nodeB := New(configurationB)
 
-	go func(na *Node) {
-
+	go func(na *Node, nb *Node) {
 		go func(n *Node) {
 			var signals <-chan Signal = nodeA.Signals(ctx)
 			for signal := range signals {
@@ -39,13 +38,15 @@ func TestHandshake(t *testing.T) {
 					log.Printf("%x", signal.Payload())
 					<-time.After(time.Second * 5)
 					n.Close()
+					close()
 					return
 				}
 			}
 		}(na)
 		na.Listen()
+		nb.Close()
 		return
-	}(nodeA)
+	}(nodeA, nodeB)
 
 	<-time.After(time.Second * 1)
 	nodeB.Dial(nodeASocket)
