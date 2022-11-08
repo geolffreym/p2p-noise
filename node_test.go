@@ -1,8 +1,12 @@
 package noise
 
 import (
+	"context"
+	"log"
 	"testing"
 	"time"
+
+	"github.com/geolffreym/p2p-noise/config"
 )
 
 func TestWithZeroFutureDeadline(t *testing.T) {
@@ -14,35 +18,37 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 
 }
 
-// func TestHandshake(t *testing.T) {
-// 	nodeASocket := "127.0.0.1:9090"
-// 	nodeBSocket := "127.0.0.1:9091"
-// 	configurationA := config.New()
-// 	configurationB := config.New()
+func TestHandshake(t *testing.T) {
+	nodeASocket := "127.0.0.1:9090"
+	nodeBSocket := "127.0.0.1:9091"
+	configurationA := config.New()
+	configurationB := config.New()
 
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
-// 	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+	ctx, _ := context.WithCancel(context.Background())
+	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+	nodeA := New(configurationA)
+	nodeB := New(configurationB)
 
-// 	nodeA := New(configurationA)
-// 	nodeB := New(configurationB)
+	go func(na *Node) {
 
-// 	go func() {
-// 		go func(n *Node) {
-// 			var signals <-chan Signal = nodeA.Signals(ctx)
-// 			for signal := range signals {
-// 				if signal.Type() == NewPeerDetected {
-// 					log.Print("Closing")
-// 					n.Close()
-// 					cancel()
-// 				}
-// 			}
-// 		}(nodeA)
-// 		nodeA.Listen()
-// 	}()
+		go func(n *Node) {
+			var signals <-chan Signal = nodeA.Signals(ctx)
+			for signal := range signals {
+				if signal.Type() == NewPeerDetected {
+					log.Printf("%x", signal.Payload())
+					<-time.After(time.Second * 5)
+					n.Close()
+					return
+				}
+			}
+		}(na)
+		na.Listen()
+		return
+	}(nodeA)
 
-// 	<-time.After(time.Second * 1)
-// 	nodeB.Dial(nodeASocket)
-// 	nodeB.Listen()
+	<-time.After(time.Second * 1)
+	nodeB.Dial(nodeASocket)
+	nodeB.Listen()
 
-// }
+}

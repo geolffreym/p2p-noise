@@ -69,30 +69,18 @@ func newBroker() *broker {
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
 func (b *broker) Register(e Event, s *subscriber) {
-	// Lock while writing operation
-	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
-	b.Mutex.Lock()
 	b.topics.Add(e, s)
-	b.Mutex.Unlock()
 }
 
 // Unregister remove associated subscriber from topics.
 // It return true for success else false.
 func (b *broker) Unregister(e Event, s *subscriber) bool {
-	// Lock while writing operation
-	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()       // This will be executed at the end of the enclosing function.
-	return b.topics.Remove(e, s) // call first then return until then the mutex is available.
+	return b.topics.Remove(e, s)
 }
 
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
 func (b *broker) Publish(msg Signal) uint8 {
-	// Lock while reading operation
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
-
 	// Check if topic is registered before try to emit messages to subscribers.
 	data, exists := b.topics[msg.Type()]
 	if !exists {

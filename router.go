@@ -1,9 +1,5 @@
 package noise
 
-import (
-	"sync"
-)
-
 // table assoc Socket with peer.
 type table map[ID]*peer
 
@@ -30,7 +26,6 @@ func (t table) Remove(peer *peer) {
 // router keep a hash table to associate ID with peer.
 // It implements a unstructured mesh topology.
 type router struct {
-	sync.RWMutex
 	table table
 }
 
@@ -45,24 +40,13 @@ func (r *router) Table() table { return r.table }
 
 // Query return connection interface based on socket parameter.
 func (r *router) Query(id ID) *peer {
-	// Mutex for reading topics.
-	// Do not write while topics are read.
-	// Write Lock can’t be acquired until all Read Locks are released.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.RLock
-	r.RWMutex.RLock()
-	defer r.RWMutex.RUnlock()
 	// exist socket related peer?
 	return r.table.Get(id)
 }
 
 // Add create new Socket Peer association.
 func (r *router) Add(peer *peer) {
-	// Lock write/read table while add operation
-	// A blocked Lock call excludes new readers from acquiring the lock.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-	r.RWMutex.Lock()
 	r.table.Add(peer)
-	r.RWMutex.Unlock()
 }
 
 // Len return the number of routed connections.
@@ -86,10 +70,5 @@ func (r *router) Flush() uint8 {
 // Remove removes a connection from router.
 // It return recently removed peer.
 func (r *router) Remove(peer *peer) {
-	// Lock write/read table while add operation
-	// A blocked Lock call excludes new readers from acquiring the lock.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-	r.RWMutex.Lock()
 	r.table.Remove(peer)
-	r.RWMutex.Unlock()
 }

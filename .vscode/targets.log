@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Nov  3 11:35:19 2022
+# Make data base, printed on Tue Nov  8 09:54:36 2022
 
 # Variables
 
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 1474903
+VSCODE_PID = 2545272
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 1474903
+GIO_LAUNCHED_DESKTOP_FILE_PID = 2545272
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 32 files, no impossibilities.
+# . (device 66311, inode 16384686): 35 files, no impossibilities.
 
-# 32 files, no impossibilities in 1 directories.
+# 35 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -289,12 +289,12 @@ compile-linux:
 coverage:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
- 
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 62):
 	@go test -v ./... -race -covermode=atomic -coverprofile coverage ./...
 	@echo "[OK] coverage finished"
 	
+ 
 
 compile: compile-linux compile-win compile-mac
 #  Implicit rule search has not been done.
@@ -475,12 +475,12 @@ vendorize:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 56 / storage = 569 B / avg = 10 B
-# current buf: size = 8162 B / used = 569 B / count = 56 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 59 / storage = 593 B / avg = 10 B
+# current buf: size = 8162 B / used = 593 B / count = 59 / avg = 10 B
 
-# strcache performance: lookups = 90 / hit rate = 37%
+# strcache performance: lookups = 93 / hit rate = 36%
 # hash-table stats:
-# Load=56/8192=1%, Rehash=0, Collisions=0/90=0%
-# Finished Make data base on Thu Nov  3 11:35:20 2022
+# Load=59/8192=1%, Rehash=0, Collisions=0/93=0%
+# Finished Make data base on Tue Nov  8 09:54:36 2022
 
  

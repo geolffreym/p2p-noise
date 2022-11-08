@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/oxtoacart/bpool"
@@ -44,8 +45,9 @@ type Config interface {
 }
 
 type Node struct {
+	sync.Mutex
 	// Channel flag waiting for signal to close connection.
-	sentinel chan bool
+	listener net.Listener
 	// Routing hash table eg. {Socket: Conn interface}.
 	router *router
 	// Pubsub notifications.
@@ -65,11 +67,11 @@ func New(config Config) *Node {
 	pool := bpool.NewBytePool(maxPools, maxBufferSize)
 
 	return &Node{
-		make(chan bool),
-		newRouter(),
-		newEvents(),
-		pool,
-		config,
+		listener: nil,
+		router:   newRouter(),
+		events:   newEvents(),
+		pool:     pool,
+		config:   config,
 	}
 }
 
@@ -110,17 +112,15 @@ KEEPALIVE:
 
 		// Waiting for new incoming message
 		buf, err := peer.Listen(n.config.MaxPayloadSize())
-		// If connection is closed
-		if n.Closed() {
-			// stop routines watching for peers
-			return
-		}
-
 		// OverflowError is returned when the incoming payload exceed the expected size
 		_, overflow := err.(OverflowError)
 
 		// Don't stop listening for peer if overflow payload is returned.
 		if err != nil && !overflow {
+			// get the lock while event is sent and peer is removed from router.
+			n.Mutex.Lock()
+			defer n.Mutex.Unlock()
+
 			// net: don't return io.EOF from zero byte reads
 			// Notify about the remote peer state
 			n.events.PeerDisconnected(peer)
@@ -154,7 +154,8 @@ KEEPALIVE:
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
-	log.Printf("starting handshake with: %v", conn.RemoteAddr().String())
+	remoteIp := conn.RemoteAddr().String()
+	log.Printf("starting handshake with: %v", remoteIp)
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
@@ -184,8 +185,8 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 
 	// Stage 2 -> get a secure session
 	// All good with handshake? Then get a secure session.
+	log.Printf("handshake complete with %s", remoteIp)
 	session := h.Session()
-
 	// Stage 3 -> create a peer and add it to router
 	// Routing for secure session
 	peer := n.routing(session)
@@ -231,26 +232,13 @@ func (n *Node) Listen() error {
 	}
 
 	log.Printf("listening on %s", addr)
-	//wait until sentinel channel is closed to close listener
-	defer func() {
-		err := listener.Close()
-		if err != nil {
-			log.Printf("error closing listener: %v", err)
-		}
-	}()
+	n.listener = listener // keep reference to current listener
 
 	for {
 		// Block/Hold while waiting for new incoming connection
 		// Synchronized incoming connections
 		conn, err := listener.Accept()
-		// If connection is closed
-		if n.Closed() {
-			// Graceful stop listening
-			return nil
-		}
-
 		if err != nil {
-			log.Printf("error accepting connection: %v", err)
 			return errBindingConnection(err)
 		}
 
@@ -261,20 +249,16 @@ func (n *Node) Listen() error {
 
 }
 
-// Closed check connection state.
-// Return true for connection open else false.
-func (n *Node) Closed() bool {
-	select {
-	// select await for sentinel if not closed then default is returned.
-	case <-n.sentinel:
-		return true
-	default:
-		return false
-	}
-}
-
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
+	n.Mutex.Lock()
+	defer n.Mutex.Unlock()
+
+	// If channel get closed then all routines waiting for connections
+	// or waiting for incoming messages get closed too.
+	n.listener.Close()
+
+	// stop connected peers
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {
 			if err := peer.Close(); err != nil {
@@ -285,9 +269,7 @@ func (n *Node) Close() {
 
 	// flush connected peers
 	n.router.Flush()
-	// If channel get closed then all routines waiting for connections
-	// or waiting for incoming messages get closed too.
-	close(n.sentinel)
+
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.

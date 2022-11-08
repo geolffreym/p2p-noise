@@ -54,7 +54,7 @@ type peer struct {
 // Create a new peer based on secure session
 func newPeer(s *session) *peer {
 	// Blake2 hashed remote public key.
-	id := newBlake2ID(s.State().PeerStatic())
+	id := newBlake2ID(s.RemotePublicKey())
 	return &peer{s, id, nil, 0}
 }
 
@@ -91,6 +91,7 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 
 	size := uint32(len(digest)) // the msg size
 	sig := p.s.Sign(digest)     // message signature
+	// pb:=
 
 	// Create a new packet to send it over the network
 	packet := packet{size, sig}

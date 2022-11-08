@@ -32,16 +32,17 @@ func blake2(i []byte) []byte {
 //
 // [Connection Interface]: https://pkg.go.dev/net#Conn
 type session struct {
-	net.Conn         // insecure conn
-	kp         DHKey // Diffie-Hellman key pair
+	net.Conn             // insecure conn
+	kr         KeyRing   // local bundle of keys
+	svk        PublicKey // remote public key
 	encryption CipherState
 	decryption CipherState
-	hs         HandshakeState
 }
 
 // Create a new secure session
-func newSession(conn net.Conn, kp DHKey) *session {
-	return &session{conn, kp, nil, nil, nil}
+func newSession(conn net.Conn, kr KeyRing) (*session, error) {
+	var pb PublicKey
+	return &session{conn, kr, pb, nil, nil}, nil
 }
 
 // Set encryption/decryption state for session.
@@ -51,15 +52,9 @@ func (s *session) SetCyphers(enc, dec CipherState) {
 	s.decryption = dec // pv-k
 }
 
-// SetState add handshake state to session.
-// The state hold all the keys and information about handshake process.
-func (s *session) SetState(state HandshakeState) {
-	s.hs = state
-}
-
-// State return session handshake state
-func (s *session) State() HandshakeState {
-	return s.hs
+// SetVerifyKey set remote signature validation public key
+func (s *session) SetRemotePublicKey(pb PublicKey) {
+	s.svk = pb
 }
 
 // Encrypt cipher message using encryption keys provided in handshake.
@@ -72,13 +67,18 @@ func (s *session) Decrypt(digest []byte) ([]byte, error) {
 	return s.decryption.Decrypt(digest, nil, nil)
 }
 
-// Sign message with private key
-func (s *session) Sign(msg []byte) []byte {
-	return ed25519.Sign(s.kp.Private, msg)
+// RemotePublicKey returns the static key provided by the remote peer during a handshake.
+func (s *session) RemotePublicKey() []byte {
+	return s.svk
 }
 
-// Verify message with remote public key
-func (s *session) Verify(msg []byte, sig []byte) bool {
+// Sign message with local private key.
+func (s *session) Sign(msg []byte) []byte {
+	return ed25519.Sign(s.kr.sv.Private, msg)
+}
+
+// Verify message with remote public key.
+func (s *session) Verify(msg, sig []byte) bool {
 	// Use remote peer public key to verify message
-	return ed25519.Verify(s.hs.PeerStatic(), msg, sig)
+	return ed25519.Verify(s.svk, msg, sig)
 }

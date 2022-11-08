@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
@@ -13,15 +14,35 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
+// A DHKey is a keypair used for Diffie-Hellman key agreement.
+// ref: http://www.noiseprotocol.org/noise.html#dh-functions
+type DHKey = noise.DHKey
+type PublicKey = ed25519.PublicKey
+type PrivateKey = ed25519.PrivateKey
+
+// EDKeyPair hold public/private using entropy from rand.
+// Every new handshake generate a new key pair.
+type EDKeyPair struct {
+	Private PrivateKey
+	Public  PublicKey
+}
+
+// KeyRing hold the set of local keys to use during handshake and session.
+type KeyRing struct {
+	kp DHKey     // encrypt-decrypt key pair exchange
+	sv EDKeyPair // ED25519 local sign-verify keys
+}
+
 // A CipherState provides symmetric encryption and decryption after a successful handshake.
+// ref: http://www.noiseprotocol.org/noise.html#the-cipherstate-object
 type CipherState = *noise.CipherState
 
 // BytePool implements a leaky pool of []byte in the form of a bounded channel.
 type BytePool = *bpool.BytePool
 
-// A DHKey is a keypair used for Diffie-Hellman key agreement.
-type DHKey = noise.DHKey
-
+// A HandshakeState tracks the state of a Noise handshake.
+// It may be discarded after the handshake is complete.
+// ref: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
 type HandshakeState interface {
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
@@ -48,6 +69,7 @@ type HandshakeState interface {
 // If bPools >= 1 a new buffered pool is created.
 // If bPools == 0 a new no-buffered pool is created
 const bPools = 1
+const headerSize = 2
 
 // BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3.
 // [Blake2]: https://www.blake2.net/
@@ -69,12 +91,12 @@ var HandshakePattern = noise.HandshakeXX
 // Please see [Docs] for more details.
 //
 // [Docs]: http://www.noiseprotocol.org/noise.html#dh-functions
-func generateKeyPair() (DHKey, error) {
+func newDHKeyPair() (DHKey, error) {
 	// Diffie-Hellman key pair
 	var err error
 	var kp DHKey
 
-	// TODO should i persist seed?
+	// TODO should i persist seed to keep the same public key for peer identity?
 	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
 	kp, err = noise.DH25519.GenerateKeypair(rand.Reader)
 	if err != nil {
@@ -102,8 +124,9 @@ func newHandshakeState(conf noise.Config) (*noise.HandshakeState, error) {
 	return hs, nil
 }
 
-// noise config factory
-// A Config provides the details necessary to process a Noise handshake. It is never modified by this package, and can be reused.
+// newHandshakeConfig create a noise config.
+// A Config provides the details necessary to process a Noise handshake.
+// It is never modified by this package, and can be reused.
 func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 	return noise.Config{
 		CipherSuite:   CipherSuite,
@@ -113,6 +136,19 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 	}
 }
 
+// newED25519KeyPair generate a new kp for sign-verify using P256 128 bit
+func newED25519KeyPair() (EDKeyPair, error) {
+	// ref: https://github.com/openssl/openssl/issues/18448
+	// ref: https://csrc.nist.gov/csrc/media/events/workshop-on-elliptic-curve-cryptography-standards/documents/papers/session6-adalier-mehmet.pdf
+	pb, pv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return EDKeyPair{}, err
+	}
+
+	log.Printf("Generated ECDSA25519 public key %x", pb)
+	return EDKeyPair{pv, pb}, nil
+}
+
 // handshake execute the steps needed for the noise handshake XX pattern.
 // Please see [XX Pattern] for more details. [XX Explorer] pattern.
 //
@@ -120,34 +156,59 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 // [XX Explorer]: https://noiseexplorer.com/patterns/XX/
 type handshake struct {
 	s  *session // ref: https://go.dev/doc/effective_go#embedding
+	kr KeyRing
 	hs HandshakeState
 	p  BytePool
 	i  bool
 }
 
-// Create a new handshake handler using provided connection and role.
+// newKeyRing create a bundle of local keys needed during session + handshake.
+func newKeyRing() (KeyRing, error) {
+	sv, err := newED25519KeyPair()
+	if err != nil {
+		return KeyRing{}, err
+	}
+
+	kp, err := newDHKeyPair()
+	if err != nil {
+		return KeyRing{}, err
+	}
+
+	return KeyRing{kp, sv}, nil
+}
+
+// newHandshake create a new handshake handler using provided connection and role.
 func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
-	kp, err := generateKeyPair()
+	kr, err := newKeyRing()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("Generated public key %x", kp.Public)
+	log.Printf("Generated X25519 public key %x", kr.kp.Public)
 	// set handshake state as initiator?
-	conf := newHandshakeConfig(initiator, kp)
+	conf := newHandshakeConfig(initiator, kr.kp)
 	// A HandshakeState tracks the state of a Noise handshake
 	state, err := newHandshakeState(conf)
 	if err != nil {
-		return nil, err
+		return nil, errDuringHandshake(err)
 	}
 
 	// Setup the max of size possible for tokens exchanged between peers.
-	// 64(DH keys) + 32(static key encrypted) + 2(size) = pool size
-	size := 2*noise.DH25519.DHLen() + 2*chacha20poly1305.Overhead + 2
+	edKeyLen := ed25519.PublicKeySize          // 32 bytes
+	dhKeyLen := 2 * noise.DH25519.DHLen()      // 64 bytes
+	cypherLen := 2 * chacha20poly1305.Overhead // 32 bytes
+	// Sum the needed memory size for pool
+	size := dhKeyLen + edKeyLen + cypherLen + headerSize
 	pool := bpool.NewBytePool(bPools, size) // N bytes pool
-	// Start a new session
-	session := newSession(conn, kp)
-	return &handshake{session, state, pool, initiator}, nil
+
+	// Create a new session handler
+	session, err := newSession(conn, kr)
+	if err != nil {
+		// Fail creating new session
+		return nil, errDuringHandshake(err)
+	}
+
+	return &handshake{session, kr, state, pool, initiator}, nil
 }
 
 // Session return secured session after handshake.
@@ -189,6 +250,7 @@ func (h *handshake) Start() error {
 
 // Initiate start a new handshake with peer as a "dialer".
 func (h *handshake) Initiate() error {
+	var payload []byte
 	// Send initial #1 message
 	// bytes size = DHLen for e = ephemeral key
 	log.Print("Sending e to remote")
@@ -200,7 +262,7 @@ func (h *handshake) Initiate() error {
 
 	// Receive message #2 stage
 	log.Print("Waiting for e, ee, s, es from remote")
-	enc, dec, err = h.Receive()
+	payload, enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e, ee, s, es` state: %v", err)
 		return errDuringHandshake(err)
@@ -219,10 +281,10 @@ func (h *handshake) Initiate() error {
 		return err
 	}
 
-	// Bound handshake state to session
-	h.s.SetState(h.hs)
 	// Add keys for encrypt/decrypt operations in session.
 	h.s.SetCyphers(enc, dec)
+	// Set remote signature validation public key
+	h.s.SetRemotePublicKey(payload)
 	return nil
 
 }
@@ -231,7 +293,7 @@ func (h *handshake) Initiate() error {
 func (h *handshake) Answer() error {
 	// Receive message #1 stage
 	log.Print("Waiting for e from remote")
-	enc, dec, err := h.Receive()
+	payload, enc, dec, err := h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e` state: %v", err)
 		return errDuringHandshake(err)
@@ -247,7 +309,7 @@ func (h *handshake) Answer() error {
 
 	// Receive message #2 stage
 	log.Print("Waiting for s, se from remote")
-	enc, dec, err = h.Receive()
+	payload, enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `s, se` state: %v", err)
 		return errDuringHandshake(err)
@@ -258,10 +320,10 @@ func (h *handshake) Answer() error {
 		return err
 	}
 
-	// Bound handshake state to session
-	h.s.SetState(h.hs)
 	// Add keys for encrypt/decrypt operations in session.
 	h.s.SetCyphers(enc, dec)
+	// Set remote signature validation public key
+	h.s.SetRemotePublicKey(payload)
 	return nil
 }
 
@@ -276,9 +338,8 @@ func (h *handshake) Send() (e, d CipherState, err error) {
 	// optional payload if provided. If the handshake is completed by the call, two
 	// CipherStates will be returned, one is used for encryption of messages to the
 	// remote peer, the other is used for decryption of messages from the remote
-	// peer. It is an error to call this method out of sync with the handshake
-	// pattern.
-	msg, e, d, err = h.hs.WriteMessage(buffer[:0], nil)
+	// peer. Append public signature key in payload to share with remote.
+	msg, e, d, err = h.hs.WriteMessage(buffer[:0], h.kr.sv.Public)
 	if err != nil {
 		return
 	}
@@ -293,7 +354,7 @@ func (h *handshake) Send() (e, d CipherState, err error) {
 }
 
 // Receive get a token from remote peer and synchronize it with local peer handshake state.
-func (h *handshake) Receive() (e, d CipherState, err error) {
+func (h *handshake) Receive() (p []byte, e, d CipherState, err error) {
 	var size uint16 // read bytes size from header
 	err = binary.Read(h.s, binary.BigEndian, &size)
 	if err != nil {
@@ -315,10 +376,5 @@ func (h *handshake) Receive() (e, d CipherState, err error) {
 	// will be returned, one is used for encryption of messages to the remote peer,
 	// the other is used for decryption of messages from the remote peer. It is an
 	// error to call this method out of sync with the handshake pattern.
-	_, e, d, err = h.hs.ReadMessage(nil, buffer)
-	if err != nil {
-		return
-	}
-
-	return
+	return h.hs.ReadMessage(nil, buffer)
 }
