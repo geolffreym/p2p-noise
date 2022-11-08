@@ -201,6 +201,8 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 // routing initialize route in routing table from session.
 // Return the recent added peer.
 func (n *Node) routing(conn *session) *peer {
+	n.Mutex.Lock()
+	defer n.Mutex.Unlock()
 	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
 	// fail instead of blocking. The deadline applies to all future
