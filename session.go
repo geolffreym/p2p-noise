@@ -52,7 +52,7 @@ func (s *session) SetCyphers(enc, dec CipherState) {
 	s.decryption = dec // pv-k
 }
 
-// SetVerifyKey set remote signature validation public key
+// SetVerifyKey set remote signature validation public key.
 func (s *session) SetRemotePublicKey(pb PublicKey) {
 	s.svk = pb
 }
