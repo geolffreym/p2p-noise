@@ -96,8 +96,6 @@ func newDHKeyPair() (DHKey, error) {
 	var err error
 	var kp DHKey
 
-	// TODO should i persist seed to keep the same public key for peer identity?
-	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
 	kp, err = noise.DH25519.GenerateKeypair(rand.Reader)
 	if err != nil {
 		err := fmt.Errorf("error trying to generate `s` keypair: %w", err)
@@ -140,6 +138,8 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 func newED25519KeyPair() (EDKeyPair, error) {
 	// ref: https://github.com/openssl/openssl/issues/18448
 	// ref: https://csrc.nist.gov/csrc/media/events/workshop-on-elliptic-curve-cryptography-standards/documents/papers/session6-adalier-mehmet.pdf
+	// TODO should i persist seed to keep the same public key for peer identity?
+	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
 	pb, pv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return EDKeyPair{}, err
