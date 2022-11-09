@@ -267,7 +267,7 @@ func (n *Node) Close() {
 
 	// flush all after close peers
 	n.listener.Close()
-	n.events.Flush() // TODO race condition here!!
+	n.events.Flush()
 	n.router.Flush()
 
 }
