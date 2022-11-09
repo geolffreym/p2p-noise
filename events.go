@@ -39,7 +39,9 @@ func newEvents() *events {
 // Flush broker topics and shutdown subscriber.
 func (e *events) Flush() {
 	e.broker.Flush()
-	e.subscriber.Close()
+	// Don't close the channel
+	// https://stackoverflow.com/questions/8593645/is-it-ok-to-leave-a-channel-open
+	// e.subscriber.Close()
 }
 
 // Listen forward to Listen method to internal subscriber.

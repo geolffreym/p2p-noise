@@ -12,11 +12,6 @@ func newSubscriber() *subscriber {
 	}
 }
 
-// Close shuts down the subscriber
-func (s *subscriber) Close() {
-	close(s.notification)
-}
-
 // Emit synchronized message using not-buffered channel.
 func (s *subscriber) Emit(msg Signal) {
 	s.notification <- msg
@@ -24,6 +19,9 @@ func (s *subscriber) Emit(msg Signal) {
 
 // Listen and wait for Signal synchronization from channel.
 // When a new Signal is added to channel buffer the message is proxied to input channel.
+// Please see [Concurrency Patterns] for more details.
+//
+// [Concurrency Patterns]: https://go.dev/blog/pipelines
 func (s *subscriber) Listen(ch chan<- Signal) {
 	for {
 		msg := <-s.notification //proxy channel
