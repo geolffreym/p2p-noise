@@ -30,7 +30,7 @@ func TestHandshake(t *testing.T) {
 	nodeA := New(configurationA)
 	nodeB := New(configurationB)
 
-	go func(na *Node, nb *Node) {
+	go func(na *Node) {
 		go func(n *Node) {
 			var signals <-chan Signal = nodeA.Signals(ctx)
 			for signal := range signals {
@@ -44,9 +44,7 @@ func TestHandshake(t *testing.T) {
 			}
 		}(na)
 		na.Listen()
-		nb.Close()
-		return
-	}(nodeA, nodeB)
+	}(nodeA)
 
 	<-time.After(time.Second * 1)
 	nodeB.Dial(nodeASocket)
