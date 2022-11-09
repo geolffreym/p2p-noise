@@ -117,10 +117,6 @@ KEEPALIVE:
 
 		// Don't stop listening for peer if overflow payload is returned.
 		if err != nil && !overflow {
-			// get the lock while event is sent and peer is removed from router.
-			n.Mutex.Lock()
-			defer n.Mutex.Unlock()
-
 			// net: don't return io.EOF from zero byte reads
 			// Notify about the remote peer state
 			n.events.PeerDisconnected(peer)
@@ -253,6 +249,7 @@ func (n *Node) Listen() error {
 
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
+
 	// stop connected peers
 	for _, p := range n.router.Table() {
 		go func(peer *peer) {

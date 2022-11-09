@@ -27,24 +27,32 @@ func TestHandshake(t *testing.T) {
 	ctx, close := context.WithCancel(context.Background())
 	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
 	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
-	nodeA := New(configurationA)
+
 	nodeB := New(configurationB)
 
-	go func(na *Node) {
-		go func(n *Node) {
-			var signals <-chan Signal = nodeA.Signals(ctx)
-			for signal := range signals {
-				if signal.Type() == NewPeerDetected {
-					log.Printf("%x", signal.Payload())
-					<-time.After(time.Second * 5)
-					n.Close()
-					close()
-					return
-				}
+	// t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
+	// 	// Match recently added peer
+	// 	if _, ok := router.Table()[e]; !ok {
+	// 		t.Errorf("expected routed socket %#v", e.String())
+	// 	}
+	// })
+
+	go func() {
+		nodeA := New(configurationA)
+		go nodeA.Listen()
+
+		var signals <-chan Signal = nodeA.Signals(ctx)
+		for signal := range signals {
+			if signal.Type() == NewPeerDetected {
+				log.Printf("%x", signal.Payload())
+				<-time.After(time.Second * 5)
+				nodeA.Close()
+				close()
+				return
 			}
-		}(na)
-		na.Listen()
-	}(nodeA)
+		}
+
+	}()
 
 	<-time.After(time.Second * 1)
 	nodeB.Dial(nodeASocket)
