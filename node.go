@@ -7,7 +7,6 @@
 package noise
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -77,9 +76,9 @@ func New(config Config) *Node {
 
 // Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Signals(ctx context.Context) <-chan Signal {
+func (n *Node) Signals() <-chan Signal {
 	ch := make(chan Signal)
-	go n.events.Listen(ctx, ch)
+	go n.events.Listen(ch)
 	return ch // read only channel for raw messages
 }
 

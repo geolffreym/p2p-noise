@@ -2,7 +2,6 @@ package noise
 
 import (
 	"bytes"
-	"context"
 	"log"
 	"os"
 	"testing"
@@ -31,7 +30,6 @@ func TestHandshake(t *testing.T) {
 	configurationA := config.New()
 	configurationB := config.New()
 
-	ctx, close := context.WithCancel(context.Background())
 	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
 	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
 
@@ -44,12 +42,10 @@ func TestHandshake(t *testing.T) {
 		<-time.After(time.Second * 1)
 		nodeB.Dial(nodeASocket)
 
-		var signals <-chan Signal = nodeA.Signals(ctx)
+		var signals <-chan Signal = nodeA.Signals()
 		for signal := range signals {
 			if signal.Type() == NewPeerDetected {
 				// Wait until new peer detected
-				log.Print("new peer")
-				close() // mute events
 				break
 			}
 		}

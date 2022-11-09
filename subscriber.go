@@ -1,9 +1,5 @@
 package noise
 
-import (
-	"context"
-)
-
 // subscriber intercept Signal from already subscribed topics in broker
 // Handle actions to emit or receive events.
 type subscriber struct {
@@ -28,15 +24,9 @@ func (s *subscriber) Emit(msg Signal) {
 
 // Listen and wait for Signal synchronization from channel.
 // When a new Signal is added to channel buffer the message is proxied to input channel.
-func (s *subscriber) Listen(ctx context.Context, ch chan<- Signal) {
+func (s *subscriber) Listen(ch chan<- Signal) {
 	for {
-		// Close if callback returns false.
-		// select await both of these values simultaneously, executing each one as it arrives.
-		select {
-		case <-ctx.Done():
-			return
-		case msg := <-s.notification:
-			ch <- msg // write only channel chan<-
-		}
+		msg := <-s.notification //proxy channel
+		ch <- msg               // write only channel chan<-
 	}
 }

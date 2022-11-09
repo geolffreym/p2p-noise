@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 
@@ -34,8 +33,7 @@ func main() {
 	node := noise.New(configuration)
 
 	// Network events channel
-	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.Signal = node.Signals(ctx)
+	var signals <-chan noise.Signal = node.Signals()
 
 	go func() {
 		// Wait for incoming message channel.
@@ -62,7 +60,6 @@ func main() {
 			case noise.PeerDisconnected:
 				// What we do when a peer get disconnected?
 				log.Printf("Peer disconnected")
-				cancel() // stop listening for events
 			}
 		}
 	}()
