@@ -19,7 +19,7 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 
 }
 
-func TestHandshake(t *testing.T) {
+func TestTwoNodesHandshake(t *testing.T) {
 	out := new(bytes.Buffer)
 	fl := log.Flags()
 	log.SetFlags(0)
@@ -52,6 +52,69 @@ func TestHandshake(t *testing.T) {
 
 		nodeA.Close()
 		nodeB.Close()
+	})
+
+	log.SetFlags(fl)
+	log.SetOutput(os.Stderr)
+	log.Print(out)
+}
+
+func TestSomeNodesHandshake(t *testing.T) {
+	out := new(bytes.Buffer)
+	fl := log.Flags()
+	log.SetFlags(0)
+	log.SetOutput(out)
+
+	t.Run("handshake A<->B", func(t *testing.T) {
+		nodeASocket := "127.0.0.1:9090"
+		nodeBSocket := "127.0.0.1:9091"
+		nodeCSocket := "127.0.0.1:9092"
+		nodeDSocket := "127.0.0.1:9093"
+		configurationA := config.New()
+		configurationB := config.New()
+		configurationC := config.New()
+		configurationD := config.New()
+
+		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+		configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+		configurationC.Write(config.SetSelfListeningAddress(nodeCSocket))
+		configurationD.Write(config.SetSelfListeningAddress(nodeDSocket))
+
+		nodeA := New(configurationA)
+		nodeB := New(configurationB)
+		nodeC := New(configurationC)
+		nodeD := New(configurationD)
+		go nodeA.Listen()
+		go nodeB.Listen()
+		go nodeC.Listen()
+		go nodeD.Listen()
+
+		<-time.After(time.Second * 1)
+		nodeB.Dial(nodeASocket)
+		nodeC.Dial(nodeASocket)
+		nodeC.Dial(nodeBSocket)
+		nodeD.Dial(nodeBSocket)
+
+		var signalsA <-chan Signal = nodeA.Signals()
+		for signalA := range signalsA {
+			if signalA.Type() == NewPeerDetected {
+				// Wait until new peer detected
+				break
+			}
+		}
+
+		var signalsB <-chan Signal = nodeB.Signals()
+		for signalB := range signalsB {
+			if signalB.Type() == NewPeerDetected {
+				// Wait until new peer detected
+				break
+			}
+		}
+
+		nodeA.Close()
+		nodeB.Close()
+		nodeC.Close()
+		nodeD.Close()
 	})
 
 	log.SetFlags(fl)
