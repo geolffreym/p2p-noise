@@ -16,6 +16,11 @@ func newSubscriber() *subscriber {
 	}
 }
 
+// Close shuts down the subscriber
+func (s *subscriber) Close() {
+	close(s.notification)
+}
+
 // Emit synchronized message using not-buffered channel.
 func (s *subscriber) Emit(msg Signal) {
 	s.notification <- msg
@@ -24,9 +29,6 @@ func (s *subscriber) Emit(msg Signal) {
 // Listen and wait for Signal synchronization from channel.
 // When a new Signal is added to channel buffer the message is proxied to input channel.
 func (s *subscriber) Listen(ctx context.Context, ch chan<- Signal) {
-	// Wait until message synchronization finish to close channel
-	defer close(s.notification)
-
 	for {
 		// Close if callback returns false.
 		// select await both of these values simultaneously, executing each one as it arrives.

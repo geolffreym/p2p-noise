@@ -1,8 +1,10 @@
 package noise
 
 import (
+	"bytes"
 	"context"
 	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -19,6 +21,11 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 }
 
 func TestHandshake(t *testing.T) {
+	out := new(bytes.Buffer)
+	fl := log.Flags()
+	log.SetFlags(0)
+	log.SetOutput(out)
+
 	nodeASocket := "127.0.0.1:9090"
 	nodeBSocket := "127.0.0.1:9091"
 	configurationA := config.New()
@@ -28,34 +35,31 @@ func TestHandshake(t *testing.T) {
 	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
 	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
 
-	nodeB := New(configurationB)
-
-	// t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
-	// 	// Match recently added peer
-	// 	if _, ok := router.Table()[e]; !ok {
-	// 		t.Errorf("expected routed socket %#v", e.String())
-	// 	}
-	// })
-
-	go func() {
+	t.Run("handshake A<->B", func(t *testing.T) {
 		nodeA := New(configurationA)
+		nodeB := New(configurationB)
 		go nodeA.Listen()
+		go nodeB.Listen()
+
+		<-time.After(time.Second * 1)
+		nodeB.Dial(nodeASocket)
 
 		var signals <-chan Signal = nodeA.Signals(ctx)
 		for signal := range signals {
 			if signal.Type() == NewPeerDetected {
-				log.Printf("%x", signal.Payload())
-				<-time.After(time.Second * 5)
-				nodeA.Close()
-				close()
-				return
+				// Wait until new peer detected
+				log.Print("new peer")
+				close() // mute events
+				break
 			}
 		}
 
-	}()
+		nodeA.Close()
+		nodeB.Close()
+	})
 
-	<-time.After(time.Second * 1)
-	nodeB.Dial(nodeASocket)
-	nodeB.Listen()
+	log.SetFlags(fl)
+	log.SetOutput(os.Stderr)
+	log.Print(out)
 
 }

@@ -150,8 +150,7 @@ KEEPALIVE:
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	// Assertion for tcp connection to keep alive
-	remoteIp := conn.RemoteAddr().String()
-	log.Printf("starting handshake with: %v", remoteIp)
+	log.Print("starting handshake")
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
@@ -181,7 +180,7 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 
 	// Stage 2 -> get a secure session
 	// All good with handshake? Then get a secure session.
-	log.Printf("handshake complete with %s", remoteIp)
+	log.Print("handshake complete")
 	session := h.Session()
 	// Stage 3 -> create a peer and add it to router
 	// Routing for secure session
@@ -251,17 +250,18 @@ func (n *Node) Listen() error {
 func (n *Node) Close() {
 
 	// stop connected peers
-	for _, p := range n.router.Table() {
-		go func(peer *peer) {
-			if err := peer.Close(); err != nil {
-				log.Printf("error when shutting down connection: %v", err)
-			}
-		}(p)
+	log.Print("closing connections and shutting down node..")
+	for _, peer := range n.router.Table() {
+		if err := peer.Close(); err != nil {
+			log.Printf("error when shutting down connection: %v", err)
+		}
 	}
 
-	// flush connected peers
-	n.router.Flush()
+	// flush all after close peers
 	n.listener.Close()
+	// n.events.Flush()
+	n.router.Flush()
+
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.

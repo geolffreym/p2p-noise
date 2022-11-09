@@ -145,7 +145,7 @@ func newED25519KeyPair() (EDKeyPair, error) {
 		return EDKeyPair{}, err
 	}
 
-	log.Printf("Generated ECDSA25519 public key %x", pb)
+	log.Print("generated ECDSA25519 public key")
 	return EDKeyPair{pv, pb}, nil
 }
 
@@ -184,7 +184,7 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 		return nil, err
 	}
 
-	log.Printf("Generated X25519 public key %x", kr.kp.Public)
+	log.Printf("generated X25519 public key")
 	// set handshake state as initiator?
 	conf := newHandshakeConfig(initiator, kr.kp)
 	// A HandshakeState tracks the state of a Noise handshake
@@ -252,7 +252,7 @@ func (h *handshake) Start() error {
 func (h *handshake) Initiate() error {
 	// Send initial #1 message
 	// bytes size = DHLen for e = ephemeral key
-	log.Print("Sending e to remote")
+	log.Print("sending e to remote")
 	enc, dec, err := h.Send()
 	if err != nil {
 		err = fmt.Errorf("error sending `e` state: %v", err)
@@ -260,7 +260,7 @@ func (h *handshake) Initiate() error {
 	}
 
 	// Receive message #2 stage
-	log.Print("Waiting for e, ee, s, es from remote")
+	log.Print("waiting for e, ee, s, es from remote")
 	enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e, ee, s, es` state: %v", err)
@@ -268,7 +268,7 @@ func (h *handshake) Initiate() error {
 	}
 
 	// Send last handshake message #3 stage
-	log.Print("Sending s, se to remote")
+	log.Print("sending s, se to remote")
 	enc, dec, err = h.Send()
 	if err != nil {
 		err = fmt.Errorf("error sending `s, se` state: %v", err)
@@ -289,7 +289,7 @@ func (h *handshake) Initiate() error {
 // Answer start an answer for remote peer handshake request.
 func (h *handshake) Answer() error {
 	// Receive message #1 stage
-	log.Print("Waiting for e from remote")
+	log.Print("waiting for e from remote")
 	enc, dec, err := h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `e` state: %v", err)
@@ -297,7 +297,7 @@ func (h *handshake) Answer() error {
 	}
 
 	// Send answer message #2 stage
-	log.Print("Sending e, ee, s, es to remote")
+	log.Print("sending e, ee, s, es to remote")
 	enc, dec, err = h.Send()
 	if err != nil {
 		err = fmt.Errorf("error sending `e, ee, s, es` state: %v", err)
@@ -305,7 +305,7 @@ func (h *handshake) Answer() error {
 	}
 
 	// Receive message #2 stage
-	log.Print("Waiting for s, se from remote")
+	log.Print("waiting for s, se from remote")
 	enc, dec, err = h.Receive()
 	if err != nil {
 		err = fmt.Errorf("error receiving `s, se` state: %v", err)

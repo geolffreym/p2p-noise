@@ -16,6 +16,15 @@ func (s *topic) Subscribers() []*subscriber { return s.s }
 // topics `keep` registered events
 type topics map[Event]*topic
 
+// Get return topic based on event type
+func (t topics) Get(e Event) *topic {
+	if s, ok := t[e]; ok {
+		return s
+	}
+
+	return nil
+}
+
 // Add append a new subscriber to event
 // If topic event doesn't exist then is created.
 func (t topics) Add(e Event, s *subscriber) {
@@ -58,8 +67,8 @@ func (t topics) Remove(e Event, s *subscriber) bool {
 // broker exchange messages between events and subscriber.
 // Each broker receive published signal from event for later emit it to subscriber.
 type broker struct {
-	sync.Mutex        // guards
-	topics     topics // topic subscriptions
+	sync.RWMutex        // guards
+	topics       topics // topic subscriptions
 }
 
 func newBroker() *broker {
@@ -71,9 +80,9 @@ func newBroker() *broker {
 func (b *broker) Register(e Event, s *subscriber) {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
-	b.Mutex.Lock()
+	b.RWMutex.Lock()
 	b.topics.Add(e, s)
-	b.Mutex.Unlock()
+	b.RWMutex.Unlock()
 }
 
 // Unregister remove associated subscriber from topics.
@@ -81,28 +90,34 @@ func (b *broker) Register(e Event, s *subscriber) {
 func (b *broker) Unregister(e Event, s *subscriber) bool {
 	// Lock while writing operation
 	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()       // This will be executed at the end of the enclosing function.
+	b.RWMutex.Lock()
+	defer b.RWMutex.Unlock()     // This will be executed at the end of the enclosing function.
 	return b.topics.Remove(e, s) // call first then return until then the mutex is available.
+}
+
+func (b *broker) Flush() {
+	b.RWMutex.Lock()
+	b.topics = nil
+	b.RWMutex.Unlock()
 }
 
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
 func (b *broker) Publish(msg Signal) uint8 {
 	// Lock while reading operation
-	b.Mutex.Lock()
-	defer b.Mutex.Unlock()
+	b.RWMutex.RLock()
+	defer b.RWMutex.RUnlock()
 
 	// Check if topic is registered before try to emit messages to subscribers.
-	data, exists := b.topics[msg.Type()]
-	if !exists {
+	topic := b.topics.Get(msg.Type())
+	if topic == nil {
 		return 0
 	}
 
 	// How many subscribers exists in topic?
-	length := data.Len()
+	length := topic.Len()
 	// Subscribers in topic!!
-	subscribers := data.Subscribers()
+	subscribers := topic.Subscribers()
 	// For each subscriber in topic registered emit a new signal
 	for _, sub := range subscribers {
 		go func(s *subscriber, m Signal) {
