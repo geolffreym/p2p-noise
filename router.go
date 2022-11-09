@@ -1,9 +1,5 @@
 package noise
 
-import (
-	"sync"
-)
-
 // table assoc Socket with peer.
 type table map[ID]*peer
 
@@ -30,43 +26,27 @@ func (t table) Remove(peer *peer) {
 // router keep a hash table to associate ID with peer.
 // It implements a unstructured mesh topology.
 type router struct {
-	sync.RWMutex
 	table table
 }
 
 func newRouter() *router {
-	return &router{
-		table: make(table),
-	}
+	return &router{make(table)}
 }
 
 // Table return current routing table.
 func (r *router) Table() table {
-	r.RWMutex.RLock()
-	defer r.RWMutex.RUnlock()
 	return r.table
 }
 
 // Query return connection interface based on socket parameter.
 func (r *router) Query(id ID) *peer {
-	// Mutex for reading topics.
-	// Do not write while topics are read.
-	// Write Lock can’t be acquired until all Read Locks are released.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.RLock
-	r.RWMutex.RLock()
-	defer r.RWMutex.RUnlock()
 	// exist socket related peer?
 	return r.table.Get(id)
 }
 
 // Add create new Socket Peer association.
 func (r *router) Add(peer *peer) {
-	// Lock write/read table while add operation
-	// A blocked Lock call excludes new readers from acquiring the lock.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-	r.RWMutex.Lock()
 	r.table.Add(peer)
-	r.RWMutex.Unlock()
 }
 
 // Len return the number of routed connections.
@@ -79,8 +59,6 @@ func (r *router) Len() uint8 {
 // Flush clean table and return total peers removed.
 // This will be garbage collected eventually.
 func (r *router) Flush() uint8 {
-	r.RWMutex.Lock()
-	defer r.RWMutex.Unlock()
 	size := r.Len()
 	// nil its a valid type for mapping since its a reference type.
 	// ref: https://github.com/go101/go101/wiki/About-the-terminology-%22reference-type%22-in-Go
@@ -92,10 +70,5 @@ func (r *router) Flush() uint8 {
 // Remove removes a connection from router.
 // It return recently removed peer.
 func (r *router) Remove(peer *peer) {
-	// Lock write/read table while add operation
-	// A blocked Lock call excludes new readers from acquiring the lock.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-	r.RWMutex.Lock()
 	r.table.Remove(peer)
-	r.RWMutex.Unlock()
 }

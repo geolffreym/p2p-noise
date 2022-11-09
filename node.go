@@ -44,7 +44,7 @@ type Config interface {
 }
 
 type Node struct {
-	sync.Mutex
+	sync.RWMutex
 	// Channel flag waiting for signal to close connection.
 	listener net.Listener
 	// Routing hash table eg. {Socket: Conn interface}.
@@ -116,6 +116,11 @@ KEEPALIVE:
 
 		// Don't stop listening for peer if overflow payload is returned.
 		if err != nil && !overflow {
+			// Mutex for remove on use peers after get disconnected.
+			// Write Lock can’t be acquired until all Read Locks are released.
+			// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
+			n.RWMutex.Lock()
+			defer n.RWMutex.Unlock()
 			// net: don't return io.EOF from zero byte reads
 			// Notify about the remote peer state
 			n.events.PeerDisconnected(peer)
@@ -195,8 +200,6 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 // routing initialize route in routing table from session.
 // Return the recent added peer.
 func (n *Node) routing(conn *session) *peer {
-	n.Mutex.Lock()
-	defer n.Mutex.Unlock()
 	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
 	// fail instead of blocking. The deadline applies to all future
@@ -247,6 +250,12 @@ func (n *Node) Listen() error {
 
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
+	// We need get the lock if we are closing active peers.
+	// Close will trigger "peer disconnected" event.
+	// Do not write while topics are being read it.
+	// [RWMutex.RLock]: https://pkg.go.dev/sync#RWMutex.RLock
+	n.RWMutex.RLock()
+	defer n.RWMutex.RUnlock()
 
 	// stop connected peers
 	log.Print("closing connections and shutting down node..")

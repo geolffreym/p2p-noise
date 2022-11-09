@@ -25,15 +25,15 @@ func TestHandshake(t *testing.T) {
 	log.SetFlags(0)
 	log.SetOutput(out)
 
-	nodeASocket := "127.0.0.1:9090"
-	nodeBSocket := "127.0.0.1:9091"
-	configurationA := config.New()
-	configurationB := config.New()
-
-	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
-	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
-
 	t.Run("handshake A<->B", func(t *testing.T) {
+		nodeASocket := "127.0.0.1:9090"
+		nodeBSocket := "127.0.0.1:9091"
+		configurationA := config.New()
+		configurationB := config.New()
+
+		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+		configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+
 		nodeA := New(configurationA)
 		nodeB := New(configurationB)
 		go nodeA.Listen()
