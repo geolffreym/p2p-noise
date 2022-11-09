@@ -3,6 +3,8 @@ package noise
 // subscriber intercept Signal from already subscribed topics in broker
 // Handle actions to emit or receive events.
 type subscriber struct {
+	// No, you don't need to close the channel
+	// https://stackoverflow.com/questions/8593645/is-it-ok-to-leave-a-channel-open
 	notification chan Signal // Message exchange channel
 }
 
