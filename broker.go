@@ -82,7 +82,7 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 	return b.topics.Remove(e, s)
 }
 
-// Flush remove all topics and return length of topics removed.
+// Flush remove all topics and return length of topics.
 func (b *broker) Flush() uint8 {
 	len := uint8(len(b.topics))
 	b.topics = nil

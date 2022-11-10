@@ -119,8 +119,8 @@ KEEPALIVE:
 			// Mutex for remove on use peers after get disconnected.
 			// Write Lock can’t be acquired until all Read Locks are released.
 			// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-			n.RWMutex.Lock()
-			defer n.RWMutex.Unlock()
+			// n.RWMutex.Lock()
+			// defer n.RWMutex.Unlock()
 			// net: don't return io.EOF from zero byte reads
 			// Notify about the remote peer state
 			n.events.PeerDisconnected(peer)
@@ -153,8 +153,7 @@ KEEPALIVE:
 // If TCP protocol is used connection is enforced to keep alive.
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
-	n.RWMutex.Lock()
-	defer n.RWMutex.Unlock()
+
 	// Assertion for tcp connection to keep alive
 	log.Print("starting handshake")
 	connection, isTCP := conn.(*net.TCPConn)
@@ -252,13 +251,6 @@ func (n *Node) Listen() error {
 
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
-	// We need get the lock if we are closing active peers.
-	// Close will trigger "peer disconnected" event.
-	// Do not write while topics are being read it.
-	// [RWMutex.RLock]: https://pkg.go.dev/sync#RWMutex.RLock
-	n.RWMutex.RLock()
-	defer n.RWMutex.RUnlock()
-
 	// stop connected peers
 	log.Print("closing connections and shutting down node..")
 	for _, peer := range n.router.Table() {
@@ -267,6 +259,7 @@ func (n *Node) Close() {
 		}
 	}
 
+	// force gc
 	// flush all after close peers
 	n.listener.Close()
 	n.events.Flush()
