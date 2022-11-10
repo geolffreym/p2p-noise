@@ -1,7 +1,5 @@
 package noise
 
-import "sync"
-
 type topic struct {
 	s    []*subscriber
 	sMap map[*subscriber]uint8
@@ -65,22 +63,17 @@ func (t topics) Remove(e Event, s *subscriber) bool {
 // broker exchange messages between events and subscriber.
 // Each broker receive published signal from event for later emit it to subscriber.
 type broker struct {
-	sync.RWMutex        // guards
-	topics       topics // topic subscriptions
+	topics topics // topic subscriptions
 }
 
 func newBroker() *broker {
-	return &broker{topics: make(topics)}
+	return &broker{make(topics)}
 }
 
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
 func (b *broker) Register(e Event, s *subscriber) {
-	// Lock while writing operation
-	// If the lock is already in use, the calling goroutine blocks until the mutex is available.
-	b.RWMutex.Lock()
 	b.topics.Add(e, s)
-	b.RWMutex.Unlock()
 }
 
 // Unregister remove associated subscriber from topics.
@@ -91,9 +84,6 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 
 // Flush remove all topics and return length of topics.
 func (b *broker) Flush() uint8 {
-	b.RWMutex.Lock()
-	defer b.RWMutex.Unlock()
-
 	len := uint8(len(b.topics))
 	b.topics = nil
 	return len
@@ -102,10 +92,6 @@ func (b *broker) Flush() uint8 {
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
 func (b *broker) Publish(msg Signal) uint8 {
-	// Lock while reading operation
-	b.RWMutex.Lock()
-	defer b.RWMutex.Unlock()
-
 	// Check if topic is registered before try to emit messages to subscribers.
 	topic := b.topics.Get(msg.Type())
 	if topic == nil {
