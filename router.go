@@ -20,10 +20,10 @@ func (r *router) Table() <-chan *peer {
 	r.Range(func(key, value any) bool {
 		if p, ok := value.(*peer); ok {
 			ch <- p
-			return true
 		}
-
-		return false
+		// keep running until finish sequence
+		// If f returns false, range stops the iteration.
+		return true
 	})
 
 	close(ch)
