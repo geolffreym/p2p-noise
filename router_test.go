@@ -46,7 +46,7 @@ func TestAdd(t *testing.T) {
 	for _, e := range expected {
 		t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
 			// Match recently added peer
-			if _, ok := router.Table()[e]; !ok {
+			if p := router.Query(e); p != nil {
 				t.Errorf("expected routed socket %#v", e.String())
 			}
 		})
@@ -123,32 +123,6 @@ func TestDelete(t *testing.T) {
 
 	if router.Query(peerE.ID()) != nil {
 		t.Errorf("expected %v not registered in router after delete", peerE.ID())
-	}
-
-}
-
-func TestFlush(t *testing.T) {
-	router := newRouter()
-	router.Add(peerA)
-	router.Flush()
-
-	if router.Table() != nil {
-		t.Errorf("expected empty table, got %v", router.Table())
-	}
-
-}
-
-func TestFlushSize(t *testing.T) {
-	router := newRouter()
-	router.Add(peerA)
-	router.Add(peerB)
-	router.Add(peerC)
-
-	len := router.Len()
-	deleted := router.Flush()
-
-	if deleted != len {
-		t.Errorf("expected %v table flushed peers, got %v", len, deleted)
 	}
 
 }

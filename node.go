@@ -66,11 +66,10 @@ func New(config Config) *Node {
 	pool := bpool.NewBytePool(maxPools, maxBufferSize)
 
 	return &Node{
-		listener: nil,
-		router:   newRouter(),
-		events:   newEvents(),
-		pool:     pool,
-		config:   config,
+		router: newRouter(),
+		events: newEvents(),
+		pool:   pool,
+		config: config,
 	}
 }
 
@@ -116,11 +115,6 @@ KEEPALIVE:
 
 		// Don't stop listening for peer if overflow payload is returned.
 		if err != nil && !overflow {
-			// Mutex for remove on use peers after get disconnected.
-			// Write Lock can’t be acquired until all Read Locks are released.
-			// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-			// n.RWMutex.Lock()
-			// defer n.RWMutex.Unlock()
 			// net: don't return io.EOF from zero byte reads
 			// Notify about the remote peer state
 			n.events.PeerDisconnected(peer)
@@ -164,11 +158,11 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	}
 
 	// Drop connections if max peers exceeded
-	if n.router.Len() >= n.config.MaxPeersConnected() {
-		connection.Close() // Drop connection :(
-		log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
-		return errExceededMaxPeers(n.config.MaxPeersConnected())
-	}
+	// if n.router.Len() >= n.config.MaxPeersConnected() {
+	// 	connection.Close() // Drop connection :(
+	// 	log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
+	// 	return errExceededMaxPeers(n.config.MaxPeersConnected())
+	// }
 
 	// Stage 1 -> run handshake
 	h, err := newHandshake(connection, initialize)
@@ -251,9 +245,10 @@ func (n *Node) Listen() error {
 
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
+
 	// stop connected peers
 	log.Print("closing connections and shutting down node..")
-	for _, peer := range n.router.Table() {
+	for peer := range n.router.Table() {
 		if err := peer.Close(); err != nil {
 			log.Printf("error when shutting down connection: %v", err)
 		}
@@ -263,8 +258,6 @@ func (n *Node) Close() {
 	// flush all after close peers
 	n.listener.Close()
 	n.events.Flush()
-	n.router.Flush()
-
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.
