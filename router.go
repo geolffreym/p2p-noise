@@ -13,7 +13,7 @@ func newRouter() *router {
 	return &router{}
 }
 
-// Table return current routing table.
+// Table return fan out channel with peers.
 func (r *router) Table() <-chan *peer {
 	ch := make(chan *peer, r.counter)
 	r.table.Range(func(key, value any) bool {
