@@ -153,6 +153,8 @@ KEEPALIVE:
 // If TCP protocol is used connection is enforced to keep alive.
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
+	n.RWMutex.Lock()
+	defer n.RWMutex.Unlock()
 	// Assertion for tcp connection to keep alive
 	log.Print("starting handshake")
 	connection, isTCP := conn.(*net.TCPConn)
