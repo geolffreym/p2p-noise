@@ -158,11 +158,11 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	}
 
 	// Drop connections if max peers exceeded
-	// if n.router.Len() >= n.config.MaxPeersConnected() {
-	// 	connection.Close() // Drop connection :(
-	// 	log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
-	// 	return errExceededMaxPeers(n.config.MaxPeersConnected())
-	// }
+	if n.router.Len() >= n.config.MaxPeersConnected() {
+		connection.Close() // Drop connection :(
+		log.Printf("max peers exceeded: MaxPeerConnected = %d", n.config.MaxPeersConnected())
+		return errExceededMaxPeers(n.config.MaxPeersConnected())
+	}
 
 	// Stage 1 -> run handshake
 	h, err := newHandshake(connection, initialize)

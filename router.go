@@ -16,6 +16,7 @@ func newRouter() *router {
 // Table return fan out channel with peers.
 func (r *router) Table() <-chan *peer {
 	ch := make(chan *peer, r.counter)
+	// ref: https://pkg.go.dev/sync#Map.Range
 	r.table.Range(func(key, value any) bool {
 		if p, ok := value.(*peer); ok {
 			ch <- p
@@ -25,6 +26,7 @@ func (r *router) Table() <-chan *peer {
 		return false
 	})
 
+	close(ch)
 	return ch
 }
 
