@@ -5,19 +5,19 @@ import "sync"
 // router keep a hash table to associate ID with peer.
 // It implements a unstructured mesh topology.
 type router struct {
-	table   sync.Map
+	sync.Map
 	counter uint8
 }
 
 func newRouter() *router {
-	return &router{}
+	return &router{counter: 0}
 }
 
 // Table return fan out channel with peers.
 func (r *router) Table() <-chan *peer {
 	ch := make(chan *peer, r.counter)
 	// ref: https://pkg.go.dev/sync#Map.Range
-	r.table.Range(func(key, value any) bool {
+	r.Range(func(key, value any) bool {
 		if p, ok := value.(*peer); ok {
 			ch <- p
 			return true
@@ -33,7 +33,7 @@ func (r *router) Table() <-chan *peer {
 // Query return connection interface based on socket parameter.
 func (r *router) Query(id ID) *peer {
 	// exist socket related peer?
-	p, exists := r.table.Load(id)
+	p, exists := r.Load(id)
 	peer, ok := p.(*peer)
 
 	if !exists || !ok {
@@ -46,7 +46,7 @@ func (r *router) Query(id ID) *peer {
 // Add forward method to internal sync.Map store for peer.
 func (r *router) Add(peer *peer) {
 	r.counter++
-	r.table.Store(peer.ID(), peer)
+	r.Store(peer.ID(), peer)
 }
 
 // Len return the number of routed connections.
@@ -58,5 +58,5 @@ func (r *router) Len() uint8 {
 // It return recently removed peer.
 func (r *router) Remove(peer *peer) {
 	r.counter--
-	r.table.Delete(peer.ID())
+	r.Delete(peer.ID())
 }
