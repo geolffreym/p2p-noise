@@ -12,12 +12,12 @@ import (
 // [ID] it's identity provider for peer.
 type ID [32]byte
 
-// Bytes return a byte slice representation for id.
+// [Bytes] return a byte slice representation for id.
 func (i ID) Bytes() []byte {
 	return i[:]
 }
 
-// String return a string representation for 32-bytes hash.
+// [String] return a string representation for 32-bytes hash.
 func (i ID) String() string {
 	return (string)(i[:])
 }

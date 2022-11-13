@@ -15,9 +15,9 @@ import (
 )
 
 // A DHKey is a keypair used for Diffie-Hellman key agreement.
-// Please see [Docs] for more details.
+// Please see [docs] for more details.
 //
-// [Docs]: http://www.noiseprotocol.org/noise.html#dh-functions
+// [docs]: http://www.noiseprotocol.org/noise.html#dh-functions
 type DHKey = noise.DHKey
 type PublicKey = ed25519.PublicKey
 type PrivateKey = ed25519.PrivateKey
@@ -36,19 +36,19 @@ type KeyRing struct {
 }
 
 // [CipherState] provides symmetric encryption and decryption after a successful handshake.
-// Please see [CipherState] documentation for more information.
+// Please see [docs] documentation for more information.
 //
-// [CipherState]: http://www.noiseprotocol.org/noise.html#the-cipherstate-object
+// [docs]: http://www.noiseprotocol.org/noise.html#the-cipherstate-object
 type CipherState = *noise.CipherState
 
-// BytePool implements a leaky pool of []byte in the form of a bounded channel.
+// [BytePool] implements a leaky pool of []byte in the form of a bounded channel.
 type BytePool = *bpool.BytePool
 
 // [HandshakeState] tracks the state of a Noise handshake.
 // It may be discarded after the handshake is complete.
-// Please see [Docs] documentation for more information.
+// Please see [docs] documentation for more information.
 //
-// [Docs]: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
+// [docs]: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
 type HandshakeState interface {
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
