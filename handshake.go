@@ -36,7 +36,7 @@ type KeyRing struct {
 }
 
 // [CipherState] provides symmetric encryption and decryption after a successful handshake.
-// Please see [docs] documentation for more information.
+// Please see [docs] for more information.
 //
 // [docs]: http://www.noiseprotocol.org/noise.html#the-cipherstate-object
 type CipherState = *noise.CipherState
@@ -46,7 +46,7 @@ type BytePool = *bpool.BytePool
 
 // [HandshakeState] tracks the state of a Noise handshake.
 // It may be discarded after the handshake is complete.
-// Please see [docs] documentation for more information.
+// Please see [docs] for more information.
 //
 // [docs]: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
 type HandshakeState interface {
