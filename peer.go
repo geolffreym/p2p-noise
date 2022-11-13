@@ -33,7 +33,7 @@ func newBlake2ID(plaintext []byte) ID {
 }
 
 // packet set needed properties to handle incoming message for peer.
-// Optimizing space with ordered types. Descending order.
+// Optimizing space with ordered types.
 // ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 type packet struct {
 	// Ascending order for struct size
@@ -91,7 +91,6 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 
 	size := uint32(len(digest)) // the msg size
 	sig := p.s.Sign(digest)     // message signature
-	// pb:=
 
 	// Create a new packet to send it over the network
 	packet := packet{size, sig}
@@ -118,7 +117,7 @@ func (p *peer) Listen(maxPayloadSize uint32) ([]byte, error) {
 		return nil, err
 	}
 
-	// If the size of the message in packet exceed may expected
+	// If the size of the message in packet exceed expected size
 	if inp.Len > maxPayloadSize {
 		log.Printf("max payload size exceeded: MaxPayloadSize = %d", maxPayloadSize)
 		return nil, errExceededMaxPayloadSize(maxPayloadSize)

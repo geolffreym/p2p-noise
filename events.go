@@ -67,7 +67,9 @@ func (e *events) PeerDisconnected(peer *peer) {
 // NewMessage dispatch event when a new message is received.
 func (e *events) NewMessage(peer *peer, msg []byte) {
 	// Emit new notification
-	// perf: no-copy convert to string
+	// perf: no allocation/copy to convert to string.
+	// instead take the already existing byte slice to create a string struct.
+	// WARNING: use this approach with caution and only if we are sure that the bytes slice is not gonna change.
 	message := *(*string)(unsafe.Pointer(&msg))
 	header := header{peer, MessageReceived}
 	signal := Signal{header, message}

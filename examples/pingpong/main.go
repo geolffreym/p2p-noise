@@ -49,7 +49,7 @@ func main() {
 
 			case noise.MessageReceived:
 				// When we receive a message, check the content message and reply "ping" or "pong"
-				message := string(signal.Payload())
+				message := signal.Payload()
 				log.Printf("New Message: %s", message)
 				if message == "ping" {
 					signal.Reply([]byte("pong"))

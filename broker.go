@@ -1,5 +1,7 @@
 package noise
 
+import "sync"
+
 type topic struct {
 	s    []*subscriber
 	sMap map[*subscriber]uint8
@@ -63,11 +65,12 @@ func (t topics) Remove(e Event, s *subscriber) bool {
 // broker exchange messages between events and subscriber.
 // Each broker receive published signal from event for later emit it to subscriber.
 type broker struct {
+	sync.Map
 	topics topics // topic subscriptions
 }
 
 func newBroker() *broker {
-	return &broker{make(topics)}
+	return &broker{topics: make(topics)}
 }
 
 // Register associate subscriber to broker topics.
