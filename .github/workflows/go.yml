@@ -23,8 +23,8 @@ jobs:
       - name: Check
         run: make code-check
 
-      - name: Benchmark
-        run: make benchmark
+      # - name: Benchmark
+      #   run: make benchmark
 
       - name: Coverage
         run: make coverage
