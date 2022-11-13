@@ -31,9 +31,8 @@ func main() {
 	flag.Parse()
 	remote := ip + ":" + port
 	node := noise.New(configuration)
-
 	// Network events channel
-	var signals <-chan noise.Signal = node.Signals()
+	signals, cancel := node.Signals()
 
 	go func() {
 		// Wait for incoming message channel.
@@ -60,6 +59,7 @@ func main() {
 			case noise.PeerDisconnected:
 				// What we do when a peer get disconnected?
 				log.Printf("Peer disconnected")
+				cancel() // stop listening for events
 			}
 		}
 	}()

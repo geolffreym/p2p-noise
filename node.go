@@ -7,6 +7,7 @@
 package noise
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -73,10 +74,11 @@ func New(config Config) *Node {
 
 // Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Signals() <-chan Signal {
+func (n *Node) Signals() (<-chan Signal, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan Signal)
-	go n.events.Listen(ch)
-	return ch // read only channel for raw messages
+	go n.events.Listen(ctx, ch)
+	return ch, cancel // read only channel for raw messages
 }
 
 // Send emit a new message using peer id.
@@ -246,11 +248,14 @@ func (n *Node) Close() {
 
 	// stop connected peers
 	log.Print("closing connections and shutting down node..")
-	for peer := range n.router.Table() {
-		if err := peer.Close(); err != nil {
-			log.Printf("error when shutting down connection: %v", err)
+	go func() {
+		for peer := range n.router.Table() {
+			log.Printf("closing connection: %x", peer.ID())
+			if err := peer.Close(); err != nil {
+				log.Printf("error when shutting down connection: %v", err)
+			}
 		}
-	}
+	}()
 
 	// stop listener
 	n.listener.Close()

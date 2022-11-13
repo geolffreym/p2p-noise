@@ -42,7 +42,8 @@ func TestTwoNodesHandshake(t *testing.T) {
 		<-time.After(time.Second * 1)
 		nodeB.Dial(nodeASocket)
 
-		var signals <-chan Signal = nodeA.Signals()
+		// Network events channel
+		signals, _ := nodeA.Signals()
 		for signal := range signals {
 			if signal.Type() == NewPeerDetected {
 				// Wait until new peer detected
@@ -95,7 +96,8 @@ func TestSomeNodesHandshake(t *testing.T) {
 		nodeC.Dial(nodeBSocket)
 		nodeD.Dial(nodeBSocket)
 
-		var signalsA <-chan Signal = nodeA.Signals()
+		// Network events channel
+		signalsA, _ := nodeA.Signals()
 		for signalA := range signalsA {
 			if signalA.Type() == NewPeerDetected {
 				// Wait until new peer detected
@@ -103,7 +105,7 @@ func TestSomeNodesHandshake(t *testing.T) {
 			}
 		}
 
-		var signalsB <-chan Signal = nodeB.Signals()
+		signalsB, _ := nodeB.Signals()
 		for signalB := range signalsB {
 			if signalB.Type() == NewPeerDetected {
 				// Wait until new peer detected

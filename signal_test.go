@@ -17,7 +17,7 @@ func TestType(t *testing.T) {
 
 func TestPayload(t *testing.T) {
 	event := MessageReceived
-	session := mockSession(&mockConn{})
+	session := mockSession(&mockConn{}, nil)
 	peer := newPeer(session)
 	header := header{peer, NewPeerDetected}
 	message := Signal{header, PAYLOAD}

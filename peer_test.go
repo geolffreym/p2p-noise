@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-const LOCAL_ADDRESS = "127.0.0.1:23"
-
+// Mock Address from net.Addr
+// ref: https://pkg.go.dev/net#Addr
 type mockAddr struct {
 	addr string
 }
@@ -23,7 +23,8 @@ func (m *mockAddr) String() string {
 	return m.addr
 }
 
-// net/net.go
+// Mock Address from net.Conn
+// ref: https://pkg.go.dev/net#Conn
 type mockConn struct {
 	addr       string
 	shouldFail bool
@@ -85,6 +86,7 @@ func (c *mockConn) SetWriteDeadline(t time.Time) error {
 	return nil
 }
 
+// Mock handshake state for secure session
 type mockHandshakeState struct {
 	addr string
 }
@@ -105,27 +107,57 @@ func (*mockHandshakeState) ReadMessage(out, message []byte) ([]byte, CipherState
 	return nil, nil, nil, nil
 }
 
-func mockSession(conn net.Conn) *session {
-	var pb PublicKey
+// mockSession create a testable session
+func mockSession(conn net.Conn, pb PublicKey) *session {
 	return &session{conn, KeyRing{}, pb, nil, nil}
 }
 
-func mockID(address string) ID {
+// mockID create a new testable id from public key
+func mockID(pb PublicKey) ID {
 	var id ID
-	addr := []byte(address)
+	addr := []byte(pb)
 	copy(id[:], addr)
 	return id
 }
 
-func mockBytes(content string) []byte {
+// From content generate a bytes 32 key
+func mockBytes(content PublicKey) []byte {
 	var expected [32]byte
 	copy(expected[:], content)
 	return expected[:]
 }
 
+// Group of prebuilt peers, public keys and sessions to test purpose
+var (
+	PeerAPb = PublicKey("f46bea91688c3187eebe66f25f1bcfcb6696c90c293b3a9dca749f6218b7bb52")
+	PeerBPb = PublicKey("d0bf26bed4774c612691fd7a618dd23660e316dde3916da5c7698dc9b685e2ae")
+	PeerCPb = PublicKey("4c67ad6ef6287f0cf7b1b888c1e93eb4c685e3bc59c33b1ecf79a3ad227219e8")
+	PeerDPb = PublicKey("83a2dd209b270d19aedaa4e588fd94fee599b510a49988efd067967ce25053d0")
+	PeerEPb = PublicKey("78112677879bb3922a60cbc12ecbc46fdd33e69447df7186f618a0011056a3c1")
+	PeerFPb = PublicKey("4c268f42ac66ed02f62d0f8951c7fa042b0a281f57385daf8ee4576b30b8fc00")
+)
+
+var (
+	sessionA = mockSession(&mockConn{}, PeerAPb)
+	sessionB = mockSession(&mockConn{}, PeerBPb)
+	sessionC = mockSession(&mockConn{}, PeerCPb)
+	sessionD = mockSession(&mockConn{}, PeerDPb)
+	sessionE = mockSession(&mockConn{}, PeerEPb)
+	sessionF = mockSession(&mockConn{}, PeerFPb)
+)
+
+var (
+	peerA = newPeer(sessionA)
+	peerB = newPeer(sessionB)
+	peerC = newPeer(sessionC)
+	peerD = newPeer(sessionD)
+	peerE = newPeer(sessionE)
+	peerF = newPeer(sessionF)
+)
+
 func TestByteID(t *testing.T) {
-	expected := mockBytes(LOCAL_ADDRESS)
-	id := mockID(LOCAL_ADDRESS)
+	expected := mockBytes(PeerAPb)
+	id := mockID(PeerAPb)
 
 	if !bytes.Equal(id.Bytes(), expected[:]) {
 		t.Errorf("expected returned bytes equal to %v, got %v", string(expected[:]), string(id.Bytes()))
@@ -133,17 +165,17 @@ func TestByteID(t *testing.T) {
 }
 
 func TestStringID(t *testing.T) {
-	id := mockID(LOCAL_ADDRESS)
-	expected := mockBytes(LOCAL_ADDRESS)
+	id := mockID(PeerAPb)
+	expected := mockBytes(PeerAPb)
 
 	if id.String() != string(expected) {
-		t.Errorf("expected returned string equal to %v, got %v", string(LOCAL_ADDRESS), id.String())
+		t.Errorf("expected returned string equal to %v, got %v", string(PeerAPb), id.String())
 	}
 }
 
 func TestHashID(t *testing.T) {
-	expected := "9dc5222ac8b8f155ab6c216321b9bbed2448fe3331e1ae8c0f285a07ded6b0ac"
-	got := hex.EncodeToString(blake2([]byte(LOCAL_ADDRESS)))
+	expected := "fab03245b98fc2491b64810d9ab7fccf86db272a54c038780d88852937d25242"
+	got := hex.EncodeToString(blake2([]byte(PeerAPb)))
 
 	if expected != got {
 		t.Errorf("expected returned %s equal to %s", got, expected)

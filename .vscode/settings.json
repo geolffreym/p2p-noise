@@ -1,5 +1,8 @@
 {
     "makefile.extensionOutputFolder": "./.vscode",
+    "markdownlint.config": {
+        "MD010": false,
+    },
     "cSpell.words": [
         "bpool",
         "ciphertext",

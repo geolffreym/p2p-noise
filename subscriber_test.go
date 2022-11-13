@@ -1,27 +1,30 @@
 package noise
 
 import (
+	"context"
 	"testing"
 	"time"
 )
 
 func TestSubscriberListen(t *testing.T) {
 	sub := newSubscriber()
-	session := mockSession(&mockConn{})
+	session := mockSession(&mockConn{}, nil)
 	header := header{newPeer(session), NewPeerDetected}
 	signaling := Signal{header, ""}
 
 	canceled := make(chan struct{})
 	msg := make(chan Signal)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
 		// wait for new message emitted then cancel listening
 		<-msg
+		cancel()
 	}()
 
 	go func() {
 		// after stop listening loop expect trigger canceled
-		sub.Listen(msg)
+		sub.Listen(ctx, msg)
 		canceled <- struct{}{}
 	}()
 

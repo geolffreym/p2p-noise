@@ -33,8 +33,7 @@ go get github.com/geolffreym/p2p-noise
 
 ## Basic usage
 
-```
-package main
+```package main
 
 import (
 	noise "github.com/geolffreym/p2p-noise"
@@ -53,13 +52,13 @@ func main() {
 	// Node factory
 	node := noise.New(configuration)
 	// Network events channel
-	var signals <-chan noise.Signal = node.Signals()
+	signals, cancel := node.Signals()
 
 	go func() {
 		for signal := range signals {
 			// Here could be handled events
 			if signal.Type() == noise.NewPeerDetected {
-				return
+				cancel()
 			}
 		}
 	}()

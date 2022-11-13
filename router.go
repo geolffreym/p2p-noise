@@ -20,7 +20,7 @@ func newRouter() *router {
 func (r *router) Table() <-chan *peer {
 	ch := make(chan *peer, r.Len())
 	// ref: https://pkg.go.dev/sync#Map.Range
-	r.Range(func(key, value any) bool {
+	r.Range(func(_, value any) bool {
 		if p, ok := value.(*peer); ok {
 			ch <- p
 		}

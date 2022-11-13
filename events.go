@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"context"
 	"unsafe"
 )
 
@@ -37,8 +38,8 @@ func newEvents() *events {
 }
 
 // Listen forward to Listen method to internal subscriber.
-func (e *events) Listen(ch chan<- Signal) {
-	e.subscriber.Listen(ch)
+func (e *events) Listen(ctx context.Context, ch chan<- Signal) {
+	e.subscriber.Listen(ctx, ch)
 }
 
 // PeerConnected dispatch event when new peer is detected.
