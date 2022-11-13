@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"sync"
 	"time"
 
 	"github.com/oxtoacart/bpool"
@@ -44,8 +43,7 @@ type Config interface {
 }
 
 type Node struct {
-	sync.RWMutex
-	// Channel flag waiting for signal to close connection.
+	// Bound local network listener.
 	listener net.Listener
 	// Routing hash table eg. {Socket: Conn interface}.
 	router *router
@@ -254,10 +252,8 @@ func (n *Node) Close() {
 		}
 	}
 
-	// force gc
-	// flush all after close peers
+	// stop listener
 	n.listener.Close()
-	n.events.Flush()
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.

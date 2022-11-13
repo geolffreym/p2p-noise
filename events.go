@@ -36,11 +36,6 @@ func newEvents() *events {
 	}
 }
 
-// Flush broker topics and shutdown subscriber.
-func (e *events) Flush() {
-	e.broker.Flush()
-}
-
 // Listen forward to Listen method to internal subscriber.
 func (e *events) Listen(ch chan<- Signal) {
 	e.subscriber.Listen(ch)
