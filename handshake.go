@@ -15,7 +15,9 @@ import (
 )
 
 // A DHKey is a keypair used for Diffie-Hellman key agreement.
-// ref: http://www.noiseprotocol.org/noise.html#dh-functions
+// Please see [Docs] for more details.
+//
+// [Docs]: http://www.noiseprotocol.org/noise.html#dh-functions
 type DHKey = noise.DHKey
 type PublicKey = ed25519.PublicKey
 type PrivateKey = ed25519.PrivateKey
@@ -44,9 +46,9 @@ type BytePool = *bpool.BytePool
 
 // [HandshakeState] tracks the state of a Noise handshake.
 // It may be discarded after the handshake is complete.
-// Please see [HandshakeState] documentation for more information.
+// Please see [Docs] documentation for more information.
 //
-// [HandshakeState]: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
+// [Docs]: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
 type HandshakeState interface {
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
@@ -75,9 +77,14 @@ type HandshakeState interface {
 const bPools = 1
 const headerSize = 2
 
-// [CipherSuite]. ChaCha20-Poly1305 usually offers better performance than the more prevalent AES-GCM algorithm on systems where the CPU(s)
-// does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
-// AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.
+// [CipherSuite] is a set of cryptographic primitives used in a Noise protocol.
+// Based on: Diffie-Hellman X25519, [Blake2] and [ChaCha20-Poly1305]
+// Please see [NoisePatternExplorer] for more details.
+//
+// [ChaCha20-Poly1305]: https://en.wikipedia.org/wiki/ChaCha20-Poly1305
+// [Diffie-Hellman X25519]: https://en.wikipedia.org/wiki/Curve25519
+// [Blake2]: https://www.blake2.net/
+
 var CipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
 
 // Default Handshake "XX" noise pattern.
