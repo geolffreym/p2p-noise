@@ -33,16 +33,20 @@ type KeyRing struct {
 	sv EDKeyPair // ED25519 local sign-verify keys
 }
 
-// A CipherState provides symmetric encryption and decryption after a successful handshake.
-// ref: http://www.noiseprotocol.org/noise.html#the-cipherstate-object
+// [CipherState] provides symmetric encryption and decryption after a successful handshake.
+// Please see [CipherState] documentation for more information.
+//
+// [CipherState]: http://www.noiseprotocol.org/noise.html#the-cipherstate-object
 type CipherState = *noise.CipherState
 
 // BytePool implements a leaky pool of []byte in the form of a bounded channel.
 type BytePool = *bpool.BytePool
 
-// A HandshakeState tracks the state of a Noise handshake.
+// [HandshakeState] tracks the state of a Noise handshake.
 // It may be discarded after the handshake is complete.
-// ref: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
+// Please see [HandshakeState] documentation for more information.
+//
+// [HandshakeState]: http://www.noiseprotocol.org/noise.html#the-handshakestate-object
 type HandshakeState interface {
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
@@ -71,11 +75,7 @@ type HandshakeState interface {
 const bPools = 1
 const headerSize = 2
 
-// BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3.
-// [Blake2]: https://www.blake2.net/
-
-// Cipher algorithm.
-// ChaCha20-Poly1305 usually offers better performance than the more prevalent AES-GCM algorithm on systems where the CPU(s)
+// [CipherSuite]. ChaCha20-Poly1305 usually offers better performance than the more prevalent AES-GCM algorithm on systems where the CPU(s)
 // does not feature the AES-NI instruction set extension.[2] As a result, ChaCha20-Poly1305 is sometimes preferred over
 // AES-GCM due to its similar levels of security and in certain use cases involving mobile devices, which mostly use ARM-based CPUs.
 var CipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
