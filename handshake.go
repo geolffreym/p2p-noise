@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
-// A DHKey is a keypair used for Diffie-Hellman key agreement.
+// [DHKey] is a keypair used for Diffie-Hellman key agreement.
 // Please see [docs] for more details.
 //
 // [docs]: http://www.noiseprotocol.org/noise.html#dh-functions
@@ -22,14 +22,14 @@ type DHKey = noise.DHKey
 type PublicKey = ed25519.PublicKey
 type PrivateKey = ed25519.PrivateKey
 
-// EDKeyPair hold public/private using entropy from rand.
+// [EDKeyPair] hold public/private using entropy from rand.
 // Every new handshake generate a new key pair.
 type EDKeyPair struct {
 	Private PrivateKey
 	Public  PublicKey
 }
 
-// KeyRing hold the set of local keys to use during handshake and session.
+// [KeyRing] hold the set of local keys to use during handshake and session.
 type KeyRing struct {
 	kp DHKey     // encrypt-decrypt key pair exchange
 	sv EDKeyPair // ED25519 local sign-verify keys
