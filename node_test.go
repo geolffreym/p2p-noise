@@ -2,6 +2,7 @@ package noise
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -122,5 +123,43 @@ func TestSomeNodesHandshake(t *testing.T) {
 	log.SetFlags(fl)
 	log.SetOutput(os.Stderr)
 	log.Print(out)
+}
 
+// go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
+// go tool pprof {file}
+func BenchmarkHandshakeProfile(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		var peersNumber int = 1
+		nodeASocket := "127.0.0.1:9000"
+		var peers []*Node
+
+		configurationA := config.New()
+		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+		nodeA := New(configurationA)
+
+		for i := 0; i < peersNumber; i++ {
+			port := 9001 + i
+			address := fmt.Sprintf("127.0.0.1:%v", port)
+
+			configuration := config.New()
+			configuration.Write(config.SetSelfListeningAddress(address))
+			node := New(configuration)
+			peers = append(peers, node)
+		}
+
+		fmt.Println("********************** Listen **********************")
+		// TODO: When node listen to a closed port throws a panic
+		go nodeA.Listen()
+		for _, peer := range peers {
+			go peer.Listen()
+		}
+		<-time.After(time.Second * 1)
+
+		fmt.Println("********************** Dial **********************")
+		start := time.Now()
+		for _, peer := range peers {
+			peer.Dial(nodeASocket)
+		}
+		fmt.Printf("Took %v\n", time.Since(start))
+	}
 }
