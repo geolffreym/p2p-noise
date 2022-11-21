@@ -139,9 +139,7 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		nodeA := New(configurationA)
 
 		for i := 0; i < peersNumber; i++ {
-			port := 9001 + i
-			address := fmt.Sprintf("127.0.0.1:%v", port)
-
+			address := "127.0.0.1:"
 			configuration := config.New()
 			configuration.Write(config.SetSelfListeningAddress(address))
 			node := New(configuration)
@@ -149,13 +147,12 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		}
 
 		fmt.Println("********************** Listen **********************")
-		// TODO: When node listen to a closed port throws a panic
 		go nodeA.Listen()
 		for _, peer := range peers {
 			go peer.Listen()
 		}
-		<-time.After(time.Second * 1)
 
+		<-time.After(time.Second * 1)
 		fmt.Println("********************** Dial **********************")
 		start := time.Now()
 		for _, peer := range peers {
