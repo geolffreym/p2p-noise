@@ -2,94 +2,65 @@ package noise
 
 import (
 	"sync"
+	"sync/atomic"
 )
-
-// table assoc Socket with peer.
-type table map[ID]*peer
-
-// Add new peer to table.
-func (t table) Add(peer *peer) {
-	t[peer.ID()] = peer
-}
-
-// Get peer from table.
-func (t table) Get(id ID) *peer {
-	// exist socket related peer in table?
-	if peer, ok := t[id]; ok {
-		return peer
-	}
-
-	return nil
-}
-
-// Remove peer from table.
-func (t table) Remove(peer *peer) {
-	delete(t, peer.ID())
-}
 
 // router keep a hash table to associate ID with peer.
 // It implements a unstructured mesh topology.
 type router struct {
-	sync.RWMutex
-	table table
+	sync.Map
+	counter uint32
 }
 
 func newRouter() *router {
-	return &router{
-		table: make(table),
-	}
+	return &router{counter: 0}
 }
 
-// Table return current routing table.
-func (r *router) Table() table { return r.table }
+// Table return fan out channel with peers.
+func (r *router) Table() <-chan *peer {
+	ch := make(chan *peer, r.Len())
+	// ref: https://pkg.go.dev/sync#Map.Range
+	r.Range(func(_, value any) bool {
+		if p, ok := value.(*peer); ok {
+			ch <- p
+		}
+		// keep running until finish sequence
+		// If f returns false, range stops the iteration.
+		return true
+	})
+
+	close(ch)
+	return ch
+}
 
 // Query return connection interface based on socket parameter.
 func (r *router) Query(id ID) *peer {
-	// Mutex for reading topics.
-	// Do not write while topics are read.
-	// Write Lock can’t be acquired until all Read Locks are released.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.RLock
-	r.RWMutex.RLock()
-	defer r.RWMutex.RUnlock()
 	// exist socket related peer?
-	return r.table.Get(id)
+	p, exists := r.Load(id)
+	peer, ok := p.(*peer)
+
+	if !exists || !ok {
+		return nil
+	}
+
+	return peer
 }
 
-// Add create new Socket Peer association.
+// Add forward method to internal sync.Map store for peer.
 func (r *router) Add(peer *peer) {
-	// Lock write/read table while add operation
-	// A blocked Lock call excludes new readers from acquiring the lock.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-	r.RWMutex.Lock()
-	r.table.Add(peer)
-	r.RWMutex.Unlock()
+	atomic.AddUint32(&r.counter, 1)
+	r.Store(peer.ID(), peer)
 }
 
 // Len return the number of routed connections.
 func (r *router) Len() uint8 {
-	// 255 max peers len supported
-	// uint8 is enough for routing peers len
-	return uint8(len(r.table))
+	return uint8(atomic.LoadUint32(&r.counter))
 }
 
-// Flush clean table and return total peers removed.
-// This will be garbage collected eventually.
-func (r *router) Flush() uint8 {
-	size := r.Len()
-	// nil its a valid type for mapping since its a reference type.
-	// ref: https://github.com/go101/go101/wiki/About-the-terminology-%22reference-type%22-in-Go
-	r.table = nil
-	return size
-
-}
-
-// Remove removes a connection from router.
+// Remove forward method to internal sync.Map to delete a connection from router.
 // It return recently removed peer.
 func (r *router) Remove(peer *peer) {
-	// Lock write/read table while add operation
-	// A blocked Lock call excludes new readers from acquiring the lock.
-	// [RWMutex.Lock]: https://pkg.go.dev/sync#RWMutex.Lock
-	r.RWMutex.Lock()
-	r.table.Remove(peer)
-	r.RWMutex.Unlock()
+	// ref: https://github.com/golang/go/blob/509ee7064207cc9c8ac81bc76f182a5fbb877e9b/src/sync/atomic/doc.go#L96
+	atomic.AddUint32(&r.counter, ^uint32(0))
+	r.Delete(peer.ID())
 }

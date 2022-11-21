@@ -1,12 +1,12 @@
 package noise
 
-import (
-	"context"
-)
+import "context"
 
 // subscriber intercept Signal from already subscribed topics in broker
 // Handle actions to emit or receive events.
 type subscriber struct {
+	// No, you don't need to close the channel
+	// https://stackoverflow.com/questions/8593645/is-it-ok-to-leave-a-channel-open
 	notification chan Signal // Message exchange channel
 }
 
@@ -24,9 +24,6 @@ func (s *subscriber) Emit(msg Signal) {
 // Listen and wait for Signal synchronization from channel.
 // When a new Signal is added to channel buffer the message is proxied to input channel.
 func (s *subscriber) Listen(ctx context.Context, ch chan<- Signal) {
-	// Wait until message synchronization finish to close channel
-	defer close(s.notification)
-
 	for {
 		// Close if callback returns false.
 		// select await both of these values simultaneously, executing each one as it arrives.

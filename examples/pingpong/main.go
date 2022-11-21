@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 
@@ -32,10 +31,8 @@ func main() {
 	flag.Parse()
 	remote := ip + ":" + port
 	node := noise.New(configuration)
-
 	// Network events channel
-	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.Signal = node.Signals(ctx)
+	signals, cancel := node.Signals()
 
 	go func() {
 		// Wait for incoming message channel.
@@ -44,14 +41,14 @@ func main() {
 			switch signal.Type() {
 			case noise.NewPeerDetected:
 				// When a new peer is connected. Start ping pong game.
-				log.Printf("New Peer connected: %s \n", signal.Payload())
+				log.Printf("New Peer connected: %x \n", signal.Payload())
 				signal.Reply([]byte("ping")) // start game
 				// TODO exchange peers?
 				// TODO discovery module in action here?
 
 			case noise.MessageReceived:
 				// When we receive a message, check the content message and reply "ping" or "pong"
-				message := string(signal.Payload())
+				message := signal.Payload()
 				log.Printf("New Message: %s", message)
 				if message == "ping" {
 					signal.Reply([]byte("pong"))

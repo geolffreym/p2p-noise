@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-
 	noise "github.com/geolffreym/p2p-noise"
 	"github.com/geolffreym/p2p-noise/config"
 )
@@ -19,14 +17,13 @@ func main() {
 	// Node factory
 	node := noise.New(configuration)
 	// Network events channel
-	ctx, cancel := context.WithCancel(context.Background())
-	var signals <-chan noise.Signal = node.Signals(ctx)
+	signals, cancel := node.Signals()
 
 	go func() {
 		for signal := range signals {
 			// Here could be handled events
 			if signal.Type() == noise.NewPeerDetected {
-				cancel() // stop listening for events
+				cancel()
 			}
 		}
 	}()

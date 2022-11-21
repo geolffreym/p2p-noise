@@ -44,8 +44,8 @@ type Config interface {
 }
 
 type Node struct {
-	// Channel flag waiting for signal to close connection.
-	sentinel chan bool
+	// Bound local network listener.
+	listener net.Listener
 	// Routing hash table eg. {Socket: Conn interface}.
 	router *router
 	// Pubsub notifications.
@@ -65,20 +65,20 @@ func New(config Config) *Node {
 	pool := bpool.NewBytePool(maxPools, maxBufferSize)
 
 	return &Node{
-		make(chan bool),
-		newRouter(),
-		newEvents(),
-		pool,
-		config,
+		router: newRouter(),
+		events: newEvents(),
+		pool:   pool,
+		config: config,
 	}
 }
 
 // Signals proxy channels to subscriber.
 // The listening routine should be stopped using context param.
-func (n *Node) Signals(ctx context.Context) <-chan Signal {
+func (n *Node) Signals() (<-chan Signal, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan Signal)
 	go n.events.Listen(ctx, ch)
-	return ch // read only channel for raw messages
+	return ch, cancel // read only channel for raw messages
 }
 
 // Send emit a new message using peer id.
@@ -110,12 +110,6 @@ KEEPALIVE:
 
 		// Waiting for new incoming message
 		buf, err := peer.Listen(n.config.MaxPayloadSize())
-		// If connection is closed
-		if n.Closed() {
-			// stop routines watching for peers
-			return
-		}
-
 		// OverflowError is returned when the incoming payload exceed the expected size
 		_, overflow := err.(OverflowError)
 
@@ -153,8 +147,9 @@ KEEPALIVE:
 // If TCP protocol is used connection is enforced to keep alive.
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
+
 	// Assertion for tcp connection to keep alive
-	log.Printf("starting handshake with: %v", conn.RemoteAddr().String())
+	log.Print("starting handshake")
 	connection, isTCP := conn.(*net.TCPConn)
 	if isTCP {
 		// If tcp enforce keep alive connection
@@ -184,8 +179,8 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 
 	// Stage 2 -> get a secure session
 	// All good with handshake? Then get a secure session.
+	log.Print("handshake complete")
 	session := h.Session()
-
 	// Stage 3 -> create a peer and add it to router
 	// Routing for secure session
 	peer := n.routing(session)
@@ -231,26 +226,13 @@ func (n *Node) Listen() error {
 	}
 
 	log.Printf("listening on %s", addr)
-	//wait until sentinel channel is closed to close listener
-	defer func() {
-		err := listener.Close()
-		if err != nil {
-			log.Printf("error closing listener: %v", err)
-		}
-	}()
+	n.listener = listener // keep reference to current listener
 
 	for {
 		// Block/Hold while waiting for new incoming connection
 		// Synchronized incoming connections
 		conn, err := listener.Accept()
-		// If connection is closed
-		if n.Closed() {
-			// Graceful stop listening
-			return nil
-		}
-
 		if err != nil {
-			log.Printf("error accepting connection: %v", err)
 			return errBindingConnection(err)
 		}
 
@@ -261,33 +243,22 @@ func (n *Node) Listen() error {
 
 }
 
-// Closed check connection state.
-// Return true for connection open else false.
-func (n *Node) Closed() bool {
-	select {
-	// select await for sentinel if not closed then default is returned.
-	case <-n.sentinel:
-		return true
-	default:
-		return false
-	}
-}
-
 // Close all peers connections and stop listening.
 func (n *Node) Close() {
-	for _, p := range n.router.Table() {
-		go func(peer *peer) {
+
+	// stop connected peers
+	log.Print("closing connections and shutting down node..")
+	go func() {
+		for peer := range n.router.Table() {
+			log.Printf("closing connection: %x", peer.ID())
 			if err := peer.Close(); err != nil {
 				log.Printf("error when shutting down connection: %v", err)
 			}
-		}(p)
-	}
+		}
+	}()
 
-	// flush connected peers
-	n.router.Flush()
-	// If channel get closed then all routines waiting for connections
-	// or waiting for incoming messages get closed too.
-	close(n.sentinel)
+	// stop listener
+	n.listener.Close()
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.
