@@ -130,9 +130,11 @@ func TestSomeNodesHandshake(t *testing.T) {
 // go tool pprof {file}
 func BenchmarkHandshakeProfile(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		var peersNumber int = 1
-		nodeASocket := "127.0.0.1:9000"
+		b.StopTimer()
+
 		var peers []*Node
+		var peersNumber int = 1
+		nodeASocket := fmt.Sprintf("127.0.0.1:900%d", n)
 
 		configurationA := config.New()
 		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
@@ -152,12 +154,17 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 			go peer.Listen()
 		}
 
-		<-time.After(time.Second * 1)
+		<-time.After(time.Second / 10)
+		// Start timer to measure the handshake process.
+		// Handshake start when two nodes are connected and isn't happening before dial.
+		// Avoid to add prev initialization.
+		b.StartTimer()
 		fmt.Println("********************** Dial **********************")
 		start := time.Now()
 		for _, peer := range peers {
 			peer.Dial(nodeASocket)
 		}
+
 		fmt.Printf("Took %v\n", time.Since(start))
 	}
 }
