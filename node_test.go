@@ -21,6 +21,7 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 }
 
 func TestTwoNodesHandshake(t *testing.T) {
+	// TODO run here log assertions to test
 	out := new(bytes.Buffer)
 	fl := log.Flags()
 	log.SetFlags(0)
