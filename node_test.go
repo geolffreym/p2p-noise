@@ -26,17 +26,8 @@ func TestTwoNodesHandshake(t *testing.T) {
 	log.SetOutput(out)
 
 	expected_behavior := []string{
-		"starting handshake",              // Nodes starting handshake
-		"generated ECDSA25519 public key", // Generating ECDSA Key Pair
-		"generated X25519 public key",     //  Generating DH Key pair
-		"sending e to remote",             // Handshake pattern
-		"waiting for e from remote",
-		"waiting for e, ee, s, es from remote",
-		"sending e, ee, s, es to remote",
-		"waiting for s, se from remote",
-		"sending s, se to remote",
+		"starting handshake", // Nodes starting handshake
 		"handshake complete", // Handshake complete
-		"closing connections and shutting down node..",
 	}
 
 	t.Run("handshake A<->B trace", func(t *testing.T) {
@@ -115,15 +106,6 @@ func TestSomeNodesHandshake(t *testing.T) {
 		signalsA, _ := nodeA.Signals()
 		for signalA := range signalsA {
 			if signalA.Type() == NewPeerDetected {
-				// Wait until new peer detected
-				// TODO write here expected ordered peer detection for node A
-				break
-			}
-		}
-
-		signalsB, _ := nodeB.Signals()
-		for signalB := range signalsB {
-			if signalB.Type() == NewPeerDetected {
 				// Wait until new peer detected
 				break
 			}
