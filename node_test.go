@@ -21,6 +21,7 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 }
 
 func TestTwoNodesHandshake(t *testing.T) {
+	// TODO run here log assertions to test
 	out := new(bytes.Buffer)
 	fl := log.Flags()
 	log.SetFlags(0)
@@ -129,18 +130,18 @@ func TestSomeNodesHandshake(t *testing.T) {
 // go tool pprof {file}
 func BenchmarkHandshakeProfile(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		var peersNumber int = 1
-		nodeASocket := "127.0.0.1:9000"
+		b.StopTimer()
+
 		var peers []*Node
+		var peersNumber int = 1
+		nodeASocket := fmt.Sprintf("127.0.0.1:900%d", n)
 
 		configurationA := config.New()
 		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
 		nodeA := New(configurationA)
 
 		for i := 0; i < peersNumber; i++ {
-			port := 9001 + i
-			address := fmt.Sprintf("127.0.0.1:%v", port)
-
+			address := "127.0.0.1:"
 			configuration := config.New()
 			configuration.Write(config.SetSelfListeningAddress(address))
 			node := New(configuration)
@@ -148,18 +149,22 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		}
 
 		fmt.Println("********************** Listen **********************")
-		// TODO: When node listen to a closed port throws a panic
 		go nodeA.Listen()
 		for _, peer := range peers {
 			go peer.Listen()
 		}
-		<-time.After(time.Second * 1)
 
+		<-time.After(time.Second / 10)
+		// Start timer to measure the handshake process.
+		// Handshake start when two nodes are connected and isn't happening before dial.
+		// Avoid to add prev initialization.
+		b.StartTimer()
 		fmt.Println("********************** Dial **********************")
 		start := time.Now()
 		for _, peer := range peers {
 			peer.Dial(nodeASocket)
 		}
+
 		fmt.Printf("Took %v\n", time.Since(start))
 	}
 }
