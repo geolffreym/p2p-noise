@@ -120,7 +120,6 @@ func TestSomeNodesHandshake(t *testing.T) {
 // go tool pprof {file}
 func BenchmarkHandshakeProfile(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		b.ResetTimer()
 		b.StopTimer()
 
 		var peers []*Node
