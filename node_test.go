@@ -67,7 +67,6 @@ start:
 		// Hold the scanner carriage in the last log and try to find the expected
 		for scanner.Scan() {
 			got := scanner.Text()
-			fmt.Printf("%s==%s\n", expected, got)
 			if got == expected {
 				continue start
 			}
