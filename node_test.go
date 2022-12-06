@@ -20,41 +20,39 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 
 }
 
-func TestTwoNodesHandshake(t *testing.T) {
+func TestTwoNodesHandshakeTrace(t *testing.T) {
 	out := new(bytes.Buffer)
 	log.SetFlags(0)
 	log.SetOutput(out)
 
-	expected_behavior := []string{
+	expectedBehavior := []string{
 		"starting handshake", // Nodes starting handshake
 		"handshake complete", // Handshake complete
 	}
 
-	t.Run("handshake A<->B trace", func(t *testing.T) {
-		nodeASocket := "127.0.0.1:9090"
-		nodeBSocket := "127.0.0.1:9091"
-		configurationA := config.New()
-		configurationB := config.New()
+	nodeASocket := "127.0.0.1:9090"
+	nodeBSocket := "127.0.0.1:9091"
+	configurationA := config.New()
+	configurationB := config.New()
 
-		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
-		configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
 
-		nodeA := New(configurationA)
-		nodeB := New(configurationB)
-		go nodeA.Listen()
-		go nodeB.Listen()
+	nodeA := New(configurationA)
+	nodeB := New(configurationB)
+	go nodeA.Listen()
+	go nodeB.Listen()
 
-		<-time.After(time.Second * 1)
-		nodeB.Dial(nodeASocket)
-		nodeA.Close()
-		nodeB.Close()
-	})
+	<-time.After(time.Second * 1)
+	nodeB.Dial(nodeASocket)
+	nodeA.Close()
+	nodeB.Close()
 
 	scanner := bufio.NewScanner(out)
 	// The approach here is try to find the result in the expected behavior list.
 	// If not found expected behavior in log results the test fail.
 start:
-	for _, expected := range expected_behavior {
+	for _, expected := range expectedBehavior {
 		// Hold the scanner carriage in the last log and try to find the expected
 		for scanner.Scan() {
 			got := scanner.Text()
