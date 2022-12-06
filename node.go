@@ -73,7 +73,7 @@ func New(config Config) *Node {
 }
 
 // Signals proxy channels to subscriber.
-// The listening routine should be stopped using context param.
+// The listening routine should be stopped using returned cancel func.
 func (n *Node) Signals() (<-chan Signal, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan Signal)
@@ -250,7 +250,6 @@ func (n *Node) Close() {
 	log.Print("closing connections and shutting down node..")
 	go func() {
 		for peer := range n.router.Table() {
-			log.Printf("closing connection: %x", peer.ID())
 			if err := peer.Close(); err != nil {
 				log.Printf("error when shutting down connection: %v", err)
 			}

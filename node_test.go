@@ -1,6 +1,7 @@
 package noise
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/geolffreym/p2p-noise/config"
+	"golang.org/x/exp/slices"
 )
 
 func TestWithZeroFutureDeadline(t *testing.T) {
@@ -21,13 +23,29 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 }
 
 func TestTwoNodesHandshake(t *testing.T) {
-	// TODO run here log assertions to test
 	out := new(bytes.Buffer)
 	fl := log.Flags()
 	log.SetFlags(0)
 	log.SetOutput(out)
 
-	t.Run("handshake A<->B", func(t *testing.T) {
+	expected_behavior := []string{
+		"listening on 127.0.0.1:9091",     // node A listening
+		"listening on 127.0.0.1:9090",     // node B listening
+		"dialing to 127.0.0.1:9090",       // node B dialing to node A
+		"starting handshake",              // Nodes starting handshake
+		"generated ECDSA25519 public key", // Generating ECDSA Key Pair
+		"generated X25519 public key",     //  Generating DH Key pair
+		"sending e to remote",             // Handshake pattern
+		"waiting for e from remote",
+		"waiting for e, ee, s, es from remote",
+		"sending e, ee, s, es to remote",
+		"waiting for s, se from remote",
+		"sending s, se to remote",
+		"handshake complete", // Handshake complete
+		"closing connections and shutting down node..",
+	}
+
+	t.Run("handshake A<->B trace", func(t *testing.T) {
 		nodeASocket := "127.0.0.1:9090"
 		nodeBSocket := "127.0.0.1:9091"
 		configurationA := config.New()
@@ -59,15 +77,22 @@ func TestTwoNodesHandshake(t *testing.T) {
 
 	log.SetFlags(fl)
 	log.SetOutput(os.Stderr)
-	log.Print(out)
+
+	scanner := bufio.NewScanner(out)
+	// The approach here is try to find the result in the expected behavior list.
+	// If not found expected behavior in log results the test fail.
+	for scanner.Scan() {
+		got := scanner.Text()
+		found := slices.Index(expected_behavior, got)
+		// Not matched behavior
+		if found < 0 {
+			t.Errorf("expected to find '%s' behavior, got %d as not found", got, found)
+		}
+	}
+
 }
 
 func TestSomeNodesHandshake(t *testing.T) {
-	out := new(bytes.Buffer)
-	fl := log.Flags()
-	log.SetFlags(0)
-	log.SetOutput(out)
-
 	t.Run("handshake N<->N", func(t *testing.T) {
 		nodeASocket := "127.0.0.1:9090"
 		nodeBSocket := "127.0.0.1:9091"
@@ -120,16 +145,13 @@ func TestSomeNodesHandshake(t *testing.T) {
 		nodeC.Close()
 		nodeD.Close()
 	})
-
-	log.SetFlags(fl)
-	log.SetOutput(os.Stderr)
-	log.Print(out)
 }
 
 // go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
 // go tool pprof {file}
 func BenchmarkHandshakeProfile(b *testing.B) {
 	for n := 0; n < b.N; n++ {
+		b.ResetTimer()
 		b.StopTimer()
 
 		var peers []*Node
@@ -168,3 +190,5 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		fmt.Printf("Took %v\n", time.Since(start))
 	}
 }
+
+// TODO add test for message exchange encryption/decryption

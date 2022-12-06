@@ -109,7 +109,23 @@ func newDHKeyPair() (DHKey, error) {
 		return kp, errDuringHandshake(err)
 	}
 
+	log.Printf("generated X25519 public key")
 	return kp, nil
+}
+
+// newED25519KeyPair generate a new kp for sign-verify using P256 128 bit
+func newED25519KeyPair() (EDKeyPair, error) {
+	// ref: https://github.com/openssl/openssl/issues/18448
+	// ref: https://csrc.nist.gov/csrc/media/events/workshop-on-elliptic-curve-cryptography-standards/documents/papers/session6-adalier-mehmet.pdf
+	// TODO should i persist seed to keep the same public key for peer identity?
+	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
+	pb, pv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return EDKeyPair{}, err
+	}
+
+	log.Print("generated ECDSA25519 public key")
+	return EDKeyPair{pv, pb}, nil
 }
 
 // NewHandshakeState starts a new handshake using the provided configuration.
@@ -139,21 +155,6 @@ func newHandshakeConfig(initiator bool, kp noise.DHKey) noise.Config {
 		Initiator:     initiator,
 		StaticKeypair: kp,
 	}
-}
-
-// newED25519KeyPair generate a new kp for sign-verify using P256 128 bit
-func newED25519KeyPair() (EDKeyPair, error) {
-	// ref: https://github.com/openssl/openssl/issues/18448
-	// ref: https://csrc.nist.gov/csrc/media/events/workshop-on-elliptic-curve-cryptography-standards/documents/papers/session6-adalier-mehmet.pdf
-	// TODO should i persist seed to keep the same public key for peer identity?
-	// TODO rand.Reader store it and retrieve it to avoid change the pub key in every new handshake?
-	pb, pv, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		return EDKeyPair{}, err
-	}
-
-	log.Print("generated ECDSA25519 public key")
-	return EDKeyPair{pv, pb}, nil
 }
 
 // handshake execute the steps needed for the noise handshake XX pattern.
@@ -191,7 +192,6 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 		return nil, err
 	}
 
-	log.Printf("generated X25519 public key")
 	// set handshake state as initiator?
 	conf := newHandshakeConfig(initiator, kr.kp)
 	// A HandshakeState tracks the state of a Noise handshake
