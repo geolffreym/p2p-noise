@@ -53,7 +53,7 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 	// If not found expected behavior in log results the test fail.
 start:
 	for _, expected := range expectedBehavior {
-		// Hold the scanner carriage in the last log and try to find the expected
+		// Resume scanner carriage in the last log and try to find the next expected
 		for scanner.Scan() {
 			got := scanner.Text()
 			if got == expected {
