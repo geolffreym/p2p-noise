@@ -71,3 +71,13 @@ func TestErrVerifyingSignature(t *testing.T) {
 		t.Errorf(STATEMENT, expected, output)
 	}
 }
+
+func TestErrDuringHandshake(t *testing.T) {
+	err := errors.New("fail")
+	output := errDuringHandshake(err)
+	expected := "ops: error during handshake -> fail"
+
+	if output.Error() != expected {
+		t.Errorf(STATEMENT, expected, output)
+	}
+}
