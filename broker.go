@@ -82,13 +82,6 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 	return b.topics.Remove(e, s)
 }
 
-// Flush remove all topics and return length of topics.
-func (b *broker) Flush() uint8 {
-	len := uint8(len(b.topics))
-	b.topics = nil
-	return len
-}
-
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
 func (b *broker) Publish(msg Signal) uint8 {

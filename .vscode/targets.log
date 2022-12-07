@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Nov 21 07:08:44 2022
+# Make data base, printed on Sun Dec  4 16:50:07 2022
 
 # Variables
 
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 6420
+VSCODE_PID = 24357
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -109,7 +109,7 @@ XDG_SESSION_TYPE = x11
 # makefile (from 'Makefile', line 8)
 PACKAGE = p2p-noise
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/3034,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/3034
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2801,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2801
 # automatic
 *F = $(notdir $*)
 # environment
@@ -159,7 +159,7 @@ HOMEBREW_SHELLENV_PREFIX = /home/linuxbrew/.linuxbrew
 # makefile (from 'Makefile', line 15)
 BINARY_OSX = ${BINARY}-darwin
 # environment
-INVOCATION_ID = 182829ea588f4f4cbb6c1576ca51ce44
+INVOCATION_ID = 4f8dd21b5c434e6b9e5f8d817a4c8a42
 # makefile (from 'Makefile', line 16)
 BINARY_LINUX = ${BINARY}-linux
 # environment
@@ -187,7 +187,7 @@ GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # makefile
 .DEFAULT_GOAL := test
 # environment
-SYSTEMD_EXEC_PID = 3053
+SYSTEMD_EXEC_PID = 2835
 # environment
 DISPLAY = :0
 # makefile (from 'Makefile', line 7)
@@ -201,7 +201,7 @@ LINUX_32 = ${BINARY_LINUX}-${ARCH_32}
 # makefile (from 'Makefile', line 24)
 WIN_32 = ${BINARY_WIN}-${ARCH_32}
 # environment
-MANAGERPID = 2211
+MANAGERPID = 1363
 # environment
 HOMEBREW_CELLAR = /home/linuxbrew/.linuxbrew/Cellar
 # makefile (from 'Makefile', line 14)
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 6420
+GIO_LAUNCHED_DESKTOP_FILE_PID = 24357
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -221,7 +221,7 @@ XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-JOURNAL_STREAM = 8:35231
+JOURNAL_STREAM = 8:32458
 # environment
 GOMODCACHE = /home/gmena/go/pkg/mod
 # environment
@@ -279,11 +279,11 @@ update-pkg-cache:
 #  File has not been updated.
 
 compile-linux:
- 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 103):
+ 
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
@@ -481,6 +481,6 @@ vendorize:
 # strcache performance: lookups = 93 / hit rate = 36%
 # hash-table stats:
 # Load=59/8192=1%, Rehash=0, Collisions=0/93=0%
-# Finished Make data base on Mon Nov 21 07:08:44 2022
+# Finished Make data base on Sun Dec  4 16:50:07 2022
 
  

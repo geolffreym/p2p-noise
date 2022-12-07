@@ -1,10 +1,10 @@
 package noise
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -20,54 +20,56 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 
 }
 
-func TestTwoNodesHandshake(t *testing.T) {
-	// TODO run here log assertions to test
+func TestTwoNodesHandshakeTrace(t *testing.T) {
 	out := new(bytes.Buffer)
-	fl := log.Flags()
 	log.SetFlags(0)
 	log.SetOutput(out)
 
-	t.Run("handshake A<->B", func(t *testing.T) {
-		nodeASocket := "127.0.0.1:9090"
-		nodeBSocket := "127.0.0.1:9091"
-		configurationA := config.New()
-		configurationB := config.New()
+	expectedBehavior := []string{
+		"starting handshake", // Nodes starting handshake
+		"handshake complete", // Handshake complete
+	}
 
-		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
-		configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+	nodeASocket := "127.0.0.1:9090"
+	nodeBSocket := "127.0.0.1:9091"
+	configurationA := config.New()
+	configurationB := config.New()
 
-		nodeA := New(configurationA)
-		nodeB := New(configurationB)
-		go nodeA.Listen()
-		go nodeB.Listen()
+	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
 
-		<-time.After(time.Second * 1)
-		nodeB.Dial(nodeASocket)
+	nodeA := New(configurationA)
+	nodeB := New(configurationB)
+	go nodeA.Listen()
+	go nodeB.Listen()
 
-		// Network events channel
-		signals, _ := nodeA.Signals()
-		for signal := range signals {
-			if signal.Type() == NewPeerDetected {
-				// Wait until new peer detected
-				break
+	<-time.After(time.Second / 10)
+	nodeB.Dial(nodeASocket)
+	nodeA.Close()
+	nodeB.Close()
+
+	scanner := bufio.NewScanner(out)
+	// The approach here is try to find the result in the expected behavior list.
+	// If not found expected behavior in log results the test fail.
+start:
+	for _, expected := range expectedBehavior {
+		// Resume scanner carriage in the last log and try to find the next expected
+		for scanner.Scan() {
+			got := scanner.Text()
+			if got == expected {
+				continue start
 			}
 		}
 
-		nodeA.Close()
-		nodeB.Close()
-	})
+		if scanner.Err() == nil {
+			// Not matched behavior
+			t.Errorf("expected to find '%s' behavior", expected)
+		}
+	}
 
-	log.SetFlags(fl)
-	log.SetOutput(os.Stderr)
-	log.Print(out)
 }
 
 func TestSomeNodesHandshake(t *testing.T) {
-	out := new(bytes.Buffer)
-	fl := log.Flags()
-	log.SetFlags(0)
-	log.SetOutput(out)
-
 	t.Run("handshake N<->N", func(t *testing.T) {
 		nodeASocket := "127.0.0.1:9090"
 		nodeBSocket := "127.0.0.1:9091"
@@ -92,7 +94,7 @@ func TestSomeNodesHandshake(t *testing.T) {
 		go nodeC.Listen()
 		go nodeD.Listen()
 
-		<-time.After(time.Second * 1)
+		<-time.After(time.Second / 10)
 		nodeB.Dial(nodeASocket)
 		nodeC.Dial(nodeASocket)
 		nodeC.Dial(nodeBSocket)
@@ -107,23 +109,11 @@ func TestSomeNodesHandshake(t *testing.T) {
 			}
 		}
 
-		signalsB, _ := nodeB.Signals()
-		for signalB := range signalsB {
-			if signalB.Type() == NewPeerDetected {
-				// Wait until new peer detected
-				break
-			}
-		}
-
 		nodeA.Close()
 		nodeB.Close()
 		nodeC.Close()
 		nodeD.Close()
 	})
-
-	log.SetFlags(fl)
-	log.SetOutput(os.Stderr)
-	log.Print(out)
 }
 
 // go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
@@ -168,3 +158,5 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		fmt.Printf("Took %v\n", time.Since(start))
 	}
 }
+
+// TODO add test for message exchange encryption/decryption
