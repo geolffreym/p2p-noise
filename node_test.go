@@ -43,7 +43,7 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 	go nodeA.Listen()
 	go nodeB.Listen()
 
-	<-time.After(time.Second * 1)
+	<-time.After(time.Second / 10)
 	nodeB.Dial(nodeASocket)
 	nodeA.Close()
 	nodeB.Close()
@@ -94,7 +94,7 @@ func TestSomeNodesHandshake(t *testing.T) {
 		go nodeC.Listen()
 		go nodeD.Listen()
 
-		<-time.After(time.Second * 1)
+		<-time.After(time.Second / 10)
 		nodeB.Dial(nodeASocket)
 		nodeC.Dial(nodeASocket)
 		nodeC.Dial(nodeBSocket)
