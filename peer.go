@@ -44,18 +44,19 @@ type packet struct {
 // peer its the trusty remote peer.
 // Keep needed methods to interact with the secured session.
 type peer struct {
-	s     *session
-	id    ID
-	pool  BytePool
-	nonce uint32
-	// handshakeAt: time.Now().String(),
+	// the attributes orders matters.
+	// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
+	id   ID
+	s    *session
+	l    *metrics
+	pool BytePool
 }
 
 // Create a new peer based on secure session
 func newPeer(s *session) *peer {
 	// Blake2 hashed remote public key.
 	id := newBlake2ID(s.RemotePublicKey())
-	return &peer{s, id, nil, 0}
+	return &peer{id, s, nil, nil}
 }
 
 // BindPool set a global memory pool for peer.

@@ -11,6 +11,8 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
+// TODO add test for message exchange encryption/decryption
+
 func TestWithZeroFutureDeadline(t *testing.T) {
 	idle := futureDeadLine(0)
 
@@ -43,6 +45,7 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 	go nodeA.Listen()
 	go nodeB.Listen()
 
+	// Wait for node ready <- could be improved using channel sync
 	<-time.After(time.Second / 10)
 	nodeB.Dial(nodeASocket)
 	nodeA.Close()
@@ -158,5 +161,3 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		fmt.Printf("Took %v\n", time.Since(start))
 	}
 }
-
-// TODO add test for message exchange encryption/decryption
