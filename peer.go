@@ -42,13 +42,13 @@ type packet struct {
 }
 
 // peer its the trusty remote peer.
-// Keep needed methods to interact with the secured session.
+// Provide needed methods to interact with the secured session.
 type peer struct {
 	// the attributes orders matters.
 	// ref: https://stackoverflow.com/questions/2113751/sizeof-struct-in-go
 	id   ID
 	s    *session
-	l    *metrics
+	m    *metrics
 	pool BytePool
 }
 
