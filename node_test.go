@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -32,7 +33,7 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		"handshake complete", // Handshake complete
 	}
 
-	ready := make(chan bool)
+	readyAndListening := make(chan bool)
 	nodeASocket := "127.0.0.1:9090"
 	nodeBSocket := "127.0.0.1:9091"
 	configurationA := config.New()
@@ -49,19 +50,22 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		for signal := range signals {
 			if signal.Type() == SelfListening {
 				cancel()
-				ready <- true
+				readyAndListening <- true
+				return
 			}
 		}
 	}()
 
 	go nodeA.Listen()
 	go nodeB.Listen()
-	<-ready
+	<-readyAndListening // wait until node is listening to start dialing
 
+	// Just dial to start handshake and close.
 	nodeB.Dial(nodeASocket)
 	nodeA.Close()
 	nodeB.Close()
 
+	// Scan output logs.
 	scanner := bufio.NewScanner(out)
 	// The approach here is try to find the result in the expected behavior list.
 	// If not found expected behavior in log results the test fail.
@@ -84,50 +88,72 @@ start:
 }
 
 func TestSomeNodesHandshake(t *testing.T) {
-	t.Run("handshake N<->N", func(t *testing.T) {
-		nodeASocket := "127.0.0.1:9090"
-		nodeBSocket := "127.0.0.1:9091"
-		nodeCSocket := "127.0.0.1:9092"
-		nodeDSocket := "127.0.0.1:9093"
-		configurationA := config.New()
-		configurationB := config.New()
-		configurationC := config.New()
-		configurationD := config.New()
 
-		configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
-		configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
-		configurationC.Write(config.SetSelfListeningAddress(nodeCSocket))
-		configurationD.Write(config.SetSelfListeningAddress(nodeDSocket))
+	var wg sync.WaitGroup
+	nodeASocket := "127.0.0.1:9090"
+	nodeBSocket := "127.0.0.1:9091"
+	nodeCSocket := "127.0.0.1:9092"
+	nodeDSocket := "127.0.0.1:9093"
 
-		nodeA := New(configurationA)
-		nodeB := New(configurationB)
-		nodeC := New(configurationC)
-		nodeD := New(configurationD)
-		go nodeA.Listen()
-		go nodeB.Listen()
-		go nodeC.Listen()
-		go nodeD.Listen()
+	configurationA := config.New()
+	configurationB := config.New()
+	configurationC := config.New()
+	configurationD := config.New()
 
-		<-time.After(time.Second / 10)
-		nodeB.Dial(nodeASocket)
-		nodeC.Dial(nodeASocket)
-		nodeC.Dial(nodeBSocket)
-		nodeD.Dial(nodeBSocket)
+	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+	configurationC.Write(config.SetSelfListeningAddress(nodeCSocket))
+	configurationD.Write(config.SetSelfListeningAddress(nodeDSocket))
 
-		// Network events channel
-		signalsA, _ := nodeA.Signals()
-		for signalA := range signalsA {
-			if signalA.Type() == NewPeerDetected {
-				// Wait until new peer detected
-				break
+	nodeA := New(configurationA)
+	nodeB := New(configurationB)
+	nodeC := New(configurationC)
+	nodeD := New(configurationD)
+
+	var nodes = []*Node{
+		nodeA,
+		nodeB,
+		nodeC,
+		nodeD,
+	}
+
+	for _, node := range nodes {
+		wg.Add(1)
+		go node.Listen()
+		// Populate wait group
+		go func(n *Node) {
+			signals, cancel := n.Signals()
+			for signal := range signals {
+				if signal.Type() == SelfListening {
+					cancel()
+					wg.Done()
+					return
+				}
 			}
-		}
+		}(node)
 
-		nodeA.Close()
-		nodeB.Close()
-		nodeC.Close()
-		nodeD.Close()
-	})
+	}
+
+	wg.Wait() // When all peers are listening then start dialing between them.
+	nodeB.Dial(nodeASocket)
+	nodeC.Dial(nodeASocket)
+	nodeC.Dial(nodeBSocket)
+	nodeD.Dial(nodeBSocket)
+
+	// Network events channel
+	signalsA, _ := nodeA.Signals()
+	for signalA := range signalsA {
+		if signalA.Type() == NewPeerDetected {
+			// Wait until new peer detected
+			break
+		}
+	}
+
+	nodeA.Close()
+	nodeB.Close()
+	nodeC.Close()
+	nodeD.Close()
+
 }
 
 // go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
