@@ -226,8 +226,8 @@ func (n *Node) Listen() error {
 	}
 
 	log.Printf("listening on %s", addr)
-	n.events.SelfListening(listener) // emit listening event
-	n.listener = listener            // keep reference to current listener
+	n.events.SelfListening(addr) // emit listening event
+	n.listener = listener        // keep reference to current listener
 
 	for {
 		// Block/Hold while waiting for new incoming connection

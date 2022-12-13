@@ -2,7 +2,6 @@ package noise
 
 import (
 	"context"
-	"net"
 	"unsafe"
 )
 
@@ -65,10 +64,10 @@ func (e *events) PeerDisconnected(peer *peer) {
 }
 
 // SelfListening dispatch event when node is ready.
-func (e *events) SelfListening(listener net.Listener) {
+func (e *events) SelfListening(addr string) {
 	// Emit new notification
 	header := header{nil, SelfListening}
-	signal := Signal{header, listener.Addr().String()}
+	signal := Signal{header, addr}
 	e.broker.Publish(signal)
 }
 
