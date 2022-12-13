@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"sync"
 	"testing"
@@ -174,7 +173,7 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		b.StopTimer()
 
 		var peers []*Node
-		var peersNumber int = rand.Intn(100)
+		var peersNumber int = 10
 		p = append(p, peersNumber)
 
 		configurationA := config.New()
