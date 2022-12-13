@@ -40,6 +40,7 @@ benchmark:
 	@go test ./... -bench=. -benchtime 100000x -count 5
 	@echo "[OK] benchmark finished"
 
+
 # View standard output profiling:
 # go tool pprof -top cpu.prof 
 

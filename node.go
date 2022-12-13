@@ -214,6 +214,15 @@ func (n *Node) routing(conn *session) *peer {
 	return peer
 }
 
+// LocalAddr returns the local address assigned to node.
+func (n *Node) LocalAddr() net.Addr {
+	if n.listener == nil {
+		return nil
+	}
+
+	return n.listener.Addr()
+}
+
 // Listen start listening on the given address and wait for new connection.
 // Return error if error occurred while listening.
 func (n *Node) Listen() error {

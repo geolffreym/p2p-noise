@@ -9,6 +9,34 @@ import (
 	"time"
 )
 
+// Group of prebuilt peers, public keys and sessions to test purpose
+var (
+	PeerAPb = PublicKey("f46bea91688c3187eebe66f25f1bcfcb6696c90c293b3a9dca749f6218b7bb52")
+	PeerBPb = PublicKey("d0bf26bed4774c612691fd7a618dd23660e316dde3916da5c7698dc9b685e2ae")
+	PeerCPb = PublicKey("4c67ad6ef6287f0cf7b1b888c1e93eb4c685e3bc59c33b1ecf79a3ad227219e8")
+	PeerDPb = PublicKey("83a2dd209b270d19aedaa4e588fd94fee599b510a49988efd067967ce25053d0")
+	PeerEPb = PublicKey("78112677879bb3922a60cbc12ecbc46fdd33e69447df7186f618a0011056a3c1")
+	PeerFPb = PublicKey("4c268f42ac66ed02f62d0f8951c7fa042b0a281f57385daf8ee4576b30b8fc00")
+)
+
+var (
+	sessionA = mockSession(&mockConn{}, PeerAPb)
+	sessionB = mockSession(&mockConn{}, PeerBPb)
+	sessionC = mockSession(&mockConn{}, PeerCPb)
+	sessionD = mockSession(&mockConn{}, PeerDPb)
+	sessionE = mockSession(&mockConn{}, PeerEPb)
+	sessionF = mockSession(&mockConn{}, PeerFPb)
+)
+
+var (
+	peerA = newPeer(sessionA)
+	peerB = newPeer(sessionB)
+	peerC = newPeer(sessionC)
+	peerD = newPeer(sessionD)
+	peerE = newPeer(sessionE)
+	peerF = newPeer(sessionF)
+)
+
 // Mock Address from net.Addr
 // ref: https://pkg.go.dev/net#Addr
 type mockAddr struct {
@@ -126,34 +154,6 @@ func mockBytes(content PublicKey) []byte {
 	copy(expected[:], content)
 	return expected[:]
 }
-
-// Group of prebuilt peers, public keys and sessions to test purpose
-var (
-	PeerAPb = PublicKey("f46bea91688c3187eebe66f25f1bcfcb6696c90c293b3a9dca749f6218b7bb52")
-	PeerBPb = PublicKey("d0bf26bed4774c612691fd7a618dd23660e316dde3916da5c7698dc9b685e2ae")
-	PeerCPb = PublicKey("4c67ad6ef6287f0cf7b1b888c1e93eb4c685e3bc59c33b1ecf79a3ad227219e8")
-	PeerDPb = PublicKey("83a2dd209b270d19aedaa4e588fd94fee599b510a49988efd067967ce25053d0")
-	PeerEPb = PublicKey("78112677879bb3922a60cbc12ecbc46fdd33e69447df7186f618a0011056a3c1")
-	PeerFPb = PublicKey("4c268f42ac66ed02f62d0f8951c7fa042b0a281f57385daf8ee4576b30b8fc00")
-)
-
-var (
-	sessionA = mockSession(&mockConn{}, PeerAPb)
-	sessionB = mockSession(&mockConn{}, PeerBPb)
-	sessionC = mockSession(&mockConn{}, PeerCPb)
-	sessionD = mockSession(&mockConn{}, PeerDPb)
-	sessionE = mockSession(&mockConn{}, PeerEPb)
-	sessionF = mockSession(&mockConn{}, PeerFPb)
-)
-
-var (
-	peerA = newPeer(sessionA)
-	peerB = newPeer(sessionB)
-	peerC = newPeer(sessionC)
-	peerD = newPeer(sessionD)
-	peerE = newPeer(sessionE)
-	peerF = newPeer(sessionF)
-)
 
 func TestByteID(t *testing.T) {
 	expected := mockBytes(PeerAPb)

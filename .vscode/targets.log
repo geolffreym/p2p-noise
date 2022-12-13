@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Dec  4 16:50:07 2022
+# Make data base, printed on Tue Dec 13 10:20:51 2022
 
 # Variables
 
@@ -61,7 +61,7 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/home/gmena/.local/share/flat
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/6261075646f055b99068d3688932416f2346dd3b
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/5235c6bb189b60b01b1f49062f4ffa42384f8c91
 # environment
 LANG = C
 # environment
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 24357
+VSCODE_PID = 1329469
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 24357
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1329469
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -235,7 +235,7 @@ QT_IM_MODULE = ibus
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.73.1-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.74.0-main.sock
 # environment
 IM_CONFIG_PHASE = 1
 # makefile (from 'Makefile', line 113)
@@ -278,12 +278,12 @@ update-pkg-cache:
 #  Modification time never checked.
 #  File has not been updated.
 
+ 
 compile-linux:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 103):
- 
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
@@ -321,7 +321,7 @@ benchmark:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-09-25 10:19:24.975801809
+#  Last modified 2022-12-06 12:35:36.640006154
 #  File has been updated.
 #  Successfully updated.
 
@@ -475,12 +475,12 @@ vendorize:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 59 / storage = 593 B / avg = 10 B
-# current buf: size = 8162 B / used = 593 B / count = 59 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 59 / storage = 611 B / avg = 10 B
+# current buf: size = 8162 B / used = 611 B / count = 59 / avg = 10 B
 
 # strcache performance: lookups = 93 / hit rate = 36%
 # hash-table stats:
 # Load=59/8192=1%, Rehash=0, Collisions=0/93=0%
-# Finished Make data base on Sun Dec  4 16:50:07 2022
+# Finished Make data base on Tue Dec 13 10:20:51 2022
 
  
