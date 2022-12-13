@@ -32,6 +32,7 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		"handshake complete", // Handshake complete
 	}
 
+	ready := make(chan bool)
 	nodeASocket := "127.0.0.1:9090"
 	nodeBSocket := "127.0.0.1:9091"
 	configurationA := config.New()
@@ -42,11 +43,21 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 
 	nodeA := New(configurationA)
 	nodeB := New(configurationB)
+
+	go func() {
+		signals, cancel := nodeA.Signals()
+		for signal := range signals {
+			if signal.Type() == SelfListening {
+				cancel()
+				ready <- true
+			}
+		}
+	}()
+
 	go nodeA.Listen()
 	go nodeB.Listen()
+	<-ready
 
-	// Wait for node ready <- could be improved using channel sync
-	<-time.After(time.Second / 10)
 	nodeB.Dial(nodeASocket)
 	nodeA.Close()
 	nodeB.Close()

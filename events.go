@@ -2,6 +2,7 @@ package noise
 
 import (
 	"context"
+	"net"
 	"unsafe"
 )
 
@@ -15,6 +16,8 @@ const (
 	MessageReceived
 	// Closed peer connection
 	PeerDisconnected
+	// Emitted when the node is ready to accept incoming connections
+	SelfListening
 )
 
 // events handle event exchange between [Node] and network.
@@ -30,6 +33,7 @@ func newEvents() *events {
 	broker.Register(NewPeerDetected, subscriber)
 	broker.Register(MessageReceived, subscriber)
 	broker.Register(PeerDisconnected, subscriber)
+	broker.Register(SelfListening, subscriber)
 
 	return &events{
 		broker,
@@ -57,6 +61,14 @@ func (e *events) PeerDisconnected(peer *peer) {
 	body := peer.ID().String()
 	header := header{peer, PeerDisconnected}
 	signal := Signal{header, body}
+	e.broker.Publish(signal)
+}
+
+// SelfListening dispatch event when node is ready.
+func (e *events) SelfListening(listener net.Listener) {
+	// Emit new notification
+	header := header{nil, SelfListening}
+	signal := Signal{header, listener.Addr().String()}
 	e.broker.Publish(signal)
 }
 
