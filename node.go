@@ -38,7 +38,7 @@ type Config interface {
 	// Default 100
 	MaxPeersConnected() uint8
 	// Default 10 << 20 = 10MB
-	MaxBufferSize() int
+	PoolBufferSize() int
 	// Default 0
 	IdleTimeout() time.Duration
 	// Default 5 seconds
@@ -64,8 +64,8 @@ type Node struct {
 func New(config Config) *Node {
 	// Max allowed "pools" is related to max active peers.
 	maxPools := int(config.MaxPeersConnected())
-	// Max width of buffer
-	maxBufferSize := config.MaxBufferSize()
+	// Width of global pool buffer
+	maxBufferSize := config.PoolBufferSize()
 	pool := bpool.NewBytePool(maxPools, maxBufferSize)
 
 	return &Node{
@@ -155,10 +155,6 @@ func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 	// Set linger time in seconds to wait to discard unsent data after close.
 	// discard after N seconds unsent packages on close connection
 	if err := conn.SetLinger(n.config.Linger()); err != nil {
-		return err
-	}
-	// Set max read buffer size for incoming connection
-	if err := conn.SetReadBuffer(n.config.MaxBufferSize()); err != nil {
 		return err
 	}
 

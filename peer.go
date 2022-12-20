@@ -1,9 +1,11 @@
 package noise
 
 import (
-	"encoding/binary"
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"time"
 )
@@ -11,8 +13,25 @@ import (
 // packet set needed properties to handle incoming message for peer.
 type packet struct {
 	// Ascending order for struct size
-	Len int    // 8 bytes. Size of message
-	Sig string // 16 byte Signature
+	Sig    []byte // N byte Signature
+	Digest []byte // N byte Digest
+}
+
+func marshall(p packet) bytes.Buffer {
+	var buffer bytes.Buffer
+	encoder := gob.NewEncoder(&buffer)
+	// encode packet to bytes
+	encoder.Encode(p)
+	return buffer
+}
+
+func unmarshal(b []byte) packet {
+	var p packet
+	buf := bytes.NewBuffer(b)
+	decoder := gob.NewDecoder(buf)
+	// decode bytes to packet
+	decoder.Decode(&p)
+	return p
 }
 
 // peer its the trusty remote peer.
@@ -59,24 +78,20 @@ func (p *peer) SetDeadline(t time.Time) error {
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 // Each message is encrypted using session keys.
 func (p *peer) Send(msg []byte) (uint32, error) {
+	// Get a pool buffer chunk
+	buffer := p.pool.Get()[:0]
+	defer p.pool.Put(buffer)
+
 	// Encrypt packet
-	digest, err := p.s.Encrypt(msg)
+	digest, err := p.s.Encrypt(buffer, msg)
 	if err != nil {
 		return 0, err
 	}
-
-	size := len(digest)     // the msg size
-	sig := p.s.Sign(digest) // message signature
 
 	// Create a new packet to send it over the network
-	packet := packet{size, string(sig)}
-	err = binary.Write(p.s, binary.BigEndian, packet)
-	if err != nil {
-		return 0, err
-	}
-
-	// Send encrypted message
-	bytes, err := p.s.Write(digest)
+	sig := p.s.Sign(digest) // message signature
+	packet := marshall(packet{sig, digest})
+	bytes, err := p.s.Write(packet.Bytes())
 	if err != nil {
 		return 0, err
 	}
@@ -87,25 +102,25 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 // Listen wait for incoming messages from Peer.
 // Use the needed pool buffer based on incoming header.
 func (p *peer) Listen() ([]byte, error) {
-	var inp packet // incoming packet
-	err := binary.Read(p.s, binary.BigEndian, &inp)
-	if err != nil {
-		return nil, err
-	}
-
 	// Get a pool buffer chunk
-	buffer := p.pool.Get()[:inp.Len]
+	buffer := p.pool.Get()
 	defer p.pool.Put(buffer)
 
-	// Sync buffered IO reading
-	if _, err = p.s.Read(buffer); err == nil {
+	bytes, err := p.s.Read(buffer)
+	log.Printf("got %d bytes from peer", bytes)
+
+	if err == nil {
+		// decode incoming message
+		inp := unmarshal(buffer)
 		// validate message signature
-		if !p.s.Verify(buffer, []byte(inp.Sig)) {
+		if !p.s.Verify(inp.Digest, inp.Sig) {
 			err := fmt.Errorf("invalid signature for incoming message: %s", inp.Sig)
 			return nil, errVerifyingSignature(err)
 		}
+
 		// Receive secure message from peer.
-		return p.s.Decrypt(buffer)
+		// buffer[:0] means reset pivot to empty slice byte pool.
+		return p.s.Decrypt(buffer[:0], inp.Digest)
 	}
 
 	// net: don't return io.EOF from zero byte reads

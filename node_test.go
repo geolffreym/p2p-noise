@@ -13,7 +13,8 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-// TODO encrypt decrypt message test
+// TODO benchmark memory usage for handshake byte pool
+// TODO benchmark time for message exchange
 // phase 1: adaptative lookup statwse
 // phase 2: compression using brotli vs gzip
 // phase 2 discovery module
@@ -83,6 +84,7 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 }
 
 func TestNodesSecureMessageExchange(t *testing.T) {
+	expected := "Hello node B"
 	nodeASocket := "127.0.0.1:9090"
 	nodeBSocket := "127.0.0.1:9091"
 	configurationA := config.New()
@@ -111,9 +113,7 @@ func TestNodesSecureMessageExchange(t *testing.T) {
 			case NewPeerDetected:
 				// send a message to node b after handshake ready
 				id := signalA.Payload() // here we receive the remote peer id
-
-				_, err := nodeA.Send(id, []byte("Hello node B"))
-				log.Print("sending message to remote")
+				_, err := nodeA.Send(id, []byte(expected))
 				if err != nil {
 					log.Print(err)
 				}
@@ -124,21 +124,22 @@ func TestNodesSecureMessageExchange(t *testing.T) {
 	wg.Wait()
 	// Just dial to start handshake and close.
 	nodeB.Dial(nodeASocket) // wait until handshake is done
-
 	// Node B events channel
 	signalsB, _ := nodeB.Signals()
 	for signalB := range signalsB {
 		if signalB.Type() == MessageReceived {
-			log.Print("received message from node")
 			// Wait until new peer detected
-			log.Printf("%x", signalB.Payload())
+			got := signalB.Payload()
+			if got != expected {
+				t.Errorf("received message from node expected: %s, got %s", expected, got)
+			}
 			break
 		}
 	}
 
 	// then just close nodes
-	// nodeA.Close()
-	// nodeB.Close()
+	nodeA.Close()
+	nodeB.Close()
 }
 
 func TestTwoNodesHandshakeTrace(t *testing.T) {

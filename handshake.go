@@ -325,7 +325,7 @@ func (h *handshake) Answer() error {
 	}
 
 	// Add keys for encrypt/decrypt operations in session.
-	h.s.SetCyphers(enc, dec)
+	h.s.SetCyphers(dec, enc)
 	return nil
 }
 
@@ -333,15 +333,15 @@ func (h *handshake) Answer() error {
 func (h *handshake) Send() (e, d CipherState, err error) {
 	var msg []byte
 	// Get a chunk of bytes from pool
-	buffer := h.p.Get()
-	defer h.p.Put(msg)
+	buffer := h.p.Get()[:0]
+	defer h.p.Put(buffer)
 
 	// WriteMessage appends a handshake message to out. The message will include the
 	// optional payload if provided. If the handshake is completed by the call, two
 	// CipherStates will be returned, one is used for encryption of messages to the
 	// remote peer, the other is used for decryption of messages from the remote
 	// peer. Append public signature key in payload to share with remote.
-	msg, e, d, err = h.hs.WriteMessage(buffer[:0], h.kr.sv.Public)
+	msg, e, d, err = h.hs.WriteMessage(buffer, h.kr.sv.Public)
 	if err != nil {
 		return
 	}
@@ -384,6 +384,6 @@ func (h *handshake) Receive() (e, d CipherState, err error) {
 	payload, e, d, err = h.hs.ReadMessage(nil, buffer)
 	// Set remote signature validation public key
 	h.s.SetRemotePublicKey(payload)
-	return e, d, err
+	return
 
 }

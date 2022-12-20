@@ -8,7 +8,7 @@ import "time"
 type Config struct {
 	maxPeersConnected    uint8
 	lingerTime           int
-	maxBufferSize        int
+	poolBufferSize       int
 	protocol             string
 	selfListeningAddress string
 	keepAlivePeriod      time.Duration
@@ -27,10 +27,10 @@ func New() *Config {
 		keepAlivePeriod: 1800 * time.Second,
 		// Self listening address
 		selfListeningAddress: "0.0.0.0:",
-		// Max payload size received from peers
-		maxBufferSize: 10 << 20, // 10MB
+		// Max buffer pool size to handle incoming messages.
+		poolBufferSize: 10 << 20, // 10MB
 		// Max peer consecutively connected.
-		// Each of this peers is equivalent to one routine, limit this is a performance consideration.
+		// Since the Each of this peers is equivalent to one routine, limit this is a performance consideration.
 		maxPeersConnected: 100,
 		// Max time waiting for dial to complete.
 		// Default 5 seconds
@@ -81,9 +81,9 @@ func (c *Config) MaxPeersConnected() uint8 {
 	return c.maxPeersConnected
 }
 
-// MaxBufferSize returns the max payload size allowed to received from peers.
-func (c *Config) MaxBufferSize() int {
-	return c.maxBufferSize
+// PoolBufferSize returns the max payload size allowed to received from peers.
+func (c *Config) PoolBufferSize() int {
+	return c.poolBufferSize
 }
 
 // DialTimeOut returns max time waiting for dial to complete.
@@ -132,11 +132,11 @@ func SetMaxPeersConnected(maxPeers uint8) Setter {
 	}
 }
 
-// SetMaxBufferSize sets the maximum bytes size received from peers.
+// SetPoolBufferSize sets the maximum bytes size received from peers.
 // If the size exceed > MaxPayloadSize then payload is dropped.
-func SetMaxBufferSize(maxPayloadSize int) Setter {
+func SetPoolBufferSize(maxPayloadSize int) Setter {
 	return func(conf *Config) {
-		conf.maxBufferSize = maxPayloadSize
+		conf.poolBufferSize = maxPayloadSize
 	}
 }
 

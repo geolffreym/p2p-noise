@@ -1,5 +1,7 @@
 package bpool
 
+import "log"
+
 // BytePool implements a leaky pool of []byte in the form of a bounded
 // channel.
 type BytePool struct {
@@ -11,6 +13,8 @@ type BytePool struct {
 // NewBytePool creates a new BytePool bounded to the given maxSize, with new
 // byte arrays sized based on width.
 func NewBytePool(maxSize int, width int) (bp *BytePool) {
+	log.Printf("Pool size %d", width)
+	log.Printf("Pool size %d", maxSize)
 	return &BytePool{
 		c: make(chan []byte, maxSize),
 		w: width,
