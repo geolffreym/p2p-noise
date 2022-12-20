@@ -13,6 +13,7 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
+// TODO need to discard memory usage in byte pools after finish?
 // TODO benchmark memory usage for handshake byte pool
 // TODO benchmark time for message exchange
 // phase 1: adaptative lookup statwse
@@ -113,10 +114,7 @@ func TestNodesSecureMessageExchange(t *testing.T) {
 			case NewPeerDetected:
 				// send a message to node b after handshake ready
 				id := signalA.Payload() // here we receive the remote peer id
-				_, err := nodeA.Send(id, []byte(expected))
-				if err != nil {
-					log.Print(err)
-				}
+				nodeA.Send(id, []byte(expected))
 			}
 		}
 	}(nodeA)
@@ -124,6 +122,7 @@ func TestNodesSecureMessageExchange(t *testing.T) {
 	wg.Wait()
 	// Just dial to start handshake and close.
 	nodeB.Dial(nodeASocket) // wait until handshake is done
+
 	// Node B events channel
 	signalsB, _ := nodeB.Signals()
 	for signalB := range signalsB {

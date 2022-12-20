@@ -17,6 +17,7 @@ type packet struct {
 	Digest []byte // N byte Digest
 }
 
+// marshall encode packet to stream.
 func marshall(p packet) bytes.Buffer {
 	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer)
@@ -25,6 +26,7 @@ func marshall(p packet) bytes.Buffer {
 	return buffer
 }
 
+// unmarshall decode incoming message to packet.
 func unmarshal(b []byte) packet {
 	var p packet
 	buf := bytes.NewBuffer(b)

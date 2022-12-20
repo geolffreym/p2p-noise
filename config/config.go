@@ -30,7 +30,7 @@ func New() *Config {
 		// Max buffer pool size to handle incoming messages.
 		poolBufferSize: 10 << 20, // 10MB
 		// Max peer consecutively connected.
-		// Since the Each of this peers is equivalent to one routine, limit this is a performance consideration.
+		// Each of this peers is equivalent to one routine, limit this is a performance consideration.
 		maxPeersConnected: 100,
 		// Max time waiting for dial to complete.
 		// Default 5 seconds
