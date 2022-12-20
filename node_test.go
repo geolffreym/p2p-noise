@@ -13,6 +13,11 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
+// TODO encrypt decrypt message test
+// phase 1: adaptative lookup statwse
+// phase 2: compression using brotli vs gzip
+// phase 2 discovery module
+
 func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// store logs in buffer while the function run.
 	out := new(bytes.Buffer)
@@ -55,10 +60,9 @@ func whenReadyForIncomingDial(nodes []*Node) *sync.WaitGroup {
 		go node.Listen()
 		// Populate wait group
 		go func(n *Node) {
-			signals, cancel := n.Signals()
+			signals, _ := n.Signals()
 			for signal := range signals {
 				if signal.Type() == SelfListening {
-					cancel()
 					wg.Done()
 					return
 				}
@@ -76,6 +80,65 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 		t.Errorf("Expected returned 'no deadline', got %v", idle)
 	}
 
+}
+
+func TestNodesSecureMessageExchange(t *testing.T) {
+	nodeASocket := "127.0.0.1:9090"
+	nodeBSocket := "127.0.0.1:9091"
+	configurationA := config.New()
+	configurationB := config.New()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	configurationA.Write(config.SetSelfListeningAddress(nodeASocket))
+	configurationB.Write(config.SetSelfListeningAddress(nodeBSocket))
+
+	nodeA := New(configurationA)
+	nodeB := New(configurationB)
+
+	go nodeB.Listen()
+	go nodeA.Listen()
+	// Lets send a message from A to B and see if we receive the expected decrypted message
+	go func(node *Node) {
+		// Node A events channel
+		signalsA, _ := node.Signals()
+		for signalA := range signalsA {
+
+			switch signalA.Type() {
+			case SelfListening:
+				wg.Done()
+			case NewPeerDetected:
+				// send a message to node b after handshake ready
+				id := signalA.Payload() // here we receive the remote peer id
+
+				_, err := nodeA.Send(id, []byte("Hello node B"))
+				log.Print("sending message to remote")
+				if err != nil {
+					log.Print(err)
+				}
+			}
+		}
+	}(nodeA)
+
+	wg.Wait()
+	// Just dial to start handshake and close.
+	nodeB.Dial(nodeASocket) // wait until handshake is done
+
+	// Node B events channel
+	signalsB, _ := nodeB.Signals()
+	for signalB := range signalsB {
+		if signalB.Type() == MessageReceived {
+			log.Print("received message from node")
+			// Wait until new peer detected
+			log.Printf("%x", signalB.Payload())
+			break
+		}
+	}
+
+	// then just close nodes
+	// nodeA.Close()
+	// nodeB.Close()
 }
 
 func TestTwoNodesHandshakeTrace(t *testing.T) {
@@ -167,14 +230,14 @@ func TestSomeNodesHandshake(t *testing.T) {
 // go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
 // go tool pprof {file}
 func BenchmarkHandshakeProfile(b *testing.B) {
-	var p []int
+
+	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
 		b.StopTimer()
 
 		var peers []*Node
 		var peersNumber int = 10
-		p = append(p, peersNumber)
 
 		configurationA := config.New()
 		configurationA.Write(config.SetSelfListeningAddress("127.0.0.1:"))
@@ -203,5 +266,4 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		}
 	}
 
-	log.Print(p)
 }

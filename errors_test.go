@@ -43,9 +43,10 @@ func TestExceededMaxPeersError(t *testing.T) {
 }
 
 func TestExceededMaxPayloadSize(t *testing.T) {
-
-	output := errExceededMaxPayloadSize(10 << 20)
-	expected := fmt.Sprintf("overflow: it is not possible to accept more than %d bytes -> max payload size exceeded", 10<<20)
+	customError := "Fail setting up"
+	err := errors.New(customError)
+	output := errSettingUpConnection(err)
+	expected := fmt.Sprintf("ops: error trying to configure connection -> %v", err)
 
 	if output.Error() != expected {
 		t.Errorf(STATEMENT, expected, output)

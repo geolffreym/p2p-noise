@@ -6,12 +6,14 @@ import "time"
 
 // Functional options
 type Config struct {
+	maxPeersConnected    uint8
+	lingerTime           int
+	maxBufferSize        int
 	protocol             string
 	selfListeningAddress string
-	maxPayloadSize       uint32
-	maxPeersConnected    uint8
+	keepAlivePeriod      time.Duration
 	dialTimeout          time.Duration
-	peerDeadline         time.Duration
+	idleTimeout          time.Duration
 }
 
 type Setter func(*Config)
@@ -21,10 +23,12 @@ func New() *Config {
 	return &Config{
 		// default protocol
 		protocol: "tcp",
+		// Keep alive message time interval
+		keepAlivePeriod: 1800 * time.Second,
 		// Self listening address
-		selfListeningAddress: "0.0.0.0:8010",
+		selfListeningAddress: "0.0.0.0:",
 		// Max payload size received from peers
-		maxPayloadSize: 10 << 20, // 10MB
+		maxBufferSize: 10 << 20, // 10MB
 		// Max peer consecutively connected.
 		// Each of this peers is equivalent to one routine, limit this is a performance consideration.
 		maxPeersConnected: 100,
@@ -34,54 +38,82 @@ func New() *Config {
 		dialTimeout: 5 * time.Second,
 		// Max time waiting for I/O or peer interaction. After this time the connection will timeout and considered inactive.
 		// After every received/send message a new deadline is refreshed using this value.
+		// When the Keep Alive Interval is greater than the Idle Timeout, the BIG-IP system never sends TCP Keep-Alive packets as the connections are removed when reaching the TCP Idle Timeout .
 		// Default 0 seconds = no deadline.
-		peerDeadline: 0,
+		idleTimeout: 0,
+		// Discard unsent data after N seconds.
+		// 0 means immediately discard unsent data after close.
+		lingerTime: 0,
 	}
 }
 
 // Write stores settings in `Settings` struct reference.
 // All the settings are passed as an array of `setters` to then get called with `Settings“ reference as param.
 // ref: https://github.com/crazybber/awesome-patterns/blob/master/idiom/functional-options.md
-func (s *Config) Write(c ...Setter) {
-	for _, setter := range c {
-		setter(s)
+func (c *Config) Write(s ...Setter) {
+	for _, setter := range s {
+		setter(c)
 	}
 }
 
 // Protocol returns the protocol to use for communication.
-func (s *Config) Protocol() string {
-	return s.protocol
+func (c *Config) Protocol() string {
+	return c.protocol
+}
+
+// KeepAlive tells to node if should keep alive TCP connection.
+func (c *Config) KeepAlive() time.Duration {
+	return c.keepAlivePeriod
+}
+
+// Linger returns the time to wait to discard messages after close node.
+func (c *Config) Linger() int {
+	return c.lingerTime
 }
 
 // SelfListeningAddress returns the local node address.
-func (s *Config) SelfListeningAddress() string {
-	return s.selfListeningAddress
+func (c *Config) SelfListeningAddress() string {
+	return c.selfListeningAddress
 }
 
 // MaxPeersConnected returns the max number of connections.
-func (s *Config) MaxPeersConnected() uint8 {
-	return s.maxPeersConnected
+func (c *Config) MaxPeersConnected() uint8 {
+	return c.maxPeersConnected
 }
 
-// MaxPayloadSize returns the max payload size allowed to received from peers.
-func (s *Config) MaxPayloadSize() uint32 {
-	return s.maxPayloadSize
+// MaxBufferSize returns the max payload size allowed to received from peers.
+func (c *Config) MaxBufferSize() int {
+	return c.maxBufferSize
 }
 
 // DialTimeOut returns max time waiting for dial to complete.
-func (s *Config) DialTimeout() time.Duration {
-	return s.dialTimeout
+func (c *Config) DialTimeout() time.Duration {
+	return c.dialTimeout
 }
 
-// PeerDeadline returns the max time waiting for I/O or peer interaction
-func (s *Config) PeerDeadline() time.Duration {
-	return s.peerDeadline
+// IdleTimeout returns the max time waiting for I/O or peer interaction.
+func (c *Config) IdleTimeout() time.Duration {
+	return c.idleTimeout
 }
 
-// Protocol sets the protocol to use when communicating.
+// SetKeepAlive set the flag to keep alive or not the TCP connection.
+func SetKeepAlive(ka time.Duration) Setter {
+	return func(conf *Config) {
+		conf.keepAlivePeriod = ka
+	}
+}
+
+// SetProtocol sets the protocol to use when communicating.
 func SetProtocol(protocol string) Setter {
 	return func(conf *Config) {
 		conf.protocol = protocol
+	}
+}
+
+// SetLinger set the linger time in seconds to wait to discard messages after close node.
+func SetLinger(linger int) Setter {
+	return func(conf *Config) {
+		conf.lingerTime = linger
 	}
 }
 
@@ -100,23 +132,23 @@ func SetMaxPeersConnected(maxPeers uint8) Setter {
 	}
 }
 
-// SetMaxPayloadSize sets the maximum bytes size received from peers.
+// SetMaxBufferSize sets the maximum bytes size received from peers.
 // If the size exceed > MaxPayloadSize then payload is dropped.
-func SetMaxPayloadSize(maxPayloadSize uint32) Setter {
+func SetMaxBufferSize(maxPayloadSize int) Setter {
 	return func(conf *Config) {
-		conf.maxPayloadSize = maxPayloadSize
+		conf.maxBufferSize = maxPayloadSize
 	}
 }
 
-// SetPeerDeadline sets how long in seconds peer connections can remain idle.
+// SetIdleTimeout sets how long in seconds peer connections can remain idle.
 // If deadline for I/O is exceeded a timeout is raised and the connection is closed.
 // A deadline is an absolute time after which I/O operations
 // fail instead of blocking. The deadline applies to all future
 // and pending I/O, not just the immediately following call to Read or Write.
 // ref: https://pkg.go.dev/net#Conn
-func SetPeerDeadline(timeout time.Duration) Setter {
+func SetIdleTimeout(timeout time.Duration) Setter {
 	return func(conf *Config) {
-		conf.peerDeadline = timeout
+		conf.idleTimeout = timeout
 	}
 }
 

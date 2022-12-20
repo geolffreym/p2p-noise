@@ -5,6 +5,15 @@ import (
 	"unsafe"
 )
 
+// byteToString convert an array of bytes to a string with no-copy strategy.
+func bytesToString(b []byte) string {
+	// Optimizing space with ordered types.
+	// perf: no allocation/copy to convert to string.
+	// instead take the already existing byte slice to create a string struct.
+	// WARNING: use this approach with caution and only if we are sure that the bytes slice is not gonna change.
+	return *(*string)(unsafe.Pointer(&b))
+}
+
 // [Event] aliases for int type.
 type Event uint8
 
@@ -74,10 +83,7 @@ func (e *events) SelfListening(addr string) {
 // NewMessage dispatch event when a new message is received.
 func (e *events) NewMessage(peer *peer, msg []byte) {
 	// Emit new notification
-	// perf: no allocation/copy to convert to string.
-	// instead take the already existing byte slice to create a string struct.
-	// WARNING: use this approach with caution and only if we are sure that the bytes slice is not gonna change.
-	message := *(*string)(unsafe.Pointer(&msg))
+	message := bytesToString(msg)
 	header := header{peer, MessageReceived}
 	signal := Signal{header, message}
 	e.broker.Publish(signal)
