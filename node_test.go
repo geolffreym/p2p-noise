@@ -112,6 +112,7 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		wg.Add(1)
+
 		go nodeB.Listen()
 		go nodeA.Listen()
 		// Lets send a message from A to B and see if we receive the expected decrypted message
@@ -122,10 +123,13 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 
 				switch signalA.Type() {
 				case SelfListening:
-					wg.Done()
+					wg.Done() // dial until nodeA get ready
 				case NewPeerDetected:
 					// send a message to node b after handshake ready
 					id := signalA.Payload() // here we receive the remote peer id
+
+					// Send a message to nodeB.
+					// Underneath the message is encrypted and signed with local Public Key before send.
 					nodeA.Send(id, []byte(expected))
 				}
 			}
@@ -139,7 +143,9 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 		signalsB, _ := nodeB.Signals()
 		for signalB := range signalsB {
 			if signalB.Type() == MessageReceived {
-				// Wait until new peer detected
+				// When a new message is received:
+				// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+
 				got := signalB.Payload()
 				if got == expected {
 					break
