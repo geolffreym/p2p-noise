@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"runtime"
 	"time"
 
 	"github.com/oxtoacart/bpool"
@@ -145,7 +146,7 @@ KEEPALIVE:
 
 // setupTCPConnection configure TCP connection behavior.
 func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
-	// If tcp enforce keep alive connection
+	// If tcp enforce keep alive connection.
 	// SetKeepAlive sets whether the operating system should send keep-alive messages on the connection.
 	// We can modify the behavior of the connection using idle timeout and keep alive or just disable keep alive and force the use of idle timeout to determine the inactivity of remote nodes.
 	// ref: https://support.f5.com/csp/article/K13004262
@@ -153,11 +154,14 @@ func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 		return err
 	}
 	// Set linger time in seconds to wait to discard unsent data after close.
-	// discard after N seconds unsent packages on close connection
+	// discard after N seconds unsent packages on close connection.
 	if err := conn.SetLinger(n.config.Linger()); err != nil {
 		return err
 	}
-
+	// Set max read buffer size for incoming connection.
+	if err := conn.SetReadBuffer(n.config.PoolBufferSize()); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -289,6 +293,7 @@ func (n *Node) Close() {
 
 	// stop listener
 	n.listener.Close()
+	runtime.GC()
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.

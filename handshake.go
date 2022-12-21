@@ -333,6 +333,7 @@ func (h *handshake) Answer() error {
 func (h *handshake) Send() (e, d CipherState, err error) {
 	var msg []byte
 	// Get a chunk of bytes from pool
+	// We need an empty buffer slice here
 	buffer := h.p.Get()[:0]
 	defer h.p.Put(buffer)
 
