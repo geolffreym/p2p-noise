@@ -93,5 +93,5 @@ Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise/Makefile) 
 ## More info
 
 * Chat with us joining to our [matrix room](https://matrix.to/#/!XgrTEPPGsKCPvdtDeC:matrix.org?via=matrix.org).
-* [Examples](https://github.com/geolffreym/p2p-noise) directory contains examples of usage.
+* [Examples](https://github.com/geolffreym/p2p-noise/examples) directory contains advanced examples of usage.
 * For help or bugs please [create an issue](https://github.com/geolffreym/p2p-noise/issues).

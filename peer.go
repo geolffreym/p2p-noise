@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"time"
 )
@@ -82,18 +81,21 @@ func (p *peer) SetDeadline(t time.Time) error {
 // Each message is encrypted using session keys.
 func (p *peer) Send(msg []byte) (uint32, error) {
 	// Get a pool buffer chunk
-	buffer := p.pool.Get()[:0]
+	buffer := p.pool.Get()
 	defer p.pool.Put(buffer)
 
 	// Encrypt packet
-	digest, err := p.s.Encrypt(buffer, msg)
+	// we need to re-slice the buffer to avoid overflow slice because internal append.
+	digest, err := p.s.Encrypt(buffer[:0], msg)
 	if err != nil {
 		return 0, err
 	}
 
-	// Create a new packet to send it over the network
-	sig := p.s.Sign(digest) // message signature
+	// encrypted signed message
+	sig := p.s.Sign(digest)
+	// encode packet with signature + digest
 	packed := marshall(packet{sig, digest})
+	// stream encoded packet
 	bytes, err := p.s.Write(packed.Bytes())
 	if err != nil {
 		return 0, err
@@ -109,8 +111,8 @@ func (p *peer) Listen() ([]byte, error) {
 	buffer := p.pool.Get()
 	defer p.pool.Put(buffer)
 
-	bytes, err := p.s.Read(buffer)
-	log.Printf("got %d bytes from peer", bytes)
+	_, err := p.s.Read(buffer)
+	// log.Printf("got %d bytes from peer", bytes)
 
 	if err == nil {
 		// decode incoming package
@@ -122,7 +124,7 @@ func (p *peer) Listen() ([]byte, error) {
 		}
 
 		// Receive secure message from peer.
-		// buffer[:0] means empty slice byte pool.
+		// Reuse the buffer[:0] = reset slice from byte pool.
 		return p.s.Decrypt(buffer[:0], packet.Digest)
 	}
 
