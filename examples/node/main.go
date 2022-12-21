@@ -11,7 +11,6 @@ func main() {
 	configuration := config.New()
 	configuration.Write(
 		config.SetMaxPeersConnected(10),
-		config.SetPeerDeadline(1800),
 	)
 
 	// Node factory

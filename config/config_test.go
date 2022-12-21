@@ -59,22 +59,22 @@ func TestSetMaxPeersConnected(t *testing.T) {
 
 func TestPeerDeadline(t *testing.T) {
 	settings := New()
-	callable := SetPeerDeadline(100)
+	callable := SetIdleTimeout(100)
 	callable(settings)
 
-	if settings.PeerDeadline() != 100 {
+	if settings.IdleTimeout() != 100 {
 		t.Errorf("expected MaxPeerConnected %#v, got settings %v", 10, settings.MaxPeersConnected())
 	}
 }
 
 func TestMaxPayloadExceeded(t *testing.T) {
 	settings := New()
-	payloadSize := uint32(1024)
-	callable := SetMaxPayloadSize(payloadSize)
+	payloadSize := 1024
+	callable := SetPoolBufferSize(payloadSize)
 	callable(settings)
 
-	if settings.MaxPayloadSize() != payloadSize {
-		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", payloadSize, settings.MaxPayloadSize())
+	if settings.PoolBufferSize() != payloadSize {
+		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", payloadSize, settings.PoolBufferSize())
 	}
 }
 

@@ -74,12 +74,9 @@ func errExceededMaxPeers(max uint8) error {
 	}
 }
 
-// errExceededMaxPayloadSize error represent an issue if received message size exceed max payload size.
-func errExceededMaxPayloadSize(max uint32) error {
-	return &OverflowError{
-		fmt.Sprintf("it is not possible to accept more than %d bytes", max),
-		errors.New("max payload size exceeded"),
-	}
+// errSettingUpConnection error represent an issue if received message size exceed max payload size.
+func errSettingUpConnection(err error) error {
+	return &OperationalError{"error trying to configure connection", err}
 }
 
 // errSendingMessage error represent an issue trying to send a message.

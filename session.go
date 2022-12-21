@@ -58,13 +58,13 @@ func (s *session) SetRemotePublicKey(pb PublicKey) {
 }
 
 // Encrypt cipher message using encryption keys provided in handshake.
-func (s *session) Encrypt(msg []byte) ([]byte, error) {
-	return s.encryption.Encrypt(msg, nil, nil)
+func (s *session) Encrypt(out, msg []byte) ([]byte, error) {
+	return s.encryption.Encrypt(out, nil, msg)
 }
 
 // Decrypt message using decryption keys provided in handshake.
-func (s *session) Decrypt(digest []byte) ([]byte, error) {
-	return s.decryption.Decrypt(digest, nil, nil)
+func (s *session) Decrypt(out, digest []byte) ([]byte, error) {
+	return s.decryption.Decrypt(out, nil, digest)
 }
 
 // RemotePublicKey returns the static key provided by the remote peer during a handshake.
