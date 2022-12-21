@@ -3,7 +3,6 @@ package noise
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,7 +13,9 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-// TODO benchmark memory usage for handshake byte pool
+// TODO el uso de handshake en el message exchange genera sesgo al determinar la metrica del intercambio de mensajes?
+// TODO test performance with big file sharing
+// TODO what happen if i reduce to much the bufferpool?
 // TODO session test
 // TODO handshake test
 // phase 1: metrics for adaptive lookup
@@ -110,11 +111,12 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 	nodeA := New(configurationA)
 	nodeB := New(configurationB)
 
+	go nodeB.Listen()
+	go nodeA.Listen()
+
 	for n := 0; n < b.N; n++ {
 		wg.Add(1)
 
-		go nodeB.Listen()
-		go nodeA.Listen()
 		// Lets send a message from A to B and see if we receive the expected decrypted message
 		go func(node *Node) {
 			// Node A events channel
@@ -127,9 +129,8 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 				case NewPeerDetected:
 					// send a message to node b after handshake ready
 					id := signalA.Payload() // here we receive the remote peer id
-
 					// Send a message to nodeB.
-					// Underneath the message is encrypted and signed with local Public Key before send.
+					// Underneath the message is encrypted and signed with local Private Key before send.
 					nodeA.Send(id, []byte(expected))
 				}
 			}
@@ -145,7 +146,6 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 			if signalB.Type() == MessageReceived {
 				// When a new message is received:
 				// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
-
 				got := signalB.Payload()
 				if got == expected {
 					break
@@ -153,11 +153,11 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 
 			}
 		}
-
-		// then just close nodes
-		nodeA.Close()
-		nodeB.Close()
 	}
+
+	// then just close nodes
+	nodeA.Close()
+	nodeB.Close()
 }
 
 func TestTwoNodesHandshakeTrace(t *testing.T) {
@@ -277,7 +277,6 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 			peers = append(peers, node)
 		}
 
-		fmt.Println("********************** Listen **********************")
 		whenReadyForIncomingDial(append(peers, nodeA)).Wait()
 		nodeAddress := nodeA.LocalAddr().String()
 
@@ -285,7 +284,6 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		// Handshake start when two nodes are connected and isn't happening before dial.
 		// Avoid to add prev initialization.
 		b.StartTimer()
-		fmt.Println("********************** Dial **********************")
 		for _, peer := range peers {
 			peer.Dial(nodeAddress)
 			peer.Close()
