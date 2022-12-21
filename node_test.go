@@ -13,10 +13,10 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-// TODO need to discard memory usage in byte pools after finish?
 // TODO benchmark memory usage for handshake byte pool
-// TODO benchmark time for message exchange
-// phase 1: adaptative lookup statwse
+// TODO session test
+// TODO handshake test
+// phase 1: metrics for adaptive lookup
 // phase 2: compression using brotli vs gzip
 // phase 2 discovery module
 
@@ -237,7 +237,7 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		b.StopTimer()
 
 		var peers []*Node
-		var peersNumber int = 10
+		var peersNumber int = 1
 
 		configurationA := config.New()
 		configurationA.Write(config.SetSelfListeningAddress("127.0.0.1:"))

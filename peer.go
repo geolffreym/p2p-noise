@@ -17,6 +17,7 @@ type packet struct {
 	Digest []byte // N byte Digest
 }
 
+// TODO marshall using embed encoded?
 // marshall encode packet to stream.
 func marshall(p packet) bytes.Buffer {
 	var buffer bytes.Buffer
@@ -92,8 +93,8 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 
 	// Create a new packet to send it over the network
 	sig := p.s.Sign(digest) // message signature
-	packet := marshall(packet{sig, digest})
-	bytes, err := p.s.Write(packet.Bytes())
+	packed := marshall(packet{sig, digest})
+	bytes, err := p.s.Write(packed.Bytes())
 	if err != nil {
 		return 0, err
 	}
@@ -112,17 +113,17 @@ func (p *peer) Listen() ([]byte, error) {
 	log.Printf("got %d bytes from peer", bytes)
 
 	if err == nil {
-		// decode incoming message
-		inp := unmarshal(buffer)
+		// decode incoming package
+		packet := unmarshal(buffer)
 		// validate message signature
-		if !p.s.Verify(inp.Digest, inp.Sig) {
-			err := fmt.Errorf("invalid signature for incoming message: %s", inp.Sig)
+		if !p.s.Verify(packet.Digest, packet.Sig) {
+			err := fmt.Errorf("invalid signature for incoming message: %s", packet.Sig)
 			return nil, errVerifyingSignature(err)
 		}
 
 		// Receive secure message from peer.
-		// buffer[:0] means reset pivot to empty slice byte pool.
-		return p.s.Decrypt(buffer[:0], inp.Digest)
+		// buffer[:0] means empty slice byte pool.
+		return p.s.Decrypt(buffer[:0], packet.Digest)
 	}
 
 	// net: don't return io.EOF from zero byte reads
