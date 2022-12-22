@@ -7,10 +7,10 @@
 
 P2P Noise library aims to serve as a tool to create secure P2P networks based on the Noise Framework.
 
-* Quick creation of custom P2P networks.
-* Simplistic and lightweight.
 * Small and secure.
-* Crypto Stack:
+* Simplistic and lightweight.
+* Quick creation of custom P2P networks.
+* Modern Crypto Stack:
   * [Blake2 Hash](https://www.blake2.net/)
   * [ED255519 Signature](https://ed25519.cr.yp.to/)
   * [ChaCha20-Poly1305 Cypher]( https://en.wikipedia.org/wiki/ChaCha20-Poly1305)
