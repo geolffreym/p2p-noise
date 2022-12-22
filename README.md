@@ -10,14 +10,13 @@ P2P Noise library aims to serve as a tool to create secure P2P networks based on
 * Quick creation of custom P2P networks.
 * Simplistic and lightweight.
 * Small and secure.
+* Crypto Stack:
+  * [Blake2 Hash](https://www.blake2.net/)
+  * [ED255519 Signature](https://ed25519.cr.yp.to/)
+  * [ChaCha20-Poly1305 Cypher]( https://en.wikipedia.org/wiki/ChaCha20-Poly1305)
+  * [Diffie-Hellman Curve25519 Key Exchange](https://en.wikipedia.org/wiki/Curve25519)
 
 ## Features
-
-> [Blake2 Hashing](https://www.blake2.net/):
-BLAKE2 is a cryptographic hash function faster than MD5, SHA-1, SHA-2, and SHA-3, yet is at least as secure as the latest standard SHA-3. BLAKE2 has been adopted by many projects due to its high speed, security, and simplicity.
-
-> [ED255519 Signature](https://ed25519.cr.yp.to/):
-A digital signature is a mathematical scheme for verifying the authenticity of digital messages or documents. A valid digital signature, where the prerequisites are satisfied, gives a recipient very high confidence that the message was created by a known sender (authenticity), and that the message was not altered in transit (integrity).
 
 > [Noise Secure Handshake](http://www.noiseprotocol.org/):
 Noise is a framework for building crypto protocols. Noise protocols support mutual and optional authentication, identity hiding, forward secrecy, zero round-trip encryption, and other advanced features.

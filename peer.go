@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"time"
 )
@@ -16,7 +17,7 @@ type packet struct {
 	Digest []byte // N byte Digest
 }
 
-// TODO marshall using embed encoded?
+// TODO marshall using embed encoded to reduce overhead?
 // marshall encode packet to stream.
 func marshall(p packet) bytes.Buffer {
 	var buffer bytes.Buffer
@@ -111,8 +112,8 @@ func (p *peer) Listen() ([]byte, error) {
 	buffer := p.pool.Get()
 	defer p.pool.Put(buffer)
 
-	_, err := p.s.Read(buffer)
-	// log.Printf("got %d bytes from peer", bytes)
+	bytes, err := p.s.Read(buffer)
+	log.Printf("got %d bytes from peer", bytes)
 
 	if err == nil {
 		// decode incoming package
