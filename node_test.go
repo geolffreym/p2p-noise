@@ -13,9 +13,9 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-// TODO el uso de handshake en el message exchange genera sesgo al determinar la metrica del intercambio de mensajes?
+// TODO what happen if i reduce to much the bufferpool? se mantiene en el buffer y se debe manejar los trozos antes de desencriptar?
+// TODO reutilizar los encoders/decoders
 // TODO test performance with big file sharing
-// TODO what happen if i reduce to much the bufferpool?
 // TODO session test
 // TODO handshake test
 // phase 1: metrics for adaptive lookup
@@ -87,7 +87,6 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 }
 
 func BenchmarkNodesSecureMessageExchange(b *testing.B) {
-	b.ReportAllocs()
 	// Discard logs to avoid extra allocations.
 	log.SetOutput(ioutil.Discard)
 
@@ -111,11 +110,12 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 	nodeA := New(configurationA)
 	nodeB := New(configurationB)
 
-	go nodeB.Listen()
-	go nodeA.Listen()
-
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
+
 		wg.Add(1)
+		go nodeB.Listen()
+		go nodeA.Listen()
 
 		// Lets send a message from A to B and see if we receive the expected decrypted message
 		go func(node *Node) {
@@ -153,11 +153,11 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 
 			}
 		}
+		// then just close nodes
+		nodeA.Close()
+		nodeB.Close()
 	}
 
-	// then just close nodes
-	nodeA.Close()
-	nodeB.Close()
 }
 
 func TestTwoNodesHandshakeTrace(t *testing.T) {
@@ -250,21 +250,24 @@ func TestSomeNodesHandshake(t *testing.T) {
 // go tool pprof {file}
 func BenchmarkHandshakeProfile(b *testing.B) {
 
-	b.ReportAllocs()
 	// Discard logs to avoid extra allocations.
 	log.SetOutput(ioutil.Discard)
-	configurationA := config.New()
-	configurationA.Write(
-		config.SetSelfListeningAddress("127.0.0.1:"),
-		config.SetPoolBufferSize(1<<2),
-	)
-	nodeA := New(configurationA)
 
+	b.ResetTimer()
+	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		b.StopTimer()
 
 		var peers []*Node
 		var peersNumber int = 1
+
+		nodeAddress := "127.0.0.1:9095"
+		configurationA := config.New()
+		configurationA.Write(
+			config.SetSelfListeningAddress(nodeAddress),
+			config.SetPoolBufferSize(1<<2),
+		)
+		nodeA := New(configurationA)
 
 		for i := 0; i < peersNumber; i++ {
 			address := "127.0.0.1:"
@@ -278,8 +281,6 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 		}
 
 		whenReadyForIncomingDial(append(peers, nodeA)).Wait()
-		nodeAddress := nodeA.LocalAddr().String()
-
 		// Start timer to measure the handshake process.
 		// Handshake start when two nodes are connected and isn't happening before dial.
 		// Avoid to add prev initialization.
@@ -288,6 +289,8 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 			peer.Dial(nodeAddress)
 			peer.Close()
 		}
+
+		nodeA.Close()
 	}
 
 }

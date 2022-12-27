@@ -108,7 +108,7 @@ compile: compile-linux compile-win compile-mac
 	@echo "[OK] Compiling for every OS and Platform"
 
 build-gc: 
-	@go build -gcflags='-m' $(filter-out $@,$(MAKECMDGOALS))
+	@go build -gcflags='-m -m' $(filter-out $@,$(MAKECMDGOALS))
 
 run: 
 	@go run ${INPUT} $(filter-out $@,$(MAKECMDGOALS))

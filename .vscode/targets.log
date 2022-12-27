@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Dec 16 07:51:12 2022
+# Make data base, printed on Tue Dec 27 08:47:12 2022
 
 # Variables
 
@@ -61,7 +61,7 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/home/gmena/.local/share/flat
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/1ad8d514439d5077d2b0b7ee64d2ce82a9308e5a
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/e8a3071ea4344d9d48ef8a4df2c097372b0c5161
 # environment
 LANG = C
 # environment
@@ -101,7 +101,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 6322
+VSCODE_PID = 1332133
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -209,7 +209,7 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 6322
+GIO_LAUNCHED_DESKTOP_FILE_PID = 1332133
 # makefile (from 'Makefile', line 25)
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
@@ -235,10 +235,10 @@ QT_IM_MODULE = ibus
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.74.1-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.74.2-main.sock
 # environment
 IM_CONFIG_PHASE = 1
-# makefile (from 'Makefile', line 114)
+# makefile (from 'Makefile', line 117)
 GOPROXY = https://proxy.golang.org GO111MODULE=on go get github.com/${USER}/${PACKAGE}@v${VERSION}
 # default
 .RECIPEPREFIX := 
@@ -263,9 +263,9 @@ LC_IDENTIFICATION = es_NI.UTF-8
 
 # Directories
 
-# . (device 66311, inode 16384686): 36 files, no impossibilities.
+# . (device 66311, inode 16384686): 37 files, no impossibilities.
 
-# 36 files, no impossibilities in 1 directories.
+# 37 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -302,7 +302,6 @@ compile: compile-linux compile-win compile-mac
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 108):
 	@echo "[OK] Compiling for every OS and Platform"
-	
 
 # Not a target:
 check-test-coverage:
@@ -321,7 +320,7 @@ benchmark:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-12-13 11:25:51.695442825
+#  Last modified 2022-12-21 12:23:04.778939027
 #  File has been updated.
 #  Successfully updated.
 
@@ -374,6 +373,13 @@ coverage-export: coverage
 	@go tool cover -html=coverage
 	@echo "[OK] code test coverage finished"
 
+build-gc:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 111):
+	@go build -gcflags='-m' $(filter-out $@,$(MAKECMDGOALS))
+
 # Not a target:
 .DEFAULT:
 #  Implicit rule search has not been done.
@@ -393,7 +399,7 @@ run:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 111):
+#  recipe to execute (from 'Makefile', line 114):
 	@go run ${INPUT} $(filter-out $@,$(MAKECMDGOALS))
 
 build:
@@ -463,24 +469,24 @@ vendorize:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'Makefile', line 118):
+#  recipe to execute (from 'Makefile', line 121):
 	@go mod vendor
 	@echo "[OK]"
 
 # files hash-table stats:
-# Load=23/1024=2%, Rehash=0, Collisions=0/46=0%
+# Load=24/1024=2%, Rehash=0, Collisions=0/47=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 60 / storage = 618 B / avg = 10 B
-# current buf: size = 8162 B / used = 618 B / count = 60 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 62 / storage = 633 B / avg = 10 B
+# current buf: size = 8162 B / used = 633 B / count = 62 / avg = 10 B
 
-# strcache performance: lookups = 94 / hit rate = 36%
+# strcache performance: lookups = 97 / hit rate = 36%
 # hash-table stats:
-# Load=60/8192=1%, Rehash=0, Collisions=0/94=0%
-# Finished Make data base on Fri Dec 16 07:51:12 2022
+# Load=62/8192=1%, Rehash=0, Collisions=0/97=0%
+# Finished Make data base on Tue Dec 27 08:47:12 2022
 
  

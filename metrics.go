@@ -16,5 +16,6 @@ type metrics struct {
 	recv          uint16 // counter received messages
 }
 
+// TODO https://community.f5.com/t5/technical-articles/introducing-tcp-analytics/ta-p/290873
 // calculate weight
 // builder pattern?

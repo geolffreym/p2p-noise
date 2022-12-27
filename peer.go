@@ -2,6 +2,7 @@ package noise
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/gob"
 	"fmt"
 	"io"
@@ -13,11 +14,17 @@ import (
 // packet set needed properties to handle incoming message for peer.
 type packet struct {
 	// Ascending order for struct size
-	Sig    []byte // N byte Signature
-	Digest []byte // N byte Digest
+	Sig []byte // N byte Signature
+	Msg []byte // N byte Digest
 }
 
 // TODO marshall using embed encoded to reduce overhead?
+// TODO Usar pipeline para comprimir, encriptar y firmar antes de enviar paquetes?
+// https://go.dev/blog/pipelines
+
+// TODO Establecer de manera dinámica el send buffer y receiver buffer en el peer y no en el nodo, de modo que se pued la establecerlo usando las métricas
+// https://community.f5.com/t5/technical-articles/the-tcp-send-buffer-in-depth/ta-p/290760
+
 // marshall encode packet to stream.
 func marshall(p packet) bytes.Buffer {
 	var buffer bytes.Buffer
@@ -28,7 +35,7 @@ func marshall(p packet) bytes.Buffer {
 }
 
 // unmarshall decode incoming message to packet.
-func unmarshal(b []byte) packet {
+func unmarshall(b []byte) packet {
 	var p packet
 	buf := bytes.NewBuffer(b)
 	decoder := gob.NewDecoder(buf)
@@ -85,19 +92,25 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 	buffer := p.pool.Get()
 	defer p.pool.Put(buffer)
 
-	// Encrypt packet
+	// only small messages can be signed, which is why it's usually a hash.
+	// hash + signature + encode
+	sig := p.s.Sign(msg)
+	packed := marshall(packet{sig, msg})
+	// Encrypt packet with message and signature inside.
 	// we need to re-slice the buffer to avoid overflow slice because internal append.
-	digest, err := p.s.Encrypt(buffer[:0], msg)
+	digest, err := p.s.Encrypt(buffer[:0], packed.Bytes())
 	if err != nil {
 		return 0, err
 	}
 
-	// encrypted signed message
-	sig := p.s.Sign(digest)
-	// encode packet with signature + digest
-	packed := marshall(packet{sig, digest})
-	// stream encoded packet
-	bytes, err := p.s.Write(packed.Bytes())
+	// 4 bytes for message size.
+	err = binary.Write(p.s, binary.BigEndian, uint32(len(digest)))
+	if err != nil {
+		return 0, err
+	}
+
+	// stream encrypted packet
+	bytes, err := p.s.Write(digest)
 	if err != nil {
 		return 0, err
 	}
@@ -108,25 +121,39 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 // Listen wait for incoming messages from Peer.
 // Use the needed pool buffer based on incoming header.
 func (p *peer) Listen() ([]byte, error) {
+	var size uint32 // read bytes size from header
+	err := binary.Read(p.s, binary.BigEndian, &size)
+	if err != nil {
+		return nil, err
+	}
+
 	// Get a pool buffer chunk
 	buffer := p.pool.Get()
 	defer p.pool.Put(buffer)
 
+	// Read incoming message to buffer.
 	bytes, err := p.s.Read(buffer)
 	log.Printf("got %d bytes from peer", bytes)
 
 	if err == nil {
-		// decode incoming package
-		packet := unmarshal(buffer)
+		// decrypt incoming messages
+		digest := buffer[:size]
+		// Reuse the buffer[:0] = reset slice from byte pool.
+		raw, err := p.s.Decrypt(buffer[:0], digest)
+		if err != nil {
+			return nil, err
+		}
+
+		// decode decrypted packet
+		packet := unmarshall(raw)
 		// validate message signature
-		if !p.s.Verify(packet.Digest, packet.Sig) {
+		if !p.s.Verify(packet.Msg, packet.Sig) {
 			err := fmt.Errorf("invalid signature for incoming message: %s", packet.Sig)
 			return nil, errVerifyingSignature(err)
 		}
 
 		// Receive secure message from peer.
-		// Reuse the buffer[:0] = reset slice from byte pool.
-		return p.s.Decrypt(buffer[:0], packet.Digest)
+		return packet.Msg, nil
 	}
 
 	// net: don't return io.EOF from zero byte reads
