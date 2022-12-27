@@ -85,7 +85,7 @@ const headerSize = 2
 // [Diffie-Hellman X25519]: https://en.wikipedia.org/wiki/Curve25519
 // [Blake2]: https://www.blake2.net/
 
-var CipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2s)
+var CipherSuite = noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashBLAKE2b)
 
 // Default Handshake "XX" noise pattern.
 // Our approach its use a balanced "time/security" pattern.

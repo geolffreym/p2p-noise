@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"runtime"
 	"time"
 
 	"github.com/oxtoacart/bpool"
@@ -158,10 +157,6 @@ func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 	if err := conn.SetLinger(n.config.Linger()); err != nil {
 		return err
 	}
-	// Set max read buffer size for incoming connection.
-	if err := conn.SetReadBuffer(n.config.PoolBufferSize()); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -279,7 +274,7 @@ func (n *Node) Listen() error {
 }
 
 // Close all peers connections and stop listening.
-func (n *Node) Close() {
+func (n *Node) Close() error {
 
 	// stop connected peers
 	log.Print("closing connections and shutting down node..")
@@ -292,8 +287,12 @@ func (n *Node) Close() {
 	}()
 
 	// stop listener
-	n.listener.Close()
-	runtime.GC()
+	if err := n.listener.Close(); err != nil {
+		return err
+	}
+
+	// runtime.GC()
+	return nil
 }
 
 // Dial attempt to connect to remote node and add connected peer to routing table.

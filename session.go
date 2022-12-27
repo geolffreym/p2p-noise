@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 )
 
-// blake2 return a 32-bytes representation for blake2 hash.
+// blake2 return a 32-bytes 256 checksum representation for blake2 hash.
 func blake2(i []byte) []byte {
 	// New returns a new hash.Hash computing the BLAKE2b checksum with a custom length.
 	// A non-nil key turns the hash into a MAC. The key must be between zero and 64 bytes long.
@@ -17,7 +17,7 @@ func blake2(i []byte) []byte {
 	// - 16 if BLAKE2b is used as a MAC function (The key is at least 16 bytes long).
 	// When the key is nil, the returned hash.Hash implements BinaryMarshaler
 	// and BinaryUnmarshaler for state (de)serialization as documented by hash.Hash.
-	hash, err := blake2b.New(blake2b.Size256, nil)
+	hash, err := blake2b.New256(nil)
 	if err != nil {
 		return nil
 	}
