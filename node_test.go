@@ -87,7 +87,6 @@ func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// If not found expected behavior in log results the test fail.
 start:
 	for _, expected := range expectedBehavior {
-		fmt.Print(expected)
 		// Resume scanner carriage in the last log and try to find the next expected
 		for scanner.Scan() {
 			got := scanner.Text()
