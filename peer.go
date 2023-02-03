@@ -14,8 +14,8 @@ import (
 // packet set needed properties to handle incoming message for peer.
 type packet struct {
 	// Ascending order for struct size
-	Sig []byte // N byte Signature
-	Msg []byte // N byte Digest
+	Sig []byte // 24 byte Signature
+	Msg []byte // 24 byte Digest
 }
 
 // TODO marshall using embed encoded to reduce overhead?
@@ -88,14 +88,16 @@ func (p *peer) SetDeadline(t time.Time) error {
 // Send send a message to Peer with size bundled in header for dynamic allocation of buffer.
 // Each message is encrypted using session keys.
 func (p *peer) Send(msg []byte) (uint32, error) {
-	// Get a pool buffer chunk
-	buffer := p.pool.Get()
-	defer p.pool.Put(buffer)
 
 	// only small messages can be signed, which is why it's usually a hash.
 	// hash + signature + encode
 	sig := p.s.Sign(msg)
 	packed := marshall(packet{sig, msg})
+
+	// Get a pool buffer chunk
+	buffer := p.pool.Get()
+	defer p.pool.Put(buffer)
+
 	// Encrypt packet with message and signature inside.
 	// we need to re-slice the buffer to avoid overflow slice because internal append.
 	digest, err := p.s.Encrypt(buffer[:0], packed.Bytes())
@@ -126,6 +128,13 @@ func (p *peer) Listen() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			// Here we just omit any related issue related to overflow message size
+			log.Print("recovered from overflow read message")
+		}
+	}()
 
 	// Get a pool buffer chunk
 	buffer := p.pool.Get()

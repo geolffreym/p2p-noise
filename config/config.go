@@ -133,10 +133,18 @@ func SetMaxPeersConnected(maxPeers uint8) Setter {
 }
 
 // SetPoolBufferSize sets the maximum bytes size received from peers.
-// If the size exceed > MaxPayloadSize then payload is dropped.
 func SetPoolBufferSize(maxPayloadSize int) Setter {
 	return func(conf *Config) {
-		conf.poolBufferSize = maxPayloadSize
+		// any slice takes 24 bytes (3 alignments of 8 bytes)
+		// type packet struct {
+		// 		Sig []byte // 24 byte Signature
+		// 		Msg []byte // 24 byte Digest
+		// }
+
+		// packet struct size + signature + chacha20poly1305.Overhead + padding
+		overhead := 48 + 64 + 16 + 1
+		// Base payload size +  expected cypher + encoding overhead
+		conf.poolBufferSize = maxPayloadSize + overhead
 	}
 }
 
