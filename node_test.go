@@ -3,6 +3,8 @@ package noise
 import (
 	"bufio"
 	"bytes"
+	"crypto/rand"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,14 +15,60 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-// TODO what happen if i reduce to much the bufferpool? se mantiene en el buffer y se debe manejar los trozos antes de desencriptar?
 // TODO reutilizar los encoders/decoders
 // TODO test performance with big file sharing
 // TODO session test
 // TODO handshake test
+
 // phase 1: metrics for adaptive lookup
 // phase 2: compression using brotli vs gzip
 // phase 2 discovery module
+func traceMessageBetweenTwoPeers(nodeA *Node, nodeB *Node, expected string) bool {
+	ready := make(chan bool)
+	// Lets send a message from A to B and see
+	// if we receive the expected decrypted message
+	go func(node *Node) {
+		// Node A events channel
+		signalsA, _ := node.Signals()
+		for signalA := range signalsA {
+			switch signalA.Type() {
+			case SelfListening:
+				ready <- true
+			case NewPeerDetected:
+				// send a message to node b after handshake ready
+				id := signalA.Payload() // here we receive the remote peer id
+				// Send a message to nodeB.
+				// Underneath the message is encrypted and signed with local Private Key before send.
+				nodeA.Send(id, []byte(expected))
+			case PeerDisconnected:
+				break
+			}
+		}
+	}(nodeA)
+
+	<-ready
+
+	// wait until handshake is done
+	if err := nodeB.Dial(nodeA.LocalAddr().String()); err != nil {
+		fmt.Print(err)
+		return false
+	}
+
+	// Node B events channel
+	signalsB, _ := nodeB.Signals()
+	for signalB := range signalsB {
+		if signalB.Type() == MessageReceived {
+			// When a new message is received:
+			// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+			got := signalB.Payload()
+			return got == expected
+
+		}
+	}
+
+	close(ready)
+	return true
+}
 
 func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// store logs in buffer while the function run.
@@ -39,6 +87,7 @@ func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// If not found expected behavior in log results the test fail.
 start:
 	for _, expected := range expectedBehavior {
+
 		// Resume scanner carriage in the last log and try to find the next expected
 		for scanner.Scan() {
 			got := scanner.Text()
@@ -91,69 +140,24 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 	log.SetOutput(ioutil.Discard)
 
 	expected := "Hello node B"
-	nodeASocket := "127.0.0.1:9090"
-	nodeBSocket := "127.0.0.1:9091"
 	configurationA := config.New()
 	configurationB := config.New()
 
-	var wg sync.WaitGroup
-
-	configurationA.Write(
-		config.SetSelfListeningAddress(nodeASocket),
-		config.SetPoolBufferSize(10<<10), // 5mb
-	)
-	configurationB.Write(
-		config.SetSelfListeningAddress(nodeBSocket),
-		config.SetPoolBufferSize(10<<10), // 5mb
-	)
-
-	nodeA := New(configurationA)
-	nodeB := New(configurationB)
-
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
+		nodeA := New(configurationA)
+		nodeB := New(configurationB)
 
-		wg.Add(1)
 		go nodeB.Listen()
 		go nodeA.Listen()
 
-		// Lets send a message from A to B and see if we receive the expected decrypted message
-		go func(node *Node) {
-			// Node A events channel
-			signalsA, _ := node.Signals()
-			for signalA := range signalsA {
-
-				switch signalA.Type() {
-				case SelfListening:
-					wg.Done() // dial until nodeA get ready
-				case NewPeerDetected:
-					// send a message to node b after handshake ready
-					id := signalA.Payload() // here we receive the remote peer id
-					// Send a message to nodeB.
-					// Underneath the message is encrypted and signed with local Private Key before send.
-					nodeA.Send(id, []byte(expected))
-				}
-			}
-		}(nodeA)
-
-		wg.Wait()
-		// Just dial to start handshake and close.
-		nodeB.Dial(nodeASocket) // wait until handshake is done
-
-		// Node B events channel
-		signalsB, _ := nodeB.Signals()
-		for signalB := range signalsB {
-			if signalB.Type() == MessageReceived {
-				// When a new message is received:
-				// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
-				got := signalB.Payload()
-				if got == expected {
-					break
-				}
-
-			}
+		b.StopTimer()
+		validMessageReceived := traceMessageBetweenTwoPeers(nodeA, nodeB, expected)
+		if !validMessageReceived {
+			b.Errorf("Expected incoming message equal to %s", expected)
 		}
-		// then just close nodes
+
+		b.StartTimer()
 		nodeA.Close()
 		nodeB.Close()
 	}
@@ -191,6 +195,37 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		nodeA.Close()
 		nodeB.Close()
 	})
+
+}
+
+func TestPoolBufferSizeForMessageExchange(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
+	configurationA := config.New()
+	configurationB := config.New()
+	// Growing byte size dynamically
+	for x := 0; x < 10; x++ {
+		byteSize := 1 << x
+		b := make([]byte, byteSize)
+
+		rand.Read(b)
+		expected := string(b)
+		configurationA.Write(config.SetPoolBufferSize(byteSize))
+		configurationB.Write(config.SetPoolBufferSize(byteSize))
+
+		nodeA := New(configurationA)
+		nodeB := New(configurationB)
+
+		go nodeB.Listen()
+		go nodeA.Listen()
+
+		validMessage := traceMessageBetweenTwoPeers(nodeA, nodeB, expected)
+		if !validMessage {
+			t.Errorf("expected valid message equal to %s", expected)
+		}
+
+		nodeA.Close()
+		nodeB.Close()
+	}
 
 }
 
@@ -267,8 +302,8 @@ func BenchmarkHandshakeProfile(b *testing.B) {
 			config.SetSelfListeningAddress(nodeAddress),
 			config.SetPoolBufferSize(1<<2),
 		)
-		nodeA := New(configurationA)
 
+		nodeA := New(configurationA)
 		for i := 0; i < peersNumber; i++ {
 			address := "127.0.0.1:"
 			configuration := config.New()

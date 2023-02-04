@@ -85,6 +85,16 @@ func (n *Node) Signals() (<-chan Signal, context.CancelFunc) {
 	return ch, cancel // read only channel for raw messages
 }
 
+// Disconnect close all the peer connections without stop listening.
+func (n *Node) Disconnect() {
+	log.Print("closing connections and shutting down node..")
+	for peer := range n.router.Table() {
+		if err := peer.Close(); err != nil {
+			log.Printf("error when shutting down connection: %v", err)
+		}
+	}
+}
+
 // Send emit a new message using peer id.
 // If peer id doesn't exists or peer is not connected return error.
 // Calling Send extends write deadline.
@@ -157,6 +167,7 @@ func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 	if err := conn.SetLinger(n.config.Linger()); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -250,19 +261,24 @@ func (n *Node) Listen() error {
 	addr := n.config.SelfListeningAddress() // eg. 0.0.0.0
 	protocol := n.config.Protocol()         // eg. tcp
 	listener, err := net.Listen(protocol, addr)
+	log.Printf("listening on %s", addr)
+
 	if err != nil {
+		log.Printf("error listening on %s: %v", addr, err)
 		return err
 	}
 
-	log.Printf("listening on %s", addr)
+	// The order here is IMPORTANT.
+	// We set listener first then we notify listening event, otherwise a race condition is caused.
+	n.listener = listener        // keep reference to current listener.
 	n.events.SelfListening(addr) // emit listening event
-	n.listener = listener        // keep reference to current listener
 
 	for {
 		// Block/Hold while waiting for new incoming connection
 		// Synchronized incoming connections
 		conn, err := listener.Accept()
 		if err != nil {
+			log.Printf("error accepting connection %s", err)
 			return errBindingConnection(err)
 		}
 
@@ -276,16 +292,8 @@ func (n *Node) Listen() error {
 // Close all peers connections and stop listening.
 func (n *Node) Close() error {
 
-	// stop connected peers
-	log.Print("closing connections and shutting down node..")
-	go func() {
-		for peer := range n.router.Table() {
-			if err := peer.Close(); err != nil {
-				log.Printf("error when shutting down connection: %v", err)
-			}
-		}
-	}()
-
+	// close peer connections
+	go n.Disconnect()
 	// stop listener
 	if err := n.listener.Close(); err != nil {
 		return err

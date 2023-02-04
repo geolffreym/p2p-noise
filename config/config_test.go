@@ -70,10 +70,11 @@ func TestPeerDeadline(t *testing.T) {
 func TestMaxPayloadExceeded(t *testing.T) {
 	settings := New()
 	payloadSize := 1024
+	overhead := 64 + 16 + 48 + 1
 	callable := SetPoolBufferSize(payloadSize)
 	callable(settings)
 
-	if settings.PoolBufferSize() != payloadSize {
+	if settings.PoolBufferSize() != (payloadSize + overhead) {
 		t.Errorf("expected MaxPayloadExceeded %#v, got settings %v", payloadSize, settings.PoolBufferSize())
 	}
 }
