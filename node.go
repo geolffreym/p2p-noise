@@ -268,8 +268,10 @@ func (n *Node) Listen() error {
 		return err
 	}
 
+	// The order here is IMPORTANT.
+	// We set listener first then we notify listening event, otherwise a race condition is caused.
+	n.listener = listener        // keep reference to current listener.
 	n.events.SelfListening(addr) // emit listening event
-	n.listener = listener        // keep reference to current listener
 
 	for {
 		// Block/Hold while waiting for new incoming connection

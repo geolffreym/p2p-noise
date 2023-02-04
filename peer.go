@@ -19,7 +19,7 @@ type packet struct {
 }
 
 // TODO marshall using embed encoded to reduce overhead?
-// TODO Usar pipeline para comprimir, encriptar y firmar antes de enviar paquetes?
+// TODO Usar pipeline -> compress, cypher and sign?
 // https://go.dev/blog/pipelines
 
 // TODO Establecer de manera dinámica el send buffer y receiver buffer en el peer y no en el nodo, de modo que se pued la establecerlo usando las métricas
@@ -132,7 +132,7 @@ func (p *peer) Listen() ([]byte, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			// Here we just omit any related issue related to overflow message size
-			log.Print("recovered from overflow read message")
+			log.Printf("recovered from: %v", r)
 		}
 	}()
 

@@ -87,6 +87,7 @@ func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// If not found expected behavior in log results the test fail.
 start:
 	for _, expected := range expectedBehavior {
+
 		// Resume scanner carriage in the last log and try to find the next expected
 		for scanner.Scan() {
 			got := scanner.Text()
@@ -201,7 +202,6 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 	configurationA := config.New()
 	configurationB := config.New()
-
 	// Growing byte size dynamically
 	for x := 0; x < 10; x++ {
 		byteSize := 1 << x
