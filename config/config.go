@@ -143,7 +143,7 @@ func SetPoolBufferSize(maxPayloadSize int) Setter {
 
 		// packet struct size + signature + chacha20poly1305.Overhead + padding
 		overhead := 48 + 64 + 16 + 1
-		// Base payload size +  expected cypher + encoding overhead
+		// Base payload size + overhead
 		conf.poolBufferSize = maxPayloadSize + overhead
 	}
 }
