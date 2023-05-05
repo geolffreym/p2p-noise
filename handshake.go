@@ -246,6 +246,8 @@ func (h *handshake) Valid(enc, dec CipherState) error {
 	return nil
 }
 
+// Start initialize handshake based on peer rol
+// If peer is initiator then Initiate method run else Answer
 func (h *handshake) Start() error {
 	if h.i {
 		// Run as initiator role
