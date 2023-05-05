@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Feb  3 10:41:32 2023
+# Make data base, printed on Sat Feb  4 16:13:37 2023
 
 # Variables
 
@@ -47,6 +47,7 @@ GOPATH = /home/gmena/go
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # makefile (from 'Makefile', line 13)
+ 
 BINARY = main
 # default
 .VARIABLES := 
@@ -98,6 +99,7 @@ XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 XDG_SESSION_DESKTOP = ubuntu
 # makefile (from 'Makefile', line 1)
 MAKEFILE_LIST := Makefile
+ 
 # automatic
 @F = $(notdir $@)
 # environment
@@ -211,6 +213,7 @@ LC_MEASUREMENT = es_NI.UTF-8
 # environment
 GIO_LAUNCHED_DESKTOP_FILE_PID = 5099
 # makefile (from 'Makefile', line 25)
+ 
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
 _ = /usr/share/code/code
@@ -277,6 +280,7 @@ update-pkg-cache:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
+ 
 
 compile-linux:
 #  Implicit rule search has not been done.
@@ -286,7 +290,6 @@ compile-linux:
 	@GOOS=linux GOARCH=amd64 go build -o bin/${LINUX_64} ${INPUT}
 	@GOOS=linux GOARCH=386 go build -o bin/${LINUX_32} ${INPUT}
 
- 
 coverage:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -337,6 +340,7 @@ compile-win:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 94):
+ 
 	@GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} ${INPUT}
 	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} ${INPUT}
 
@@ -409,6 +413,7 @@ build:
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
+ 
 # @ := build
 # automatic
 # * := 
@@ -487,6 +492,6 @@ vendorize:
 # strcache performance: lookups = 97 / hit rate = 36%
 # hash-table stats:
 # Load=62/8192=1%, Rehash=0, Collisions=0/97=0%
-# Finished Make data base on Fri Feb  3 10:41:32 2023
+# Finished Make data base on Sat Feb  4 16:13:37 2023
 
  

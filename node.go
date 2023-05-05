@@ -246,6 +246,7 @@ func (n *Node) routing(conn *session) *peer {
 }
 
 // LocalAddr returns the local address assigned to node.
+// If node is not listening nil is returned instead.
 func (n *Node) LocalAddr() net.Addr {
 	if n.listener == nil {
 		return nil
