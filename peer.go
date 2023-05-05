@@ -99,7 +99,7 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 	defer p.pool.Put(buffer)
 
 	// Encrypt packet with message and signature inside.
-	// we need to re-slice the buffer to avoid overflow slice because internal append.
+	// we need to re-slice the buffer to avoid overflow slice in internal append.
 	digest, err := p.s.Encrypt(buffer[:0], packed.Bytes())
 	if err != nil {
 		return 0, err
