@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Feb  4 16:13:37 2023
+# Make data base, printed on Sat Aug 12 08:13:38 2023
 
 # Variables
 
@@ -31,6 +31,8 @@ LC_NAME = es_NI.UTF-8
 # environment
 LC_NUMERIC = es_NI.UTF-8
 # environment
+VSCODE_CRASH_REPORTER_PROCESS_TYPE = extensionHost
+# environment
 VSCODE_CWD = /home/gmena
 # environment
 WINDOWPATH = 2
@@ -47,7 +49,6 @@ GOPATH = /home/gmena/go
 # environment
 VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # makefile (from 'Makefile', line 13)
- 
 BINARY = main
 # default
 .VARIABLES := 
@@ -62,7 +63,7 @@ XDG_DATA_DIRS = /usr/share/ubuntu:/usr/share/gnome:/home/gmena/.local/share/flat
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/97dec172d3256f8ca4bfb2143f3f76b503ca0534
+VSCODE_CODE_CACHE_PATH = /home/gmena/.config/Code/CachedData/6c3e3dba23e8fadc360aed75ce363ba185c49794
 # environment
 LANG = C
 # environment
@@ -99,11 +100,10 @@ XDG_CONFIG_DIRS = /etc/xdg/xdg-ubuntu:/etc/xdg
 XDG_SESSION_DESKTOP = ubuntu
 # makefile (from 'Makefile', line 1)
 MAKEFILE_LIST := Makefile
- 
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 5099
+VSCODE_PID = 9684
 # environment
 XDG_SESSION_TYPE = x11
 # automatic
@@ -111,7 +111,7 @@ XDG_SESSION_TYPE = x11
 # makefile (from 'Makefile', line 8)
 PACKAGE = p2p-noise
 # environment
-SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/2791,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/2791
+SESSION_MANAGER = local/gmena-ThinkPad-P70:@/tmp/.ICE-unix/3633,unix/gmena-ThinkPad-P70:/tmp/.ICE-unix/3633
 # automatic
 *F = $(notdir $*)
 # environment
@@ -123,7 +123,7 @@ DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
 # automatic
 <D = $(patsubst %/,%,$(dir $<))
 # environment
-VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+VSCODE_NLS_CONFIG = {"locale":"en-us","osLocale":"en-us","availableLanguages":{},"_languagePackSupport":true}
 # default
 MAKE_HOST := x86_64-pc-linux-gnu
 # environment
@@ -145,7 +145,7 @@ MAKELEVEL := 0
 # default
 MAKE = $(MAKE_COMMAND)
 # environment
-PATH = /home/gmena/sdk/go1.19/bin:/home/gmena/go/bin:/bin:/home/gmena/.cargo/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gmena/.local/bin:/home/gmena/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/usr/local/go/bin:/bin:/home/gmena/.local/share/JetBrains/Toolbox/scripts:/home/gmena/.local/share/JetBrains/Toolbox/scripts
+PATH = /home/gmena/sdk/go1.19/bin:/home/gmena/go/bin:/bin:/home/gmena/.cargo/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/gmena/.local/bin:/home/gmena/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/usr/local/go/bin:/bin
 # default
 MAKEFILES := 
 # makefile (from 'Makefile', line 23)
@@ -161,7 +161,7 @@ HOMEBREW_SHELLENV_PREFIX = /home/linuxbrew/.linuxbrew
 # makefile (from 'Makefile', line 15)
 BINARY_OSX = ${BINARY}-darwin
 # environment
-INVOCATION_ID = e7b686228df84a218763228e23d8dbd2
+INVOCATION_ID = 30284db4cb9a405b84b51eabd2a43608
 # makefile (from 'Makefile', line 16)
 BINARY_LINUX = ${BINARY}-linux
 # environment
@@ -170,6 +170,8 @@ USERNAME = gmena
 LC_TELEPHONE = es_NI.UTF-8
 # automatic
 ?F = $(notdir $?)
+# environment
+GTK_IM_MODULE = ibus
 # environment
 XDG_CURRENT_DESKTOP = Unity
 # makefile (from 'Makefile', line 18)
@@ -189,7 +191,7 @@ GIO_LAUNCHED_DESKTOP_FILE = /usr/share/applications/code.desktop
 # makefile
 .DEFAULT_GOAL := test
 # environment
-SYSTEMD_EXEC_PID = 2813
+SYSTEMD_EXEC_PID = 3667
 # environment
 DISPLAY = :0
 # makefile (from 'Makefile', line 7)
@@ -203,7 +205,7 @@ LINUX_32 = ${BINARY_LINUX}-${ARCH_32}
 # makefile (from 'Makefile', line 24)
 WIN_32 = ${BINARY_WIN}-${ARCH_32}
 # environment
-MANAGERPID = 2062
+MANAGERPID = 2510
 # environment
 HOMEBREW_CELLAR = /home/linuxbrew/.linuxbrew/Cellar
 # makefile (from 'Makefile', line 14)
@@ -211,9 +213,8 @@ BINARY_WIN = ${BINARY}-win
 # environment
 LC_MEASUREMENT = es_NI.UTF-8
 # environment
-GIO_LAUNCHED_DESKTOP_FILE_PID = 5099
+GIO_LAUNCHED_DESKTOP_FILE_PID = 9684
 # makefile (from 'Makefile', line 25)
- 
 OSX_64 = ${BINARY_LINUX}-${ARCH_64}
 # environment
 _ = /usr/share/code/code
@@ -224,7 +225,7 @@ XDG_RUNTIME_DIR = /run/user/1000
 # environment
 GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
-JOURNAL_STREAM = 8:38942
+JOURNAL_STREAM = 8:34795
 # environment
 GOMODCACHE = /home/gmena/go/pkg/mod
 # environment
@@ -238,7 +239,7 @@ QT_IM_MODULE = ibus
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.74.3-main.sock
+VSCODE_IPC_HOOK = /run/user/1000/vscode-114bb07b-1.81-main.sock
 # environment
 IM_CONFIG_PHASE = 1
 # makefile (from 'Makefile', line 117)
@@ -258,7 +259,7 @@ GDMSESSION = ubuntu
 # environment
 LC_IDENTIFICATION = es_NI.UTF-8
 # variable set hash-table stats:
-# Load=122/1024=12%, Rehash=0, Collisions=11/157=7%
+# Load=124/1024=12%, Rehash=0, Collisions=11/159=7%
 
 # Pattern-specific Variable Values
 
@@ -277,10 +278,10 @@ LC_IDENTIFICATION = es_NI.UTF-8
 # Files
 
 update-pkg-cache:
+ 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
- 
 
 compile-linux:
 #  Implicit rule search has not been done.
@@ -323,7 +324,7 @@ benchmark:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-12-27 12:47:29.840830435
+#  Last modified 2023-05-05 12:51:06.247074397
 #  File has been updated.
 #  Successfully updated.
 
@@ -340,7 +341,6 @@ compile-win:
 #  Modification time never checked.
 #  File has not been updated.
 #  recipe to execute (from 'Makefile', line 94):
- 
 	@GOOS=windows GOARCH=amd64 go build -o bin/${WIN_64} ${INPUT}
 	@GOOS=windows GOARCH=386 go build -o bin/${WIN_32} ${INPUT}
 
@@ -413,7 +413,6 @@ build:
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
- 
 # @ := build
 # automatic
 # * := 
@@ -492,6 +491,6 @@ vendorize:
 # strcache performance: lookups = 97 / hit rate = 36%
 # hash-table stats:
 # Load=62/8192=1%, Rehash=0, Collisions=0/97=0%
-# Finished Make data base on Sat Feb  4 16:13:37 2023
+# Finished Make data base on Sat Aug 12 08:13:38 2023
 
  

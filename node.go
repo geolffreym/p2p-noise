@@ -80,7 +80,9 @@ func New(config Config) *Node {
 // The listening routine should be stopped using returned cancel func.
 func (n *Node) Signals() (<-chan Signal, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
+	// this channel is closed during listening cancellation
 	ch := make(chan Signal)
+	// forward signals to internal events signaling
 	go n.events.Listen(ctx, ch)
 	return ch, cancel // read only channel for raw messages
 }
@@ -295,12 +297,13 @@ func (n *Node) Close() error {
 
 	// close peer connections
 	go n.Disconnect()
-	// stop listener
-	if err := n.listener.Close(); err != nil {
-		return err
+	if n.listener != nil {
+		// stop listener for listening node only
+		if err := n.listener.Close(); err != nil {
+			return err
+		}
 	}
 
-	// runtime.GC()
 	return nil
 }
 

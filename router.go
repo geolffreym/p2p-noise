@@ -8,8 +8,8 @@ import (
 // router keep a hash table to associate ID with peer.
 // It implements a unstructured mesh topology.
 type router struct {
-	sync.Map
-	counter uint32
+	sync.Map // embed map
+	counter  uint32
 }
 
 func newRouter() *router {

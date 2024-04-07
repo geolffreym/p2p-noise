@@ -80,7 +80,7 @@ func (p *peer) Close() error {
 	return p.s.Close()
 }
 
-// Close its a forward method for internal `SetDeadline` method in session.
+// SetDeadline forward method for internal `SetDeadline` method in session.
 func (p *peer) SetDeadline(t time.Time) error {
 	return p.s.SetDeadline(t)
 }

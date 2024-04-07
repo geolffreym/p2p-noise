@@ -29,6 +29,10 @@ func (s *subscriber) Listen(ctx context.Context, ch chan<- Signal) {
 		// select await both of these values simultaneously, executing each one as it arrives.
 		select {
 		case <-ctx.Done():
+			// It's OK to leave a Go channel open forever and never close it.
+			// When the channel is no longer used, it will be garbage collected.
+			// But "Closing the channel is a control signal on the channel indicating that no more data follows."
+			close(ch)
 			return
 		case msg := <-s.notification:
 			ch <- msg // write only channel chan<-

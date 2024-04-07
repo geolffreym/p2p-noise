@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -25,55 +24,30 @@ import (
 // phase 2 discovery module
 func traceMessageBetweenTwoPeers(nodeA *Node, nodeB *Node, expected string) bool {
 	ready := make(chan bool)
-	// Lets send a message from A to B and see
-	// if we receive the expected decrypted message
-	go func(node *Node) {
-		// Node A events channel
-		signalsA, _ := node.Signals()
-		for signalA := range signalsA {
-			switch signalA.Type() {
-			case SelfListening:
-				ready <- true
-			case NewPeerDetected:
-				// send a message to node b after handshake ready
-				id := signalA.Payload() // here we receive the remote peer id
-				// Send a message to nodeB.
-				// Underneath the message is encrypted and signed with local Private Key before send.
-				nodeA.Send(id, []byte(expected))
-			case PeerDisconnected:
-				break
-			}
-		}
-	}(nodeA)
-
-	<-ready
-
-	// wait until handshake is done
-	if err := nodeB.Dial(nodeA.LocalAddr().String()); err != nil {
-		fmt.Print(err)
-		return false
-	}
 
 	// Node B events channel
-	signalsB, _ := nodeB.Signals()
+	signalsB, cancel := nodeB.Signals()
 	for signalB := range signalsB {
 		if signalB.Type() == MessageReceived {
 			// When a new message is received:
 			// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
 			got := signalB.Payload()
+			cancel() // stop the signaling
 			return got == expected
 
 		}
 	}
 
 	close(ready)
-	return true
+	// by default expected not message received as expected
+	return false
 }
 
 func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// store logs in buffer while the function run.
 	out := new(bytes.Buffer)
 	log.SetFlags(0)
+	// store log output in buffer
 	log.SetOutput(out)
 
 	f() // Exec code to get log snapshot
@@ -140,24 +114,70 @@ func BenchmarkNodesSecureMessageExchange(b *testing.B) {
 	log.SetOutput(ioutil.Discard)
 
 	expected := "Hello node B"
+	ready := make(chan bool)
 	configurationA := config.New()
 	configurationB := config.New()
 
+	b.ResetTimer()
 	b.ReportAllocs()
+
 	for n := 0; n < b.N; n++ {
+		b.StopTimer()
 		nodeA := New(configurationA)
 		nodeB := New(configurationB)
 
 		go nodeB.Listen()
 		go nodeA.Listen()
 
-		b.StopTimer()
-		validMessageReceived := traceMessageBetweenTwoPeers(nodeA, nodeB, expected)
-		if !validMessageReceived {
-			b.Errorf("Expected incoming message equal to %s", expected)
-		}
+		// Lets send a message from A to B and see
+		// if we receive the expected decrypted message
+		go func(node *Node) {
+			// Node A events channel
+			signalsA, _ := node.Signals()
+			for signalA := range signalsA {
+				switch signalA.Type() {
+				case SelfListening:
+					ready <- true
+				case NewPeerDetected:
+					// send a message to node b after handshake ready
+					id := signalA.Payload() // here we receive the remote peer id
+					// Send a message to nodeB.
+					// Underneath the message is encrypted and signed with local Private Key before send.
+					nodeA.Send(id, []byte(expected))
+				case PeerDisconnected:
+					// fmt.Printf("peerDisconnected %x \n", signalA.Payload())
+					return
+				}
+			}
+		}(nodeA)
+
+		// wait until node a gets ready
+		<-ready
+
+		// wait until handshake is done
+		nodeB.Dial(nodeA.LocalAddr().String())
+
+		// we need to measure message exchange only so we start time here
+		// sign + encryption + marshall + transmission
 
 		b.StartTimer()
+		// Node B events channel
+		signalsB, cancel := nodeB.Signals()
+		for signalB := range signalsB {
+			switch signalB.Type() {
+			case MessageReceived:
+				// When a new message is received:
+				// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+				got := signalB.Payload()
+				cancel() // stop the signaling if not the loop will ream open forever
+				if got != expected {
+					b.Errorf("Expected incoming message equal to %s", expected)
+				}
+
+			}
+		}
+
+		b.StopTimer()
 		nodeA.Close()
 		nodeB.Close()
 	}
