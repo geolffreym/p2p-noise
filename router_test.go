@@ -79,15 +79,21 @@ func TestTable(t *testing.T) {
 
 	router.Add(peerA)
 	router.Add(peerB)
-	var counter int = 0
 
+LOOP:
 	for peer := range router.Table() {
 		got := peer.ID().String()
-		e := expected[counter]
-		if got != e {
-			t.Errorf("expected corresponding table peer entry %x, got %x", e, got)
+
+		for _, expect := range expected {
+			if expect == got {
+				// move to loop and start again with next
+				// this approach is equivalent to run a needle in a haystack
+				// and avoid the error if match found forwarding the iteration to the main loop
+				continue LOOP
+			}
 		}
-		counter++
+
+		t.Errorf("expected corresponding table matching entry %x", got)
 	}
 
 }

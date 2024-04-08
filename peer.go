@@ -18,7 +18,6 @@ type packet struct {
 	Msg []byte // 24 byte Digest
 }
 
-// TODO marshall using embed encoded to reduce overhead?
 // TODO Usar pipeline -> compress, cypher and sign?
 // https://go.dev/blog/pipelines
 

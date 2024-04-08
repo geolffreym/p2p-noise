@@ -7,6 +7,8 @@ import (
 
 // router keep a hash table to associate ID with peer.
 // It implements a unstructured mesh topology.
+// Unstructured P2P topologies do not attempt to organize all peers into a single, structured topology.
+// Rather, each peer attempts to keep a "sensible" set of other peers in its routing table
 type router struct {
 	sync.Map // embed map
 	counter  uint32

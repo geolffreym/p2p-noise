@@ -75,11 +75,11 @@ preview-doc:
 build:
 	@go build -v ./...
 
-code-fmt: 
+format: 
 	@go fmt ./...
 	@echo "[OK] code format finished"
 
-code-check:
+check:
 	@go vet -v ./...
 	@echo "[OK] code check finished"
 
