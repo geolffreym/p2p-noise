@@ -80,21 +80,21 @@ func main() {
 Using [perflock](https://github.com/aclements/perflock) to prevent our benchmarks from using too much CPU at once.
 
 ```text
-perflock -governor=80% go test -benchmem -run=^$ -benchtime 1s -bench=BenchmarkHandshakeProfile -cpu 1,2,4,8 -count 2 -memprofile mem.prof -cpuprofile cpu.prof
+perflock -governor=80% go test -benchmem -run=^$ -benchtime 1s -bench=. -cpu 1,2,4,8 -count=1
 goos: linux
 goarch: amd64
 pkg: github.com/geolffreym/p2p-noise
 cpu: Intel(R) Xeon(R) CPU E3-1505M v5 @ 2.80GHz
-BenchmarkHandshakeProfile            962           1061028 ns/op           34391 B/op        267 allocs/op
-BenchmarkHandshakeProfile           1322            919647 ns/op           34383 B/op        267 allocs/op
-BenchmarkHandshakeProfile-2         1294            834506 ns/op           37095 B/op        285 allocs/op
-BenchmarkHandshakeProfile-2         1398            858845 ns/op           36872 B/op        284 allocs/op
-BenchmarkHandshakeProfile-4         1395            875618 ns/op           41912 B/op        323 allocs/op
-BenchmarkHandshakeProfile-4         1341            914046 ns/op           41858 B/op        323 allocs/op
-BenchmarkHandshakeProfile-8         1276            879535 ns/op           42055 B/op        324 allocs/op
-BenchmarkHandshakeProfile-8         1279            929125 ns/op           41812 B/op        323 allocs/op
+BenchmarkHandshakeProfile                            726           1575256 ns/op           46959 B/op        363 allocs/op
+BenchmarkHandshakeProfile-2                         1548           1037351 ns/op           47100 B/op        364 allocs/op
+BenchmarkHandshakeProfile-4                         2460            908573 ns/op           49885 B/op        383 allocs/op
+BenchmarkHandshakeProfile-8                         2127            736442 ns/op           60454 B/op        457 allocs/op
+BenchmarkNodesSecureMessageExchange             29032570                35.03 ns/op            0 B/op          0 allocs/op
+BenchmarkNodesSecureMessageExchange-2           59745247                16.78 ns/op            0 B/op          0 allocs/op
+BenchmarkNodesSecureMessageExchange-4           124446950                9.454 ns/op           0 B/op          0 allocs/op
+BenchmarkNodesSecureMessageExchange-8           151214516                7.088 ns/op           0 B/op          0 allocs/op
 PASS
-ok      github.com/geolffreym/p2p-noise 13.201s
+ok      github.com/geolffreym/p2p-noise 18.865s
 
 ```
 
