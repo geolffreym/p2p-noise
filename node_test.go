@@ -13,6 +13,7 @@ import (
 	"github.com/geolffreym/p2p-noise/config"
 )
 
+// TODO test exchange big messages
 // phase 1: metrics for adaptive lookup
 // phase 2: compression using brotli vs gzip
 // phase 2 discovery module

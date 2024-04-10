@@ -297,11 +297,14 @@ func (n *Node) Close() error {
 
 	// close peer connections
 	go n.Disconnect()
-	if n.listener != nil {
-		// stop listener for listening node only
-		if err := n.listener.Close(); err != nil {
-			return err
-		}
+
+	// stop listener for listening node only
+	if n.listener == nil {
+		return nil
+	}
+
+	if err := n.listener.Close(); err != nil {
+		return err
 	}
 
 	return nil

@@ -20,8 +20,10 @@ func newRouter() *router {
 
 // Table return fan out channel with routed peers.
 func (r *router) Table() <-chan *peer {
+	// buffered channel
 	ch := make(chan *peer, r.Len())
 	// ref: https://pkg.go.dev/sync#Map.Range
+	// generate valid peers from table
 	r.Range(func(_, value any) bool {
 		if p, ok := value.(*peer); ok {
 			ch <- p
