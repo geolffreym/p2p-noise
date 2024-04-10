@@ -1,5 +1,3 @@
-//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
-
 // P2P Noise Library.
 // Please read more about [Noise Protocol].
 //
@@ -103,8 +101,9 @@ func (n *Node) Disconnect() {
 func (n *Node) Send(rawID string, message []byte) (uint32, error) {
 	id := newIDFromString(rawID)
 	// Check if id exists in connected peers
-	peer := n.router.Query(id)
-	if peer == nil {
+	// check in-band error
+	peer, ok := n.router.Query(id)
+	if !ok {
 		err := fmt.Errorf("remote peer disconnected: %s", id.String())
 		return 0, errSendingMessage(err)
 	}
@@ -175,7 +174,6 @@ func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 
 // handshake starts a new handshake for incoming or dialed connection.
 // After handshake completes a new session is created and a new peer is created to be added to router.
-// Marshaling data to/from on the network path as a "chain of responsibility".
 // If TCP protocol is used connection is enforced to keep alive.
 // Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {

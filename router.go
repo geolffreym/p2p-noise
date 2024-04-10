@@ -38,16 +38,17 @@ func (r *router) Table() <-chan *peer {
 }
 
 // Query return connection interface based on socket parameter.
-func (r *router) Query(id ID) *peer {
+// In-band error returned
+func (r *router) Query(id ID) (*peer, bool) {
 	// exist socket related peer?
 	p, exists := r.Load(id)
 	peer, ok := p.(*peer)
 
 	if !exists || !ok {
-		return nil
+		return nil, false
 	}
 
-	return peer
+	return peer, ok
 }
 
 // Add forward method to internal sync.Map store for peer.
