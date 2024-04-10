@@ -99,19 +99,19 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 
 	// Encrypt packet with message and signature inside.
 	// we need to re-slice the buffer to avoid overflow slice in internal append.
-	digest, err := p.s.Encrypt(buffer[:0], packed.Bytes())
+	ciphertext, err := p.s.Encrypt(buffer[:0], packed.Bytes())
 	if err != nil {
 		return 0, err
 	}
 
 	// 4 bytes for message size.
-	err = binary.Write(p.s, binary.BigEndian, uint32(len(digest)))
+	err = binary.Write(p.s, binary.BigEndian, uint32(len(ciphertext)))
 	if err != nil {
 		return 0, err
 	}
 
 	// stream encrypted packet
-	bytes, err := p.s.Write(digest)
+	bytes, err := p.s.Write(ciphertext)
 	if err != nil {
 		return 0, err
 	}
@@ -145,9 +145,9 @@ func (p *peer) Listen() ([]byte, error) {
 
 	if err == nil {
 		// decrypt incoming messages
-		digest := buffer[:size]
+		ciphertext := buffer[:size]
 		// Reuse the buffer[:0] = reset slice from byte pool.
-		raw, err := p.s.Decrypt(buffer[:0], digest)
+		raw, err := p.s.Decrypt(buffer[:0], ciphertext)
 		if err != nil {
 			return nil, err
 		}

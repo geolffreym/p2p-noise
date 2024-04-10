@@ -1,4 +1,4 @@
-// P2P Noise Library.
+// Noise based P2P Library.
 // Please read more about [Noise Protocol].
 //
 // [Noise Protocol]: http://www.noiseprotocol.org/noise.html

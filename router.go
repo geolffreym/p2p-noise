@@ -38,9 +38,10 @@ func (r *router) Table() <-chan *peer {
 }
 
 // Query return connection interface based on socket parameter.
-// In-band error returned
+// In-band error returned. This return value may be an error, or a boolean when no explanation is needed.
+// refer:  https://go.dev/wiki/CodeReviewComments
 func (r *router) Query(id ID) (*peer, bool) {
-	// exist socket related peer?
+
 	p, exists := r.Load(id)
 	peer, ok := p.(*peer)
 
@@ -48,7 +49,7 @@ func (r *router) Query(id ID) (*peer, bool) {
 		return nil, false
 	}
 
-	return peer, ok
+	return peer, true
 }
 
 // Add forward method to internal sync.Map store for peer.

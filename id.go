@@ -30,9 +30,7 @@ func newIDFromString(s string) ID {
 // newBlake2ID creates a new id blake2 hash based.
 func newBlake2ID(plaintext []byte) ID {
 	var id ID
-	// Hash
 	hash := blake2(plaintext)
-	// Populate id
 	copy(id[:], hash)
 	return id
 }
