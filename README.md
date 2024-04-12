@@ -107,12 +107,12 @@ Some available capabilities for dev support:
 * **Test Coverage**: `make coverage`
 * **Benchmark**: `make benchmark`
 * **Profiling**: `make profiling`
-* **Code check**: `make code-check`
-* **Code format**: `make code-fmt`
+* **Code check**: `make check`
+* **Code format**: `make format`
 * **Flush cache**: `make clean`
 * **Build**: `make build`
 
-Note: Please check [Makefile](https://github.com/geolffreym/p2p-noise/Makefile) for more capabilities.  
+Note: Run `make help` to check for more capabilities.  
 
 ## More info
 

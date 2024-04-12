@@ -2,8 +2,8 @@ package noise
 
 import "context"
 
-// subscriber intercept Signal from already subscribed topics in broker
-// Handle actions to emit or receive events.
+// subscriber intercept Signal from already subscribed topics in broker.
+// It handles actions to emit or receive events.
 type subscriber struct {
 	// No, you don't need to close the channel
 	// https://stackoverflow.com/questions/8593645/is-it-ok-to-leave-a-channel-open

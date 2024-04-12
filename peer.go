@@ -43,8 +43,7 @@ func unmarshall(b []byte) packet {
 	return p
 }
 
-// peer its the trusty remote peer.
-// Provide needed methods to interact with the secured session.
+// peer represents a trusty remote peer, providing necessary methods to interact with the secured session.
 type peer struct {
 	// Optimizing space with ordered types.
 	// the attributes orders matters.

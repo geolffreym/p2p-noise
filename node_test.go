@@ -247,9 +247,7 @@ func TestSomeNodesHandshake(t *testing.T) {
 
 }
 
-// go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
-// go tool pprof {file}
-func BenchmarkHandshakeProfile(b *testing.B) {
+func BenchmarkHandshake(b *testing.B) {
 
 	// Discard logs to avoid extra allocations.
 	log.SetOutput(ioutil.Discard)
