@@ -41,8 +41,7 @@ type session struct {
 
 // Create a new secure session
 func newSession(conn net.Conn, kr KeyRing) (*session, error) {
-	var pb PublicKey
-	return &session{conn, kr, pb, nil, nil}, nil
+	return &session{conn, kr, PublicKey{}, nil, nil}, nil
 }
 
 // Set encryption/decryption state for session.

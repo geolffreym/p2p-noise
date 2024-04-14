@@ -5,11 +5,13 @@ import (
 	"sync/atomic"
 )
 
-// router keep a hash table to associate ID with peer.
-// It implements a unstructured mesh topology.
+// router keeps a hash table to associate IDs with peers.
+// It implements an unstructured mesh topology.
+// Unstructured P2P topologies do not attempt to organize all peers into a single, structured topology.
+// Rather, each peer attempts to keep a "sensible" set of other peers in its routing table.
 type router struct {
-	sync.Map
-	counter uint32
+	sync.Map // embed map
+	counter  uint32
 }
 
 func newRouter() *router {
@@ -18,8 +20,10 @@ func newRouter() *router {
 
 // Table return fan out channel with routed peers.
 func (r *router) Table() <-chan *peer {
+	// buffered channel
 	ch := make(chan *peer, r.Len())
 	// ref: https://pkg.go.dev/sync#Map.Range
+	// generate valid peers from table
 	r.Range(func(_, value any) bool {
 		if p, ok := value.(*peer); ok {
 			ch <- p
@@ -34,16 +38,18 @@ func (r *router) Table() <-chan *peer {
 }
 
 // Query return connection interface based on socket parameter.
-func (r *router) Query(id ID) *peer {
-	// exist socket related peer?
+// In-band error returned. This return value may be an error, or a boolean when no explanation is needed.
+// refer:  https://go.dev/wiki/CodeReviewComments
+func (r *router) Query(id ID) (*peer, bool) {
+
 	p, exists := r.Load(id)
 	peer, ok := p.(*peer)
 
 	if !exists || !ok {
-		return nil
+		return nil, false
 	}
 
-	return peer
+	return peer, true
 }
 
 // Add forward method to internal sync.Map store for peer.

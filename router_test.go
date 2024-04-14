@@ -19,7 +19,7 @@ func TestAdd(t *testing.T) {
 	for _, e := range expected {
 		t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
 			// Match recently added peer
-			if p := router.Query(e); p == nil {
+			if _, ok := router.Query(e); !ok {
 				t.Errorf("expected routed peer id %x", e.String())
 			}
 		})
@@ -39,7 +39,7 @@ func TestQuery(t *testing.T) {
 	for _, e := range expected {
 		t.Run(fmt.Sprintf("%x", e), func(t *testing.T) {
 			// Return the socket related peer
-			if peer := router.Query(e); peer == nil {
+			if peer, ok := router.Query(e); !ok {
 				t.Errorf("expected peer for valid socket %#v, got %v", e.String(), peer)
 			}
 		})
@@ -51,7 +51,7 @@ func TestQuery(t *testing.T) {
 func TestInvalidQuery(t *testing.T) {
 	router := newRouter()
 	id := mockID(PeerBPb)
-	if peer := router.Query(id); peer != nil {
+	if peer, ok := router.Query(id); ok {
 		t.Errorf("expected nil for invalid socket %#v, got %v", PeerBPb, peer)
 	}
 
@@ -79,15 +79,21 @@ func TestTable(t *testing.T) {
 
 	router.Add(peerA)
 	router.Add(peerB)
-	var counter int = 0
 
+LOOP:
 	for peer := range router.Table() {
 		got := peer.ID().String()
-		e := expected[counter]
-		if got != e {
-			t.Errorf("expected corresponding table peer entry %x, got %x", e, got)
+
+		for _, expect := range expected {
+			if expect == got {
+				// move to loop and start again with next
+				// this approach is equivalent to run a needle in a haystack
+				// and avoid the error if match found forwarding the iteration to the main loop
+				continue LOOP
+			}
 		}
-		counter++
+
+		t.Errorf("expected corresponding table matching entry %x", got)
 	}
 
 }
@@ -106,11 +112,11 @@ func TestDelete(t *testing.T) {
 	router.Remove(peerB)
 	router.Remove(peerE)
 
-	if router.Query(peerB.ID()) != nil {
+	if _, ok := router.Query(peerB.ID()); ok {
 		t.Errorf("expected %v not registered in router after delete", peerB.ID())
 	}
 
-	if router.Query(peerE.ID()) != nil {
+	if _, ok := router.Query(peerE.ID()); ok {
 		t.Errorf("expected %v not registered in router after delete", peerE.ID())
 	}
 

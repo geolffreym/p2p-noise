@@ -203,9 +203,9 @@ func newHandshake(conn net.Conn, initiator bool) (*handshake, error) {
 	// Setup the max of size possible for tokens exchanged between peers.
 	edKeyLen := ed25519.PublicKeySize          // 32 bytes
 	dhKeyLen := 2 * noise.DH25519.DHLen()      // 64 bytes
-	cypherLen := 2 * chacha20poly1305.Overhead // 32 bytes
+	cipherLen := 2 * chacha20poly1305.Overhead // 32 bytes
 	// Sum the needed memory size for pool
-	size := dhKeyLen + edKeyLen + cypherLen + headerSize
+	size := dhKeyLen + edKeyLen + cipherLen + headerSize
 	pool := bpool.NewBytePool(bPools, size) // N bytes pool
 
 	// Create a new session handler

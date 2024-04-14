@@ -18,10 +18,6 @@ type packet struct {
 	Msg []byte // 24 byte Digest
 }
 
-// TODO marshall using embed encoded to reduce overhead?
-// TODO Usar pipeline -> compress, cypher and sign?
-// https://go.dev/blog/pipelines
-
 // TODO Establecer de manera dinámica el send buffer y receiver buffer en el peer y no en el nodo, de modo que se pued la establecerlo usando las métricas
 // https://community.f5.com/t5/technical-articles/the-tcp-send-buffer-in-depth/ta-p/290760
 
@@ -44,8 +40,7 @@ func unmarshall(b []byte) packet {
 	return p
 }
 
-// peer its the trusty remote peer.
-// Provide needed methods to interact with the secured session.
+// peer represents a trusty remote peer, providing necessary methods to interact with the secured session.
 type peer struct {
 	// Optimizing space with ordered types.
 	// the attributes orders matters.
@@ -80,7 +75,7 @@ func (p *peer) Close() error {
 	return p.s.Close()
 }
 
-// Close its a forward method for internal `SetDeadline` method in session.
+// SetDeadline forward method for internal `SetDeadline` method in session.
 func (p *peer) SetDeadline(t time.Time) error {
 	return p.s.SetDeadline(t)
 }
@@ -100,19 +95,19 @@ func (p *peer) Send(msg []byte) (uint32, error) {
 
 	// Encrypt packet with message and signature inside.
 	// we need to re-slice the buffer to avoid overflow slice in internal append.
-	digest, err := p.s.Encrypt(buffer[:0], packed.Bytes())
+	ciphertext, err := p.s.Encrypt(buffer[:0], packed.Bytes())
 	if err != nil {
 		return 0, err
 	}
 
 	// 4 bytes for message size.
-	err = binary.Write(p.s, binary.BigEndian, uint32(len(digest)))
+	err = binary.Write(p.s, binary.BigEndian, uint32(len(ciphertext)))
 	if err != nil {
 		return 0, err
 	}
 
 	// stream encrypted packet
-	bytes, err := p.s.Write(digest)
+	bytes, err := p.s.Write(ciphertext)
 	if err != nil {
 		return 0, err
 	}
@@ -146,9 +141,9 @@ func (p *peer) Listen() ([]byte, error) {
 
 	if err == nil {
 		// decrypt incoming messages
-		digest := buffer[:size]
+		ciphertext := buffer[:size]
 		// Reuse the buffer[:0] = reset slice from byte pool.
-		raw, err := p.s.Decrypt(buffer[:0], digest)
+		raw, err := p.s.Decrypt(buffer[:0], ciphertext)
 		if err != nil {
 			return nil, err
 		}

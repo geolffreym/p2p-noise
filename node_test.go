@@ -4,76 +4,45 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/rand"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/geolffreym/p2p-noise/config"
 )
 
-// TODO reutilizar los encoders/decoders
-// TODO test performance with big file sharing
-// TODO session test
-// TODO handshake test
-
+// TODO test exchange big messages
 // phase 1: metrics for adaptive lookup
 // phase 2: compression using brotli vs gzip
 // phase 2 discovery module
-func traceMessageBetweenTwoPeers(nodeA *Node, nodeB *Node, expected string) bool {
+func traceMessageBetweenTwoPeers(nodeB *Node, expected string) bool {
 	ready := make(chan bool)
-	// Lets send a message from A to B and see
-	// if we receive the expected decrypted message
-	go func(node *Node) {
-		// Node A events channel
-		signalsA, _ := node.Signals()
-		for signalA := range signalsA {
-			switch signalA.Type() {
-			case SelfListening:
-				ready <- true
-			case NewPeerDetected:
-				// send a message to node b after handshake ready
-				id := signalA.Payload() // here we receive the remote peer id
-				// Send a message to nodeB.
-				// Underneath the message is encrypted and signed with local Private Key before send.
-				nodeA.Send(id, []byte(expected))
-			case PeerDisconnected:
-				break
-			}
-		}
-	}(nodeA)
-
-	<-ready
-
-	// wait until handshake is done
-	if err := nodeB.Dial(nodeA.LocalAddr().String()); err != nil {
-		fmt.Print(err)
-		return false
-	}
 
 	// Node B events channel
-	signalsB, _ := nodeB.Signals()
+	signalsB, cancel := nodeB.Signals()
 	for signalB := range signalsB {
 		if signalB.Type() == MessageReceived {
 			// When a new message is received:
 			// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
 			got := signalB.Payload()
+			cancel() // stop the signaling
 			return got == expected
 
 		}
 	}
 
 	close(ready)
-	return true
+	// by default expected not message received as expected
+	return false
 }
 
 func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// store logs in buffer while the function run.
 	out := new(bytes.Buffer)
 	log.SetFlags(0)
+	// store log output in buffer
 	log.SetOutput(out)
 
 	f() // Exec code to get log snapshot
@@ -104,26 +73,23 @@ start:
 
 }
 
-func whenReadyForIncomingDial(nodes []*Node) *sync.WaitGroup {
+func whenReadyForIncomingDial(node *Node) <-chan bool {
 	// Wait until all the nodes are ready for incoming connections.
-	var wg sync.WaitGroup
+	ready := make(chan bool)
 
-	for _, node := range nodes {
-		wg.Add(1)
-		go node.Listen()
-		// Populate wait group
-		go func(n *Node) {
-			signals, _ := n.Signals()
-			for signal := range signals {
-				if signal.Type() == SelfListening {
-					wg.Done()
-					return
-				}
+	go node.Listen()
+	// Populate wait group
+	go func(n *Node) {
+		signals, _ := n.Signals()
+		for signal := range signals {
+			if signal.Type() == SelfListening {
+				ready <- true
+				return
 			}
-		}(node)
-	}
+		}
+	}(node)
 
-	return &wg
+	return ready
 }
 
 func TestWithZeroFutureDeadline(t *testing.T) {
@@ -131,35 +97,6 @@ func TestWithZeroFutureDeadline(t *testing.T) {
 
 	if !idle.Equal(time.Time{}) {
 		t.Errorf("Expected returned 'no deadline', got %v", idle)
-	}
-
-}
-
-func BenchmarkNodesSecureMessageExchange(b *testing.B) {
-	// Discard logs to avoid extra allocations.
-	log.SetOutput(ioutil.Discard)
-
-	expected := "Hello node B"
-	configurationA := config.New()
-	configurationB := config.New()
-
-	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
-		nodeA := New(configurationA)
-		nodeB := New(configurationB)
-
-		go nodeB.Listen()
-		go nodeA.Listen()
-
-		b.StopTimer()
-		validMessageReceived := traceMessageBetweenTwoPeers(nodeA, nodeB, expected)
-		if !validMessageReceived {
-			b.Errorf("Expected incoming message equal to %s", expected)
-		}
-
-		b.StartTimer()
-		nodeA.Close()
-		nodeB.Close()
 	}
 
 }
@@ -187,13 +124,17 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		nodeA := New(configurationA)
 		nodeB := New(configurationB)
 
+		go nodeA.Listen()
+		// then just close nodes
+		defer nodeA.Close()
+		defer nodeB.Close()
+
 		// wait until node is listening to start dialing
-		whenReadyForIncomingDial([]*Node{nodeA, nodeB}).Wait()
+		<-whenReadyForIncomingDial(nodeA)
+
 		// Just dial to start handshake and close.
 		nodeB.Dial(nodeASocket) // wait until handshake is done
-		// then just close nodes
-		nodeA.Close()
-		nodeB.Close()
+
 	})
 
 }
@@ -202,29 +143,61 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 	configurationA := config.New()
 	configurationB := config.New()
-	// Growing byte size dynamically
-	for x := 0; x < 10; x++ {
-		byteSize := 1 << x
-		b := make([]byte, byteSize)
 
-		rand.Read(b)
-		expected := string(b)
-		configurationA.Write(config.SetPoolBufferSize(byteSize))
-		configurationB.Write(config.SetPoolBufferSize(byteSize))
+	byteSize := 1 << 4
+	ready := make(chan bool)
+	b := make([]byte, byteSize)
 
-		nodeA := New(configurationA)
-		nodeB := New(configurationB)
+	rand.Read(b) // fill buffer with pseudorandom numbers
+	expected := string(b)
+	configurationA.Write(config.SetPoolBufferSize(byteSize))
+	configurationB.Write(config.SetPoolBufferSize(byteSize))
 
-		go nodeB.Listen()
-		go nodeA.Listen()
+	nodeA := New(configurationA)
+	nodeB := New(configurationB)
 
-		validMessage := traceMessageBetweenTwoPeers(nodeA, nodeB, expected)
-		if !validMessage {
-			t.Errorf("expected valid message equal to %s", expected)
+	go nodeB.Listen()
+	go nodeA.Listen()
+	defer nodeA.Close()
+	defer nodeB.Close()
+
+	// Lets send a message from A to B and see
+	// if we receive the expected decrypted message
+	go func(node *Node) {
+		// Node A events channel
+		signalsA, _ := node.Signals()
+		for signalA := range signalsA {
+			switch signalA.Type() {
+			case SelfListening:
+				ready <- true
+			case NewPeerDetected:
+				// send a message to node b after handshake ready
+				id := signalA.Payload() // here we receive the remote peer id
+				// Start interaction with remote peer
+				// Underneath the message is encrypted and signed with local Private Key before send.
+				nodeA.Send(id, []byte(expected))
+			}
 		}
+	}(nodeA)
 
-		nodeA.Close()
-		nodeB.Close()
+	<-ready
+
+	// Node B events channel
+	nodeB.Dial(nodeA.LocalAddr().String())
+	signalsB, cancel := nodeB.Signals()
+
+	for signalB := range signalsB {
+		if signalB.Type() == MessageReceived {
+			// When a new message is received:
+			// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+			got := signalB.Payload()
+			cancel() // stop the signaling
+
+			if got != expected {
+				t.Errorf("expected valid message equal to %s", expected)
+			}
+
+		}
 	}
 
 }
@@ -251,18 +224,11 @@ func TestSomeNodesHandshake(t *testing.T) {
 	nodeC := New(configurationC)
 	nodeD := New(configurationD)
 
-	var nodes = []*Node{
-		nodeA,
-		nodeB,
-		nodeC,
-		nodeD,
-	}
-
 	// When all peers are listening then start dialing between them.
-	whenReadyForIncomingDial(nodes).Wait()
+	<-whenReadyForIncomingDial(nodeA)
+
 	nodeB.Dial(nodeASocket)
 	nodeC.Dial(nodeASocket)
-	nodeC.Dial(nodeBSocket)
 	nodeD.Dial(nodeBSocket)
 
 	// Network events channel
@@ -281,51 +247,121 @@ func TestSomeNodesHandshake(t *testing.T) {
 
 }
 
-// go test -benchmem -run=^$ -benchmem -memprofile memprofile.out -cpuprofile cpuprofile.out -bench=BenchmarkHandshakeProfile
-// go tool pprof {file}
-func BenchmarkHandshakeProfile(b *testing.B) {
+func BenchmarkHandshake(b *testing.B) {
 
 	// Discard logs to avoid extra allocations.
 	log.SetOutput(ioutil.Discard)
 
+	configurationA := config.New()
+	configurationA.Write(
+		config.SetPoolBufferSize(1 << 2),
+	)
+
+	nodeA := New(configurationA)
+	go nodeA.Listen()
+	defer nodeA.Close()
+
+	<-whenReadyForIncomingDial(nodeA)
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
+	b.RunParallel(func(pb *testing.PB) {
+
 		b.StopTimer()
+		for pb.Next() {
 
-		var peers []*Node
-		var peersNumber int = 1
-
-		nodeAddress := "127.0.0.1:9095"
-		configurationA := config.New()
-		configurationA.Write(
-			config.SetSelfListeningAddress(nodeAddress),
-			config.SetPoolBufferSize(1<<2),
-		)
-
-		nodeA := New(configurationA)
-		for i := 0; i < peersNumber; i++ {
-			address := "127.0.0.1:"
+			b.StopTimer()
 			configuration := config.New()
 			configuration.Write(
-				config.SetSelfListeningAddress(address),
-				config.SetPoolBufferSize(1<<2),
+				config.SetPoolBufferSize(1 << 2),
 			)
+
 			node := New(configuration)
-			peers = append(peers, node)
+
+			// Start timer to measure the handshake process.
+			// Handshake start when two nodes are connected and isn't happening before dial.
+			// Avoid to add prev initialization.
+			b.StartTimer()
+			node.Dial(nodeA.LocalAddr().String())
+			node.Close()
+
 		}
 
-		whenReadyForIncomingDial(append(peers, nodeA)).Wait()
-		// Start timer to measure the handshake process.
-		// Handshake start when two nodes are connected and isn't happening before dial.
-		// Avoid to add prev initialization.
+	})
+
+}
+
+func BenchmarkNodesSecureMessageExchange(b *testing.B) {
+	// Discard logs to avoid extra allocations.
+	log.SetOutput(ioutil.Discard)
+
+	ready := make(chan bool)
+	configurationA := config.New()
+	configurationB := config.New()
+
+	nodeA := New(configurationA)
+	go nodeA.Listen()
+	defer nodeA.Close()
+
+	// Lets send a message from A to B and see
+	// if we receive the expected decrypted message
+	go func(node *Node) {
+		// Node A events channel
+		signalsA, _ := node.Signals()
+		for signalA := range signalsA {
+			switch signalA.Type() {
+			case SelfListening:
+				ready <- true
+			case MessageReceived:
+				// When a new message is received:
+				// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+				signalA.Reply([]byte("pong"))
+			}
+		}
+	}(nodeA)
+
+	// wait until node a gets ready
+	<-ready
+
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	b.RunParallel(func(pb *testing.PB) {
+
+		nodeB := New(configurationB)
+		defer nodeB.Close()
+
+		// wait until handshake is done
+		nodeB.Dial(nodeA.LocalAddr().String())
+		signalsB, cancel := nodeB.Signals()
+
 		b.StartTimer()
-		for _, peer := range peers {
-			peer.Dial(nodeAddress)
-			peer.Close()
+
+		for pb.Next() {
+
+			// we need to measure message exchange only so we start time here
+			// sign + encryption + marshall + transmission
+			// Node B events channel
+
+			for signalB := range signalsB {
+				switch signalB.Type() {
+				case NewPeerDetected:
+					// send a message to node b after handshake ready
+					id := signalB.Payload() // here we receive the remote peer id
+					// Start interaction with remote peer
+					// Underneath the message is encrypted and signed with local Private Key before send.
+					nodeB.Send(id, []byte("ping"))
+				case MessageReceived:
+					// When a new message is received:
+					// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+					if signalB.Payload() == "pong" {
+						cancel()
+					}
+				}
+			}
+
 		}
 
-		nodeA.Close()
-	}
+	})
 
 }

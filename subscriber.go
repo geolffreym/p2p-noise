@@ -2,8 +2,8 @@ package noise
 
 import "context"
 
-// subscriber intercept Signal from already subscribed topics in broker
-// Handle actions to emit or receive events.
+// subscriber intercept Signal from already subscribed topics in broker.
+// It handles actions to emit or receive events.
 type subscriber struct {
 	// No, you don't need to close the channel
 	// https://stackoverflow.com/questions/8593645/is-it-ok-to-leave-a-channel-open
@@ -29,6 +29,10 @@ func (s *subscriber) Listen(ctx context.Context, ch chan<- Signal) {
 		// select await both of these values simultaneously, executing each one as it arrives.
 		select {
 		case <-ctx.Done():
+			// It's OK to leave a Go channel open forever and never close it.
+			// When the channel is no longer used, it will be garbage collected.
+			// But "Closing the channel is a control signal on the channel indicating that no more data follows."
+			close(ch)
 			return
 		case msg := <-s.notification:
 			ch <- msg // write only channel chan<-

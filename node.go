@@ -1,7 +1,5 @@
-//Copyright (c) 2022, Geolffrey Mena <gmjun2000@gmail.com>
-
-// P2P Noise Library.
-// Please read more about [Noise Protocol].
+// Package noise implements the Noise Protocol for peer-to-peer communication.
+// For more information about the Noise Protocol, please visit: [Noise Protocol].
 //
 // [Noise Protocol]: http://www.noiseprotocol.org/noise.html
 package noise
@@ -16,7 +14,7 @@ import (
 	"github.com/oxtoacart/bpool"
 )
 
-// futureDeadline calculate a new time for deadline since now.
+// futureDeadline calculate and return a new time for deadline since now.
 func futureDeadLine(deadline time.Duration) time.Time {
 	if deadline == 0 {
 		// deadline 0 = no deadline
@@ -47,6 +45,8 @@ type Config interface {
 	KeepAlive() time.Duration
 }
 
+// Node represents a network node capable of handling connections,
+// routing messages, and managing configurations.
 type Node struct {
 	// Bound local network listener.
 	listener net.Listener
@@ -76,11 +76,14 @@ func New(config Config) *Node {
 	}
 }
 
-// Signals proxy channels to subscriber.
-// The listening routine should be stopped using returned cancel func.
+// Signals initiates the signaling process to proxy channels to subscribers.
+// It returns a channel of type Signal to intercept events and a cancel function to stop the listening routine.
+// The channel is closed during the cancellation of listening.
 func (n *Node) Signals() (<-chan Signal, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
+	// this channel is closed during listening cancellation
 	ch := make(chan Signal)
+	// forward signals to internal events signaling
 	go n.events.Listen(ctx, ch)
 	return ch, cancel // read only channel for raw messages
 }
@@ -95,14 +98,16 @@ func (n *Node) Disconnect() {
 	}
 }
 
-// Send emit a new message using peer id.
-// If peer id doesn't exists or peer is not connected return error.
-// Calling Send extends write deadline.
+// Send emits a new message using a peer ID.
+// It returns the total bytes sent if there is no error; otherwise, it returns 0.
+// If the peer ID doesn't exist or the peer is not connected, it returns an error.
+// Calling Send extends the write deadline.
 func (n *Node) Send(rawID string, message []byte) (uint32, error) {
 	id := newIDFromString(rawID)
 	// Check if id exists in connected peers
-	peer := n.router.Query(id)
-	if peer == nil {
+	// check in-band error
+	peer, ok := n.router.Query(id)
+	if !ok {
 		err := fmt.Errorf("remote peer disconnected: %s", id.String())
 		return 0, errSendingMessage(err)
 	}
@@ -115,9 +120,9 @@ func (n *Node) Send(rawID string, message []byte) (uint32, error) {
 	return bytes, err
 }
 
-// watch keep running waiting for incoming messages.
-// After every new message the connection is verified, if local connection is closed or remote peer is disconnected the routine is stopped.
-// Incoming message monitor is suggested to be processed in go routines.
+// watch keeps running, waiting for incoming messages.
+// After receiving each new message, the connection is verified. If the local connection is closed or the remote peer is disconnected, the routine stops.
+// It is suggested to process incoming messages in separate goroutines.
 func (n *Node) watch(peer *peer) {
 
 KEEPALIVE:
@@ -153,7 +158,9 @@ KEEPALIVE:
 
 }
 
-// setupTCPConnection configure TCP connection behavior.
+// setupTCPConnection configures the behavior of a TCP connection.
+// It takes a net.TCPConn connection and modifies its settings according to the Node configuration.
+// If any of the configurations cannot be fulfilled, it returns an error.
 func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 	// If tcp enforce keep alive connection.
 	// SetKeepAlive sets whether the operating system should send keep-alive messages on the connection.
@@ -171,11 +178,10 @@ func (n *Node) setupTCPConnection(conn *net.TCPConn) error {
 	return nil
 }
 
-// handshake starts a new handshake for incoming or dialed connection.
-// After handshake completes a new session is created and a new peer is created to be added to router.
-// Marshaling data to/from on the network path as a "chain of responsibility".
-// If TCP protocol is used connection is enforced to keep alive.
-// Return err if max peers connected exceed MaxPeerConnected otherwise return nil.
+// handshake initiates a new handshake for an incoming or dialed connection.
+// After the handshake completes, a new session is created, and a new peer is added to the router.
+// If the TCP protocol is used, the connection is enforced to keep alive.
+// Returns an error if the maximum number of connected peers exceeds MaxPeersConnected; otherwise, returns nil.
 func (n *Node) handshake(conn net.Conn, initialize bool) error {
 
 	// Assertion for tcp connection to keep alive
@@ -223,8 +229,8 @@ func (n *Node) handshake(conn net.Conn, initialize bool) error {
 	return nil
 }
 
-// routing initialize route in routing table from session.
-// Return the recent added peer.
+// routing initializes a route in the routing table from a session.
+// It returns the recently added peer.
 func (n *Node) routing(conn *session) *peer {
 	// Initial deadline for connection.
 	// A deadline is an absolute time after which I/O operations
@@ -295,17 +301,21 @@ func (n *Node) Close() error {
 
 	// close peer connections
 	go n.Disconnect()
-	// stop listener
+
+	// stop listener for listening node only
+	if n.listener == nil {
+		return nil
+	}
+
 	if err := n.listener.Close(); err != nil {
 		return err
 	}
 
-	// runtime.GC()
 	return nil
 }
 
-// Dial attempt to connect to remote node and add connected peer to routing table.
-// Return error if error occurred while dialing node.
+// Dial attempts to connect to a remote node and adds the connected peer to the routing table.
+// It returns an error if an error occurred while dialing the node.
 func (n *Node) Dial(addr string) error {
 	protocol := n.config.Protocol()   // eg. tcp
 	timeout := n.config.DialTimeout() // max time waiting for dial.
