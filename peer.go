@@ -18,9 +18,6 @@ type packet struct {
 	Msg []byte // 24 byte Digest
 }
 
-// TODO Usar pipeline -> compress, cypher and sign?
-// https://go.dev/blog/pipelines
-
 // TODO Establecer de manera dinámica el send buffer y receiver buffer en el peer y no en el nodo, de modo que se pued la establecerlo usando las métricas
 // https://community.f5.com/t5/technical-articles/the-tcp-send-buffer-in-depth/ta-p/290760
 

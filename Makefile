@@ -81,9 +81,6 @@ preview-doc:
 build:
 	@go build -v ./...
 
-imports:
-	@goimport
-
 .PHONY: format ## automatically formats Go source cod
 format: 
 	@go fmt ./...
