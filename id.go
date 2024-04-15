@@ -1,7 +1,6 @@
 package noise
 
 import (
-	"reflect"
 	"unsafe"
 )
 
@@ -21,14 +20,16 @@ func (i ID) String() string {
 }
 
 // newIDFromString creates a new ID from string.
-// ref: https://stackoverflow.com/questions/59209493/how-to-use-unsafe-get-a-byte-slice-from-a-string-without-memory-copy
 // ref: https://go.dev/ref/spec#Conversions
+// https://pkg.go.dev/unsafe#Pointer
 func newIDFromString(s string) ID {
 	// "no-copy" convert to ID from string.
 	// If the type starts with the operator * or <-, it must be parenthesized when necessary to avoid ambiguity.
-	return *(*ID)(unsafe.Pointer(
-		(*reflect.StringHeader)(unsafe.Pointer(&s)).Data),
-	)
+	// 1- unsafe.Pointer(&s) <- create a pointer from string address
+	// 2- (*ID)(unsafe.Pointer(&s)) <- cast the pointer to *ID pointer
+	// 3 - *(*ID)(unsafe.Pointer(&s)) <- get the value in memory address
+	// TODO could by replaced by unsafe.StringData(s) in go >=1.20
+	return *(*ID)(unsafe.Pointer(&s))
 }
 
 // newBlake2ID creates a new id blake2 hash based.
