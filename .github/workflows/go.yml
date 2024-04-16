@@ -21,7 +21,7 @@ jobs:
         run: make test
 
       - name: Check
-        run: make code-check
+        run: make check
 
       # - name: Benchmark
       #   run: make benchmark
