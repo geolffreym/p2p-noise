@@ -8,8 +8,7 @@ import (
 // byteToString convert an array of bytes to a string with no-copy strategy.
 func bytesToString(b []byte) string {
 	// Optimizing space with ordered types.
-	// perf: no allocation/copy to convert to string.
-	// instead take the already existing byte slice to create a string struct.
+	// perf: no allocation/copy to convert to string instead take the already existing byte slice to create a string struct.
 	// WARNING: use this approach with caution and only if we are sure that the bytes slice is not gonna change.
 	return *(*string)(unsafe.Pointer(&b))
 }
