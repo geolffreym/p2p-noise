@@ -17,26 +17,6 @@ import (
 // phase 1: metrics for adaptive lookup
 // phase 2: compression using brotli vs gzip
 // phase 2 discovery module
-func traceMessageBetweenTwoPeers(nodeB *Node, expected string) bool {
-	ready := make(chan bool)
-
-	// Node B events channel
-	signalsB, cancel := nodeB.Signals()
-	for signalB := range signalsB {
-		if signalB.Type() == MessageReceived {
-			// When a new message is received:
-			// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
-			got := signalB.Payload()
-			cancel() // stop the signaling
-			return got == expected
-
-		}
-	}
-
-	close(ready)
-	// by default expected not message received as expected
-	return false
-}
 
 func matchExpectedLogs(expectedBehavior []string, t *testing.T, f func()) {
 	// store logs in buffer while the function run.
@@ -124,7 +104,6 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		nodeA := New(configurationA)
 		nodeB := New(configurationB)
 
-		go nodeA.Listen()
 		// then just close nodes
 		defer nodeA.Close()
 		defer nodeB.Close()
@@ -140,14 +119,13 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 }
 
 func TestPoolBufferSizeForMessageExchange(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
 	configurationA := config.New()
 	configurationB := config.New()
 
 	byteSize := 1 << 4
 	ready := make(chan bool)
-	b := make([]byte, byteSize)
 
+	b := make([]byte, byteSize)
 	rand.Read(b) // fill buffer with pseudorandom numbers
 	expected := string(b)
 	configurationA.Write(config.SetPoolBufferSize(byteSize))
@@ -156,10 +134,8 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 	nodeA := New(configurationA)
 	nodeB := New(configurationB)
 
-	go nodeB.Listen()
 	go nodeA.Listen()
 	defer nodeA.Close()
-	defer nodeB.Close()
 
 	// Lets send a message from A to B and see
 	// if we receive the expected decrypted message
@@ -170,12 +146,11 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 			switch signalA.Type() {
 			case SelfListening:
 				ready <- true
-			case NewPeerDetected:
-				// send a message to node b after handshake ready
-				id := signalA.Payload() // here we receive the remote peer id
-				// Start interaction with remote peer
-				// Underneath the message is encrypted and signed with local Private Key before send.
-				nodeA.Send(id, []byte(expected))
+			case MessageReceived:
+				// mirror message
+				signalA.Reply([]byte(signalA.Payload()))
+				return
+
 			}
 		}
 	}(nodeA)
@@ -187,9 +162,15 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 	signalsB, cancel := nodeB.Signals()
 
 	for signalB := range signalsB {
-		if signalB.Type() == MessageReceived {
-			// When a new message is received:
-			// Underneath the message is verified with remote PublicKey and decrypted with DH SharedKey.
+		switch signalB.Type() {
+		case NewPeerDetected:
+			// send a message to node a after handshake ready
+			id := signalB.Payload() // here we receive the remote peer id
+			// Start interaction with remote peer
+			// Underneath the message is encrypted and signed with local Private Key before send.
+			nodeB.Send(id, []byte(expected))
+			return
+		case MessageReceived:
 			got := signalB.Payload()
 			cancel() // stop the signaling
 
@@ -258,7 +239,6 @@ func BenchmarkHandshake(b *testing.B) {
 	)
 
 	nodeA := New(configurationA)
-	go nodeA.Listen()
 	defer nodeA.Close()
 
 	<-whenReadyForIncomingDial(nodeA)
