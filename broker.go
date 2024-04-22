@@ -66,8 +66,8 @@ type broker struct {
 	topics topics // topic subscriptions
 }
 
-func newBroker() *broker {
-	return &broker{make(topics)}
+func newBroker(size int) *broker {
+	return &broker{make(topics, size)}
 }
 
 // Register associate subscriber to broker topics.

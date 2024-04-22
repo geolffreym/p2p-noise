@@ -35,7 +35,10 @@ type events struct {
 
 func newEvents() *events {
 	subscriber := newSubscriber()
-	broker := newBroker()
+	// !IMPORTANT if new events are added the size should be equal to new events number.
+	// we need only 4 spaces one for each event, adding this avoids potential map growth.
+	// https://100go.co/#inefficient-map-initialization-27
+	broker := newBroker(4)
 	// register default events
 	broker.Register(NewPeerDetected, subscriber)
 	broker.Register(MessageReceived, subscriber)
