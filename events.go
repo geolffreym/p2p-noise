@@ -5,16 +5,13 @@ import (
 	"unsafe"
 )
 
-// byteToString convert an array of bytes to a string with no-copy strategy.
-func bytesToString(b []byte) string {
-	// Optimizing space with ordered types.
-	// perf: no allocation/copy to convert to string instead take the already existing byte slice to create a string struct.
-	// WARNING: use this approach with caution and only if we are sure that the bytes slice is not gonna change.
-	return *(*string)(unsafe.Pointer(&b))
-}
 
 // [Event] aliases for int type.
 type Event uint8
+
+// eventsCount is the max number of allowed events
+// use this value to delimitate the max number of entries in broker events map
+const eventsCount int = 4
 
 const (
 	// Event to notify when a new peer get connected
@@ -27,6 +24,15 @@ const (
 	SelfListening
 )
 
+// byteToString convert an array of bytes to a string with no-copy strategy.
+func bytesToString(b []byte) string {
+	// Optimizing space with ordered types.
+	// perf: no allocation/copy to convert to string instead take the already existing byte slice to create a string struct.
+	// WARNING: use this approach with caution and only if we are sure that the bytes slice is not gonna change.
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+
 // events handle event exchange between [Node] and network.
 type events struct {
 	broker     *broker
@@ -38,7 +44,7 @@ func newEvents() *events {
 	// !IMPORTANT if new events are added the size should be equal to new events number.
 	// we need only 4 spaces one for each event, adding this avoids potential map growth.
 	// https://100go.co/#inefficient-map-initialization-27
-	broker := newBroker(4)
+	broker := newBroker(eventsCount)
 	// register default events
 	broker.Register(NewPeerDetected, subscriber)
 	broker.Register(MessageReceived, subscriber)
@@ -51,9 +57,14 @@ func newEvents() *events {
 	}
 }
 
-// Listen forward to Listen method to internal subscriber.
+// Listen forwards to the internal Listen subscriber method.
 func (e *events) Listen(ctx context.Context, ch chan<- Signal) {
 	e.subscriber.Listen(ctx, ch)
+}
+
+// Clear forwards to the internal Clear broker method.
+func (e *events) Clear() {
+	e.broker.Clear()
 }
 
 // PeerConnected dispatch event when new peer is detected.

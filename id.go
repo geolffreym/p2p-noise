@@ -27,8 +27,7 @@ func newIDFromString(s string) ID {
 	// If the type starts with the operator * or <-, it must be parenthesized when necessary to avoid ambiguity.
 	// 1- unsafe.Pointer(&s) <- create a pointer from string address
 	// 2- (*ID)(unsafe.Pointer(&s)) <- cast the pointer to *ID pointer
-	// 3 - *(*ID)(unsafe.Pointer(&s)) <- get the value in memory address
-	// TODO could by replaced by unsafe.StringData(s) in go >=1.20
+	// 3- *(*ID)(unsafe.Pointer(&s)) <- get the value from memory address
 	return *(*ID)(unsafe.Pointer(&s))
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 func TestRegister(t *testing.T) {
-	event := newBroker(4)
+	event := newBroker(eventsCount)
 	subscriber := newSubscriber()
 	event.Register(NewPeerDetected, subscriber)
 	event.Register(PeerDisconnected, subscriber)
@@ -47,7 +47,7 @@ func TestRegister(t *testing.T) {
 }
 
 func TestUnregister(t *testing.T) {
-	broker := newBroker(4)
+	broker := newBroker(eventsCount)
 	subscriber := newSubscriber()
 	broker.Register(MessageReceived, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
@@ -61,7 +61,7 @@ func TestUnregister(t *testing.T) {
 }
 
 func TestUnregisterExpectedLen(t *testing.T) {
-	broker := newBroker(4)
+	broker := newBroker(eventsCount)
 	subscriber := newSubscriber()
 	broker.Register(MessageReceived, subscriber)
 	broker.Register(NewPeerDetected, subscriber)
@@ -75,7 +75,7 @@ func TestUnregisterExpectedLen(t *testing.T) {
 }
 
 func TestInvalidUnregister(t *testing.T) {
-	broker := newBroker(4)
+	broker := newBroker(eventsCount)
 	subscriber := newSubscriber()
 	// Remove self listening from broker events
 	success := broker.Unregister(MessageReceived, subscriber)
@@ -172,7 +172,7 @@ func TestTopicRemoveInvalid(t *testing.T) {
 func TestPublish(t *testing.T) {
 	var result Signal
 	subscriber := newSubscriber()
-	broker := newBroker(4)
+	broker := newBroker(eventsCount)
 
 	session := mockSession(&mockConn{}, PeerAPb)
 	header1 := header{newPeer(session), NewPeerDetected}
@@ -212,7 +212,7 @@ func TestPublish(t *testing.T) {
 }
 
 func TestInvalidPublish(t *testing.T) {
-	broker := newBroker(4)
+	broker := newBroker(eventsCount)
 	session := mockSession(&mockConn{}, PeerAPb)
 	header1 := header{newPeer(session), NewPeerDetected}
 	signaling := Signal{header1, ""}

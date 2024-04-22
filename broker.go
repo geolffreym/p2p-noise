@@ -70,6 +70,11 @@ func newBroker(size int) *broker {
 	return &broker{make(topics, size)}
 }
 
+// Clear removes all registered events
+func (b *broker) Clear() {
+	clear(b.topics)
+}
+
 // Register associate subscriber to broker topics.
 // It return new registered subscriber.
 func (b *broker) Register(e Event, s *subscriber) {
@@ -85,6 +90,7 @@ func (b *broker) Unregister(e Event, s *subscriber) bool {
 // Publish Emit/send concurrently messages to topic subscribers
 // It return number of subscribers notified.
 func (b *broker) Publish(msg Signal) uint8 {
+
 	// Check if topic is registered before try to emit messages to subscribers.
 	topic := b.topics.Get(msg.Type())
 	if topic == nil {

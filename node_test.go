@@ -104,15 +104,15 @@ func TestTwoNodesHandshakeTrace(t *testing.T) {
 		nodeA := New(configurationA)
 		nodeB := New(configurationB)
 
-		// then just close nodes
-		defer nodeA.Close()
-		defer nodeB.Close()
-
 		// wait until node is listening to start dialing
 		<-whenReadyForIncomingDial(nodeA)
 
 		// Just dial to start handshake and close.
 		nodeB.Dial(nodeASocket) // wait until handshake is done
+
+		// then just close nodes
+		nodeA.Close()
+		nodeB.Close()
 
 	})
 
@@ -128,6 +128,7 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 	b := make([]byte, byteSize)
 	rand.Read(b) // fill buffer with pseudorandom numbers
 	expected := string(b)
+
 	configurationA.Write(config.SetPoolBufferSize(byteSize))
 	configurationB.Write(config.SetPoolBufferSize(byteSize))
 
@@ -135,8 +136,6 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 	nodeB := New(configurationB)
 
 	go nodeA.Listen()
-	defer nodeA.Close()
-
 	// Lets send a message from A to B and see
 	// if we receive the expected decrypted message
 	go func(node *Node) {
@@ -180,6 +179,9 @@ func TestPoolBufferSizeForMessageExchange(t *testing.T) {
 
 		}
 	}
+
+	nodeA.Close()
+	nodeB.Close()
 
 }
 
