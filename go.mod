@@ -1,6 +1,6 @@
 module github.com/geolffreym/p2p-noise
 
-go 1.19
+go 1.22
 
 require (
 	github.com/flynn/noise v1.0.0
